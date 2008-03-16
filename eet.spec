@@ -2,7 +2,7 @@
 
 Summary: Library for speedy data storage, retrieval, and compression.
 Name: eet
-Version: 0.9.10.041
+Version: 0.9.10.042
 Release: 0.%(date '+%Y%m%d')
 License: BSD
 Group: System Environment/Libraries
@@ -64,7 +64,7 @@ test "x$RPM_BUILD_ROOT" != "x/" && rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(-, root, root)
-%{_bindir}/eet-config
+%{_bindir}/eet*
 %{_libdir}/pkgconfig/*
 %{_includedir}/*
 %{_libdir}/*.a

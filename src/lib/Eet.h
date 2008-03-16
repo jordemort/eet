@@ -38,7 +38,7 @@ extern "C" {
 
 /***************************************************************************/
 
-#define EET_T_UNKNOW     0 /**< Unknown data encding type */
+#define EET_T_UNKNOW     0 /**< Unknown data encoding type */
 #define EET_T_CHAR       1 /**< Data type: char */
 #define EET_T_SHORT      2 /**< Data type: short */
 #define EET_T_INT        3 /**< Data type: int */
@@ -87,7 +87,7 @@ extern "C" {
    typedef struct _Eet_Data_Descriptor       Eet_Data_Descriptor;
 
    typedef struct _Eet_Data_Descriptor_Class Eet_Data_Descriptor_Class;
-   
+
 #define EET_DATA_DESCRIPTOR_CLASS_VERSION 1
    struct _Eet_Data_Descriptor_Class
      {
@@ -108,7 +108,7 @@ extern "C" {
 	   void    (*hash_free) (void *h);
 	} func;
      };
-   
+
 /***************************************************************************/
 
    /**
@@ -137,7 +137,7 @@ extern "C" {
    /**
     * Open an eet file on disk, and returns a handle to it.
     * @param file The file path to the eet file. eg: "/tmp/file.eet".
-    * @param mode The mode for opening. Either EET_FILE_MODE_READ or EET_FILE_MODE_WRITE, but not both.
+    * @param mode The mode for opening. Either EET_FILE_MODE_READ, EET_FILE_MODE_WRITE or EET_FILE_MODE_READ_WRITE.
     * @return An opened eet file handle.
     *
     * This function will open an exiting eet file for reading, and build
@@ -149,6 +149,10 @@ extern "C" {
     * delete the original file and replace it with a new empty file, till
     * the eet file handle is closed or flushed. If it cannot be opened for
     * writing or a memory error occurs, NULL is returned.
+    *
+    * You can also open the file for read/write. If you then write a key that
+    * does not exist it will be created, if the key exists it will be replaced
+    * by the new data.
     *
     * Example:
     * @code
@@ -249,7 +253,7 @@ extern "C" {
     * If the eet file handle is not valid NULL is returned and size_ret is
     * filled with 0.
     */
-   EAPI void	 *eet_read_direct  (Eet_File *ef, const char *name, int *size_ret);
+   EAPI const void *eet_read_direct(Eet_File *ef, const char *name, int *size_ret);
 
    /**
     * Write a specified entry to an eet file handle
@@ -707,12 +711,12 @@ extern "C" {
    EAPI Eet_Data_Descriptor *eet_data_descriptor_new(const char *name, int size, void *(*func_list_next) (void *l), void *(*func_list_append) (void *l, void *d), void *(*func_list_data) (void *l), void *(*func_list_free) (void *l), void  (*func_hash_foreach) (void *h, int (*func) (void *h, const char *k, void *dt, void *fdt), void *fdt), void *(*func_hash_add) (void *h, const char *k, void *d), void  (*func_hash_free) (void *h));
    /*
     * FIXME:
-    * 
+    *
     * moving to this api from the old above. this will break things when the
     * move happens - but be warned
     */
    EAPI Eet_Data_Descriptor *eet_data_descriptor2_new(Eet_Data_Descriptor_Class *eddc);
-       
+
    /**
     * This function frees a data descriptor when it is not needed anymore.
     * @param edd The data descriptor to free.
@@ -774,6 +778,65 @@ extern "C" {
     *
     */
    EAPI int eet_data_write(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name, const void *data, int compress);
+
+   /**
+    * Dump an eet encoded data structure into ascii text
+    * @param data_in The pointer to the data to decode into a struct.
+    * @param size_in The size of the data pointed to in bytes.
+    * @param dumpfunc The function to call passed a string when new data is converted to text
+    * @param dumpdata The data to pass to the @p dumpfunc callback.
+    * @return 1 on success, 0 on failure
+    *
+    * This function will take a chunk of data encoded by
+    * eet_data_descriptor_encode() and convert it into human readable ascii text.
+    * It does this by calling the @p dumpfunc callback for all new text that is
+    * generated. This callback should append to any existing text buffer and
+    * will be passed the pointer @p dumpdata as a parameter as well as a string
+    * with new text to be appended.
+    *
+    * Example:
+    *
+    * @code
+    *
+    * void output(void *data, const char *string)
+    * {
+    *   printf("%s", string);
+    * }
+    *
+    * void dump(const char *file)
+    * {
+    *   FILE *f;
+    *   int len;
+    *   void *data;
+    *
+    *   f = fopen(file, "r");
+    *   fseek(f, 0, SEEK_END);
+    *   len = ftell(f);
+    *   rewind(f);
+    *   data = malloc(len);
+    *   fread(data, len, 1, f);
+    *   fclose(f);
+    *   eet_data_text_dump(data, len, output, NULL);
+    * }
+    * @endcode
+    *
+    */
+   EAPI int eet_data_text_dump(const void *data_in, int size_in, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
+
+   /**
+    * Take an ascii encoding from eet_data_text_dump() and re-encode in binary.
+    * @param text The pointer to the string data to parse and encode.
+    * @param textlen The size of the string in bytes (not including 0 byte terminator).
+    * @param size_ret This gets filled in with the encoded data blob size in bytes.
+    * @return The encoded data on success, NULL on failure.
+    *
+    * This function will parse the string pointed to by @p text and return
+    * an encoded data lump the same way eet_data_descriptor_encode() takes an
+    * in-memory data struct and encodes into a binary blob. @p text is a normal
+    * C string.
+    *
+    */
+   EAPI void *eet_data_text_undump(const char *text, int textlen, int *size_ret);
 
    /**
     * Decode a data structure from an arbitary location in memory.
