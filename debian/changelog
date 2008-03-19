@@ -1,3 +1,9 @@
+eet (0.9.10.042-2) UNRELEASED; urgency=low
+
+  * libeet-dev depends on libjpeg62-dev for static linking
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Wed, 19 Mar 2008 23:09:45 +0100
+
 eet (0.9.10.042-1) experimental; urgency=low
 
   * Initial release (Closes: #461950)

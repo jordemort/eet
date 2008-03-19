@@ -13,7 +13,7 @@ Homepage: http://www.enlightenment.org
 Package: libeet-dev
 Section: libdevel
 Architecture: any
-Depends: libeet0 (= ${binary:Version}), pkg-config
+Depends: libeet0 (= ${binary:Version}), libjpeg62-dev, pkg-config
 Recommends: libeet-doc
 Description: Enlightenment DR17 file chunk reading/writing library development files
  Eet is a tiny library designed to write an arbitary set of chunks of data to a
