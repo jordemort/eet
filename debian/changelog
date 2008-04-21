@@ -1,10 +1,15 @@
 eet (1.0.0-1) unstable; urgency=low
 
-  * New upstream release
+  [ Albin Tonnerre ]
   * libeet-dev depends on libjpeg62-dev for static linking
+  * Handle soname change
   * Upload to unstable
 
- -- Albin Tonnerre <albin.tonnerre@gmail.com>  Mon, 21 Apr 2008 11:13:28 +0200
+  [ Jan Lübbe ]
+  * New upstream release
+  * Do not remove the documentation shipped in the tarball
+
+ -- Jan Lübbe <jluebbe@debian.org>  Mon, 21 Apr 2008 11:32:41 +0200
 
 eet (0.9.10.042-1) experimental; urgency=low
 
