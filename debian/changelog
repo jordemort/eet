@@ -1,8 +1,9 @@
-eet (0.9.10.042-2) UNRELEASED; urgency=low
+eet (1.0.0-1) UNRELEASED; urgency=low
 
+  * New upstream release
   * libeet-dev depends on libjpeg62-dev for static linking
 
- -- Albin Tonnerre <albin.tonnerre@gmail.com>  Wed, 19 Mar 2008 23:09:45 +0100
+ -- Jan Lübbe <jluebbe@debian.org>  Mon, 21 Apr 2008 11:02:37 +0200
 
 eet (0.9.10.042-1) experimental; urgency=low
 
