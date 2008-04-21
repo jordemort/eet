@@ -1,0 +1,1411 @@
+.TH "Eet.h" 3 "1 Apr 2008" "Eet" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Eet.h \- 
+.SH SYNOPSIS
+.br
+.PP
+.SS "Defines"
+
+.in +1c
+.ti -1c
+.RI "#define \fBEET_T_UNKNOW\fP   0"
+.br
+.RI "\fIUnknown data encoding type. \fP"
+.ti -1c
+.RI "#define \fBEET_T_CHAR\fP   1"
+.br
+.RI "\fIData type: char. \fP"
+.ti -1c
+.RI "#define \fBEET_T_SHORT\fP   2"
+.br
+.RI "\fIData type: short. \fP"
+.ti -1c
+.RI "#define \fBEET_T_INT\fP   3"
+.br
+.RI "\fIData type: int. \fP"
+.ti -1c
+.RI "#define \fBEET_T_LONG_LONG\fP   4"
+.br
+.RI "\fIData type: long long. \fP"
+.ti -1c
+.RI "#define \fBEET_T_FLOAT\fP   5"
+.br
+.RI "\fIData type: float. \fP"
+.ti -1c
+.RI "#define \fBEET_T_DOUBLE\fP   6"
+.br
+.RI "\fIData type: double. \fP"
+.ti -1c
+.RI "#define \fBEET_T_UCHAR\fP   7"
+.br
+.RI "\fIData type: unsigned char. \fP"
+.ti -1c
+.RI "#define \fBEET_T_USHORT\fP   8"
+.br
+.RI "\fIData type: unsigned short. \fP"
+.ti -1c
+.RI "#define \fBEET_T_UINT\fP   9"
+.br
+.RI "\fIData type: unsigned int. \fP"
+.ti -1c
+.RI "#define \fBEET_T_ULONG_LONG\fP   10"
+.br
+.RI "\fIData type: unsigned long long. \fP"
+.ti -1c
+.RI "#define \fBEET_T_STRING\fP   11"
+.br
+.RI "\fIData type: char *. \fP"
+.ti -1c
+.RI "#define \fBEET_T_INLINED_STRING\fP   12"
+.br
+.RI "\fIData type: char * (but compressed inside the resulting eet). \fP"
+.ti -1c
+.RI "#define \fBEET_T_LAST\fP   13"
+.br
+.RI "\fILast data type. \fP"
+.ti -1c
+.RI "#define \fBEET_G_UNKNOWN\fP   100"
+.br
+.RI "\fIUnknown group data encoding type. \fP"
+.ti -1c
+.RI "#define \fBEET_G_ARRAY\fP   101"
+.br
+.RI "\fIFixed size array group type. \fP"
+.ti -1c
+.RI "#define \fBEET_G_VAR_ARRAY\fP   102"
+.br
+.RI "\fIVariable size array group type. \fP"
+.ti -1c
+.RI "#define \fBEET_G_LIST\fP   103"
+.br
+.RI "\fILinked list group type. \fP"
+.ti -1c
+.RI "#define \fBEET_G_HASH\fP   104"
+.br
+.RI "\fIHash table group type. \fP"
+.ti -1c
+.RI "#define \fBEET_G_LAST\fP   105"
+.br
+.RI "\fILast group type. \fP"
+.ti -1c
+.RI "#define \fBEET_DATA_DESCRIPTOR_ADD_BASIC\fP(edd, struct_type, name, member, type)"
+.br
+.RI "\fIAdd a basic data element to a data descriptor. \fP"
+.ti -1c
+.RI "#define \fBEET_DATA_DESCRIPTOR_ADD_SUB\fP(edd, struct_type, name, member, subtype)"
+.br
+.RI "\fIAdd a sub-element type to a data descriptor. \fP"
+.ti -1c
+.RI "#define \fBEET_DATA_DESCRIPTOR_ADD_LIST\fP(edd, struct_type, name, member, subtype)"
+.br
+.RI "\fIAdd a linked list type to a data descriptor. \fP"
+.ti -1c
+.RI "#define \fBEET_DATA_DESCRIPTOR_ADD_HASH\fP(edd, struct_type, name, member, subtype)"
+.br
+.RI "\fIAdd a hash type to a data descriptor. \fP"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "EAPI int \fBeet_init\fP (void)"
+.br
+.RI "\fIInitialize the EET library. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_shutdown\fP (void)"
+.br
+.RI "\fIShut down the EET library. \fP"
+.ti -1c
+.RI "EAPI void \fBeet_clearcache\fP (void)"
+.br
+.RI "\fIClear eet cache. \fP"
+.ti -1c
+.RI "EAPI Eet_File * \fBeet_open\fP (const char *file, Eet_File_Mode mode)"
+.br
+.RI "\fIOpen an eet file on disk, and returns a handle to it. \fP"
+.ti -1c
+.RI "EAPI Eet_File_Mode \fBeet_mode_get\fP (Eet_File *ef)"
+.br
+.RI "\fIGet the mode an Eet_File was opened with. \fP"
+.ti -1c
+.RI "EAPI Eet_Error \fBeet_close\fP (Eet_File *ef)"
+.br
+.RI "\fIClose an eet file handle and flush and writes pending. \fP"
+.ti -1c
+.RI "EAPI Eet_Dictionary * \fBeet_dictionary_get\fP (Eet_File *ef)"
+.br
+.RI "\fIReturn a handle to the shared string dictionary of the Eet file. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_dictionary_string_check\fP (Eet_Dictionary *ed, const char *string)"
+.br
+.RI "\fICheck if a given string comes from a given dictionary. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_read\fP (Eet_File *ef, const char *name, int *size_ret)"
+.br
+.RI "\fIRead a specified entry from an eet file and return data. \fP"
+.ti -1c
+.RI "EAPI const void * \fBeet_read_direct\fP (Eet_File *ef, const char *name, int *size_ret)"
+.br
+.RI "\fIRead a specified entry from an eet file and return data. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_write\fP (Eet_File *ef, const char *name, const void *data, int size, int compress)"
+.br
+.RI "\fIWrite a specified entry to an eet file handle. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_delete\fP (Eet_File *ef, const char *name)"
+.br
+.RI "\fIDelete a specified entry from an Eet file being written or re-written. \fP"
+.ti -1c
+.RI "EAPI char ** \fBeet_list\fP (Eet_File *ef, const char *glob, int *count_ret)"
+.br
+.RI "\fIList all entries in eet file matching shell glob. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_num_entries\fP (Eet_File *ef)"
+.br
+.RI "\fIReturn the number of entries in the specified eet file. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_image_header_read\fP (Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)"
+.br
+.RI "\fIRead just the header data for an image and dont decode the pixels. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_image_read\fP (Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)"
+.br
+.RI "\fIRead image data from the named key in the eet file. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_image_write\fP (Eet_File *ef, const char *name, const void *data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)"
+.br
+.RI "\fIWrite image data to the named key in an eet file. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_image_header_decode\fP (const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)"
+.br
+.RI "\fIDecode Image data header only to get information. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_image_decode\fP (const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)"
+.br
+.RI "\fIDecode Image data into pixel data. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_image_encode\fP (const void *data, int *size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)"
+.br
+.RI "\fIEncode image data for storage or transmission. \fP"
+.ti -1c
+.RI "EAPI Eet_Data_Descriptor * \fBeet_data_descriptor_new\fP (const char *name, int size, void *(*func_list_next)(void *l), void *(*func_list_append)(void *l, void *d), void *(*func_list_data)(void *l), void *(*func_list_free)(void *l), void(*func_hash_foreach)(void *h, int(*func)(void *h, const char *k, void *dt, void *fdt), void *fdt), void *(*func_hash_add)(void *h, const char *k, void *d), void(*func_hash_free)(void *h))"
+.br
+.RI "\fICreate a new empty data structure descriptor. \fP"
+.ti -1c
+.RI "EAPI void \fBeet_data_descriptor_free\fP (Eet_Data_Descriptor *edd)"
+.br
+.RI "\fIThis function frees a data descriptor when it is not needed anymore. \fP"
+.ti -1c
+.RI "EAPI void \fBeet_data_descriptor_element_add\fP (Eet_Data_Descriptor *edd, const char *name, int type, int group_type, int offset, int count, const char *counter_name, Eet_Data_Descriptor *subtype)"
+.br
+.RI "\fIThis function is an internal used by macros. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_read\fP (Eet_File *ef, Eet_Data_Descriptor *edd, const char *name)"
+.br
+.RI "\fIRead a data structure from an eet file and decodes it. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_write\fP (Eet_File *ef, Eet_Data_Descriptor *edd, const char *name, const void *data, int compress)"
+.br
+.RI "\fIWrite a data structure from memory and store in an eet file. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_text_dump\fP (const void *data_in, int size_in, void(*dumpfunc)(void *data, const char *str), void *dumpdata)"
+.br
+.RI "\fIDump an eet encoded data structure into ascii text. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_text_undump\fP (const char *text, int textlen, int *size_ret)"
+.br
+.RI "\fITake an ascii encoding from \fBeet_data_text_dump()\fP and re-encode in binary. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_descriptor_decode\fP (Eet_Data_Descriptor *edd, const void *data_in, int size_in)"
+.br
+.RI "\fIDecode a data structure from an arbitary location in memory. \fP"
+.ti -1c
+.RI "EAPI void * \fBeet_data_descriptor_encode\fP (Eet_Data_Descriptor *edd, const void *data_in, int *size_ret)"
+.br
+.RI "\fIEncode a dsata struct to memory and return that encoded data. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+The file that provides the eet functions.
+.PP
+This header provides the Eet management functions. 
+.SH "Define Documentation"
+.PP 
+.SS "#define EET_DATA_DESCRIPTOR_ADD_BASIC(edd, struct_type, name, member, type)"
+.PP
+\fBValue:\fP
+.PP
+.nf
+{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, type, EET_G_UNKNOWN, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          0, NULL, NULL); \
+     }
+.fi
+Add a basic data element to a data descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to add the type to. 
+.br
+\fIstruct_type\fP The type of the struct. 
+.br
+\fIname\fP The string name to use to encode/decode this member (must be a constant global and never change). 
+.br
+\fImember\fP The struct member itself to be encoded. 
+.br
+\fItype\fP The type of the member to encode.
+.RE
+.PP
+This macro is a convenience macro provided to add a member to the data descriptor \fCedd\fP. The type of the structure is provided as the \fCstruct_type\fP parameter (for example: struct my_struct). The \fCname\fP parameter defines a string that will be used to uniquely name that member of the struct (it is suggested to use the struct member itself). The \fCmember\fP parameter is the actual struct member itself (for eet_dictionary_string_check * example: values), and \fCtype\fP is the basic data type of the member which must be one of: EET_T_CHAR, EET_T_SHORT, EET_T_INT, EET_T_LONG_LONG, EET_T_FLOAT, EET_T_DOUBLE, EET_T_UCHAR, EET_T_USHORT, EET_T_UINT, EET_T_ULONG_LONG or EET_T_STRING.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "#define EET_DATA_DESCRIPTOR_ADD_HASH(edd, struct_type, name, member, subtype)"
+.PP
+\fBValue:\fP
+.PP
+.nf
+{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_HASH, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          0, NULL, subtype); \
+     }
+.fi
+Add a hash type to a data descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to add the type to. 
+.br
+\fIstruct_type\fP The type of the struct. 
+.br
+\fIname\fP The string name to use to encode/decode this member (must be a constant global and never change). 
+.br
+\fImember\fP The struct member itself to be encoded. 
+.br
+\fIsubtype\fP The type of hash member to add.
+.RE
+.PP
+This macro lets you easily add a hash of other data types. All the parameters are the same as for \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, with the \fCsubtype\fP being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "#define EET_DATA_DESCRIPTOR_ADD_LIST(edd, struct_type, name, member, subtype)"
+.PP
+\fBValue:\fP
+.PP
+.nf
+{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_LIST, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          0, NULL, subtype); \
+     }
+.fi
+Add a linked list type to a data descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to add the type to. 
+.br
+\fIstruct_type\fP The type of the struct. 
+.br
+\fIname\fP The string name to use to encode/decode this member (must be a constant global and never change). 
+.br
+\fImember\fP The struct member itself to be encoded. 
+.br
+\fIsubtype\fP The type of linked list member to add.
+.RE
+.PP
+This macro lets you easily add a linked list of other data types. All the parameters are the same as for \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, with the \fCsubtype\fP being the exception. This must be the data descriptor of the element that is in each member of the linked list to be stored.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "#define EET_DATA_DESCRIPTOR_ADD_SUB(edd, struct_type, name, member, subtype)"
+.PP
+\fBValue:\fP
+.PP
+.nf
+{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_UNKNOWN, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          0, NULL, subtype); \
+     }
+.fi
+Add a sub-element type to a data descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to add the type to. 
+.br
+\fIstruct_type\fP The type of the struct. 
+.br
+\fIname\fP The string name to use to encode/decode this member (must be a constant global and never change). 
+.br
+\fImember\fP The struct member itself to be encoded. 
+.br
+\fIsubtype\fP The type of sub-type struct to add.
+.RE
+.PP
+This macro lets you easily add a sub-type (a struct that's pointed to by this one). All the parameters are the same as for \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, with the \fCsubtype\fP being the exception. This must be the data descriptor of the struct that is pointed to by this element.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "EAPI void eet_clearcache (void)"
+.PP
+Clear eet cache. 
+.PP
+Eet didn't free items by default. If you are under memory presure, just call this function to recall all memory that are not yet referenced anymore. The cache take care of modification on disk.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_Error eet_close (Eet_File * ef)"
+.PP
+Close an eet file handle and flush and writes pending. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle.
+.RE
+.PP
+This function will flush any pending writes to disk if the eet file was opened for write, and free all data associated with the file handle and file, and close the file.
+.PP
+If the eet file handle is not valid nothing will be done.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_descriptor_decode (Eet_Data_Descriptor * edd, const void * data_in, int size_in)"
+.PP
+Decode a data structure from an arbitary location in memory. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to use when decoding. 
+.br
+\fIdata_in\fP The pointer to the data to decode into a struct. 
+.br
+\fIsize_in\fP The size of the data pointed to in bytes. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL on failure, or a valid decoded struct pointer on success.
+.RE
+.PP
+This function will decode a data structure that has been encoded using \fBeet_data_descriptor_encode()\fP, and return a data structure with all its elements filled out, if successful, or NULL on failure.
+.PP
+The data to be decoded is stored at the memory pointed to by \fCdata_in\fP, and is described by the descriptor pointed to by \fCedd\fP. The data size is passed in as the value to \fCsize_in\fP, ande must be greater than 0 to succeed.
+.PP
+This function is useful for decoding data structures delivered to the application by means other than an eet file, such as an IPC or socket connection, raw files, shared memory etc.
+.PP
+Please see \fBeet_data_read()\fP for more information.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void eet_data_descriptor_element_add (Eet_Data_Descriptor * edd, const char * name, int type, int group_type, int offset, int count, const char * counter_name, Eet_Data_Descriptor * subtype)"
+.PP
+This function is an internal used by macros. 
+.PP
+This function is used by macros \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, \fBEET_DATA_DESCRIPTOR_ADD_SUB()\fP and \fBEET_DATA_DESCRIPTOR_ADD_LIST()\fP. It is complex to use by hand and should be left to be used by the macros, and thus is not documented.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_descriptor_encode (Eet_Data_Descriptor * edd, const void * data_in, int * size_ret)"
+.PP
+Encode a dsata struct to memory and return that encoded data. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to use when encoding. 
+.br
+\fIdata_in\fP The pointer to the struct to encode into data. 
+.br
+\fIsize_ret\fP A pointer to the an int to be filled with the decoded size. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL on failure, or a valid encoded data chunk on success.
+.RE
+.PP
+This function takes a data structutre in memory and encodes it into a serialised chunk of data that can be decoded again by \fBeet_data_descriptor_decode()\fP. This is useful for being able to transmit data structures across sockets, pipes, IPC or shared file mechanisms, without having to worry about memory space, machine type, endianess etc.
+.PP
+The parameter \fCedd\fP must point to a valid data descriptor, and \fCdata_in\fP must point to the right data structure to encode. If not, the encoding may fail.
+.PP
+On success a non NULL valid pointer is returned and what \fCsize_ret\fP points to is set to the size of this decoded data, in bytes. When the encoded data is no longer needed, call free() on it. On failure NULL is returned and what \fCsize_ret\fP points to is set to 0.
+.PP
+Please see \fBeet_data_write()\fP for more information.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void eet_data_descriptor_free (Eet_Data_Descriptor * edd)"
+.PP
+This function frees a data descriptor when it is not needed anymore. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to free.
+.RE
+.PP
+This function takes a data descriptor handle as a parameter and frees all data allocated for the data descriptor and the handle itself. After this call the descriptor is no longer valid.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_Data_Descriptor* eet_data_descriptor_new (const char * name, int size, void *(*)(void *l) func_list_next, void *(*)(void *l, void *d) func_list_append, void *(*)(void *l) func_list_data, void *(*)(void *l) func_list_free, void(*)(void *h, int(*func)(void *h, const char *k, void *dt, void *fdt), void *fdt) func_hash_foreach, void *(*)(void *h, const char *k, void *d) func_hash_add, void(*)(void *h) func_hash_free)"
+.PP
+Create a new empty data structure descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIname\fP The string name of this data structure (most be a global constant and never change). 
+.br
+\fIsize\fP The size of the struct (in bytes). 
+.br
+\fIfunc_list_next\fP The function to get the next list node. 
+.br
+\fIfunc_list_append\fP The function to append a member to a list. 
+.br
+\fIfunc_list_data\fP The function to get the data from a list node. 
+.br
+\fIfunc_list_free\fP The function to free an entire linked list. 
+.br
+\fIfunc_hash_foreach\fP The function to iterate through all hash table entries. 
+.br
+\fIfunc_hash_add\fP The function to add a member to a hash table. 
+.br
+\fIfunc_hash_free\fP The function to free an entire hash table. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A new empty data descriptor.
+.RE
+.PP
+This function creates a new data descriptore and returns a handle to the new data descriptor. On creation it will be empty, containing no contents describing anything other than the shell of the data structure.
+.PP
+You add structure members to the data descriptor using the macros \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, \fBEET_DATA_DESCRIPTOR_ADD_SUB()\fP and \fBEET_DATA_DESCRIPTOR_ADD_LIST()\fP, depending on what type of member you are adding to the description.
+.PP
+Once you have described all the members of a struct you want loaded, or saved eet can load and save those members for you, encode them into endian-independant serialised data chunks for transmission across a a network or more.
+.PP
+Example:
+.PP
+.PP
+.nf
+ #include <Eet.h>
+ #include <Evas.h>
+
+ typedef struct _blah2
+ {
+    char *string;
+ }
+ Blah2;
+
+ typedef struct _blah3
+ {
+    char *string;
+ }
+ Blah3;
+
+ typedef struct _blah
+ {
+    char character;
+    short sixteen;
+    int integer;
+    long long lots;
+    float floating;
+    double floating_lots;
+    char *string;
+    Blah2 *blah2;
+    Evas_List *blah3;
+ }
+ Blah;
+
+ int
+ main(int argc, char **argv)
+ {
+    Blah blah;
+    Blah2 blah2;
+    Blah3 blah3;
+    Eet_Data_Descriptor *edd, *edd2, *edd3;
+    void *data;
+    int size;
+    FILE *f;
+    Blah *blah_in;
+
+    edd3 = eet_data_descriptor_new('blah3', sizeof(Blah3),
+                                   evas_list_next,
+                                   evas_list_append,
+                                   evas_list_data,
+                                   evas_list_free,
+                                   evas_hash_foreach,
+                                   evas_hash_add,
+                                   evas_hash_free);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd3, Blah3, 'string3', string, EET_T_STRING);
+
+    edd2 = eet_data_descriptor_new('blah2', sizeof(Blah2),
+                                   evas_list_next,
+                                   evas_list_append,
+                                   evas_list_data,
+                                   evas_list_free,
+                                   evas_hash_foreach,
+                                   evas_hash_add,
+                                   evas_hash_free);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd2, Blah2, 'string2', string, EET_T_STRING);
+
+    edd = eet_data_descriptor_new('blah', sizeof(Blah),
+                                   evas_list_next,
+                                   evas_list_append,
+                                   evas_list_data,
+                                   evas_list_free,
+                                   evas_hash_foreach,
+                                   evas_hash_add,
+                                   evas_hash_free);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'character', character, EET_T_CHAR);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'sixteen', sixteen, EET_T_SHORT);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'integer', integer, EET_T_INT);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'lots', lots, EET_T_LONG_LONG);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'floating', floating, EET_T_FLOAT);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'floating_lots', floating_lots, EET_T_DOUBLE);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, 'string', string, EET_T_STRING);
+    EET_DATA_DESCRIPTOR_ADD_SUB(edd, Blah, 'blah2', blah2, edd2);
+    EET_DATA_DESCRIPTOR_ADD_LIST(edd, Blah, 'blah3', blah3, edd3);
+
+    blah3.string='PANTS';
+
+    blah2.string='subtype string here!';
+
+    blah.character='7';
+    blah.sixteen=0x7777;
+    blah.integer=0xc0def00d;
+    blah.lots=0xdeadbeef31337777;
+    blah.floating=3.141592654;
+    blah.floating_lots=0.777777777777777;
+    blah.string='bite me like a turnip';
+    blah.blah2 = &blah2;
+    blah.blah3 = evas_list_append(NULL, &blah3);
+    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+
+    data = eet_data_descriptor_encode(edd, &blah, &size);
+    printf('-----DECODING\n');
+    blah_in = eet_data_descriptor_decode(edd, data, size);
+
+    printf('-----DECODED!\n');
+    printf('%c\n', blah_in->character);
+    printf('%x\n', (int)blah_in->sixteen);
+    printf('%x\n', blah_in->integer);
+    printf('%lx\n', blah_in->lots);
+    printf('%f\n', (double)blah_in->floating);
+    printf('%f\n', (double)blah_in->floating_lots);
+    printf('%s\n', blah_in->string);
+    printf('%p\n', blah_in->blah2);
+    printf('  %s\n', blah_in->blah2->string);
+      {
+         Evas_List *l;
+
+         for (l = blah_in->blah3; l; l = l->next)
+           {
+              Blah3 *blah3_in;
+
+              blah3_in = l->data;
+              printf('%p\n', blah3_in);
+              printf('  %s\n', blah3_in->string);
+           }
+      }
+    eet_data_descriptor_free(edd);
+    eet_data_descriptor_free(edd2);
+    eet_data_descriptor_free(edd3);
+
+   return 0;
+ }
+.fi
+.PP
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_image_decode (const void * data, int size, unsigned int * w, unsigned int * h, int * alpha, int * compress, int * quality, int * lossy)"
+.PP
+Decode Image data into pixel data. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The encoded pixel data. 
+.br
+\fIsize\fP The size, in bytes, of the encoded pixel data. 
+.br
+\fIw\fP A pointer to the unsigned int to hold the width in pixels. 
+.br
+\fIh\fP A pointer to the unsigned int to hold the height in pixels. 
+.br
+\fIalpha\fP A pointer to the int to hold the alpha flag. 
+.br
+\fIcompress\fP A pointer to the int to hold the compression amount. 
+.br
+\fIquality\fP A pointer to the int to hold the quality amount. 
+.br
+\fIlossy\fP A pointer to the int to hold the lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The image pixel data decoded
+.RE
+.PP
+This function takes encoded pixel data and decodes it into raw RGBA pixels on success.
+.PP
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pixel is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+.PP
+On success the function returns a pointer to the image data decoded. The calling application is responsible for calling free() on the image data when it is done with it. On failure NULL is returned and the parameter values may not contain any sensible data.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_image_encode (const void * data, int * size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)"
+.PP
+Encode image data for storage or transmission. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP A pointer to the image pixel data. 
+.br
+\fIsize_ret\fP A pointer to an int to hold the size of the returned data. 
+.br
+\fIw\fP The width of the image in pixels. 
+.br
+\fIh\fP The height of the image in pixels. 
+.br
+\fIalpha\fP The alpha channel flag. 
+.br
+\fIcompress\fP The compression amount. 
+.br
+\fIquality\fP The quality encoding amount. 
+.br
+\fIlossy\fP The lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The encoded image data.
+.RE
+.PP
+This function stakes image pixel data and encodes it with compression and possible loss of quality (as a trade off for size) for storage or transmission to another system.
+.PP
+The data expected is the same format as returned by eet_data_image_read. If this is not the case weird things may happen. Width and height must be between 1 and 8000 pixels. The alpha flags can be 0 or 1 (0 meaning the alpha values are not useful and 1 meaning they are). Compress can be from 0 to 9 (0 meaning no compression, 9 meaning full compression). This is only used if the image is not lossily encoded. Quality is used on lossy compression and should be a value from 0 to 100. The lossy flag can be 0 or 1. 0 means encode losslessly and 1 means to encode with image quality loss (but then have a much smaller encoding).
+.PP
+On success this function returns a pointer to the encoded data that you can free with free() when no longer needed.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_image_header_decode (const void * data, int size, unsigned int * w, unsigned int * h, int * alpha, int * compress, int * quality, int * lossy)"
+.PP
+Decode Image data header only to get information. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The encoded pixel data. 
+.br
+\fIsize\fP The size, in bytes, of the encoded pixel data. 
+.br
+\fIw\fP A pointer to the unsigned int to hold the width in pixels. 
+.br
+\fIh\fP A pointer to the unsigned int to hold the height in pixels. 
+.br
+\fIalpha\fP A pointer to the int to hold the alpha flag. 
+.br
+\fIcompress\fP A pointer to the int to hold the compression amount. 
+.br
+\fIquality\fP A pointer to the int to hold the quality amount. 
+.br
+\fIlossy\fP A pointer to the int to hold the lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 on failure.
+.RE
+.PP
+This function takes encoded pixel data and decodes it into raw RGBA pixels on success.
+.PP
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pixel is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+.PP
+On success the function returns 1 indicating the header was read and decoded properly, or 0 on failure.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_image_header_read (Eet_File * ef, const char * name, unsigned int * w, unsigned int * h, int * alpha, int * compress, int * quality, int * lossy)"
+.PP
+Read just the header data for an image and dont decode the pixels. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for reading. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIw\fP A pointer to the unsigned int to hold the width in pixels. 
+.br
+\fIh\fP A pointer to the unsigned int to hold the height in pixels. 
+.br
+\fIalpha\fP A pointer to the int to hold the alpha flag. 
+.br
+\fIcompress\fP A pointer to the int to hold the compression amount. 
+.br
+\fIquality\fP A pointer to the int to hold the quality amount. 
+.br
+\fIlossy\fP A pointer to the int to hold the lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on successfull decode, 0 otherwise
+.RE
+.PP
+This function reads an image from an eet file stored under the named key in the eet file and return a pointer to the decompressed pixel data.
+.PP
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pile is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+.PP
+On success the function returns 1 indicating the header was read and decoded properly, or 0 on failure.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_image_read (Eet_File * ef, const char * name, unsigned int * w, unsigned int * h, int * alpha, int * compress, int * quality, int * lossy)"
+.PP
+Read image data from the named key in the eet file. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for reading. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIw\fP A pointer to the unsigned int to hold the width in pixels. 
+.br
+\fIh\fP A pointer to the unsigned int to hold the height in pixels. 
+.br
+\fIalpha\fP A pointer to the int to hold the alpha flag. 
+.br
+\fIcompress\fP A pointer to the int to hold the compression amount. 
+.br
+\fIquality\fP A pointer to the int to hold the quality amount. 
+.br
+\fIlossy\fP A pointer to the int to hold the lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The image pixel data decoded
+.RE
+.PP
+This function reads an image from an eet file stored under the named key in the eet file and return a pointer to the decompressed pixel data.
+.PP
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pile is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+.PP
+On success the function returns a pointer to the image data decoded. The calling application is responsible for calling free() on the image data when it is done with it. On failure NULL is returned and the parameter values may not contain any sensible data.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_image_write (Eet_File * ef, const char * name, const void * data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)"
+.PP
+Write image data to the named key in an eet file. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for writing. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIdata\fP A pointer to the image pixel data. 
+.br
+\fIw\fP The width of the image in pixels. 
+.br
+\fIh\fP The height of the image in pixels. 
+.br
+\fIalpha\fP The alpha channel flag. 
+.br
+\fIcompress\fP The compression amount. 
+.br
+\fIquality\fP The quality encoding amount. 
+.br
+\fIlossy\fP The lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success if the data was encoded and written or not.
+.RE
+.PP
+This function takes image pixel data and encodes it in an eet file stored under the supplied name key, and returns how many bytes were actually written to encode the image data.
+.PP
+The data expected is the same format as returned by eet_data_image_read. If this is not the case weird things may happen. Width and height must be between 1 and 8000 pixels. The alpha flags can be 0 or 1 (0 meaning the alpha values are not useful and 1 meaning they are). Compress can be from 0 to 9 (0 meaning no compression, 9 meaning full compression). This is only used if the image is not lossily encoded. Quality is used on lossy compression and should be a value from 0 to 100. The lossy flag can be 0 or 1. 0 means encode losslessly and 1 means to encode with image quality loss (but then have a much smaller encoding).
+.PP
+On success this function returns the number of bytes that were required to encode the image data, or on failure it returns 0.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_read (Eet_File * ef, Eet_Data_Descriptor * edd, const char * name)"
+.PP
+Read a data structure from an eet file and decodes it. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP The eet file handle to read from. 
+.br
+\fIedd\fP The data descriptor handle to use when decoding. 
+.br
+\fIname\fP The key the data is stored under in the eet file. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A pointer to the decoded data structure.
+.RE
+.PP
+This function decodes a data structure stored in an eet file, returning a pointer to it if it decoded successfully, or NULL on failure. This can save a programmer dozens of hours of work in writing configuration file parsing and writing code, as eet does all that work for the program and presents a program-friendly data structure, just as the programmer likes. Eet can handle members being added or deleted from the data in storage and safely zero-fills unfilled members if they were not found in the data. It checks sizes and headers whenever it reads data, allowing the programmer to not worry about corrupt data.
+.PP
+Once a data structure has been described by the programmer with the fields they wish to save or load, storing or retrieving a data structure from an eet file, or from a chunk of memory is as simple as a single function call.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_text_dump (const void * data_in, int size_in, void(*)(void *data, const char *str) dumpfunc, void * dumpdata)"
+.PP
+Dump an eet encoded data structure into ascii text. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata_in\fP The pointer to the data to decode into a struct. 
+.br
+\fIsize_in\fP The size of the data pointed to in bytes. 
+.br
+\fIdumpfunc\fP The function to call passed a string when new data is converted to text 
+.br
+\fIdumpdata\fP The data to pass to the \fCdumpfunc\fP callback. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 on failure
+.RE
+.PP
+This function will take a chunk of data encoded by \fBeet_data_descriptor_encode()\fP and convert it into human readable ascii text. It does this by calling the \fCdumpfunc\fP callback for all new text that is generated. This callback should append to any existing text buffer and will be passed the pointer \fCdumpdata\fP as a parameter as well as a string with new text to be appended.
+.PP
+Example:
+.PP
+.PP
+.nf
+ void output(void *data, const char *string)
+ {
+   printf('%s', string);
+ }
+
+ void dump(const char *file)
+ {
+   FILE *f;
+   int len;
+   void *data;
+
+   f = fopen(file, 'r');
+   fseek(f, 0, SEEK_END);
+   len = ftell(f);
+   rewind(f);
+   data = malloc(len);
+   fread(data, len, 1, f);
+   fclose(f);
+   eet_data_text_dump(data, len, output, NULL);
+ }
+.fi
+.PP
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_data_text_undump (const char * text, int textlen, int * size_ret)"
+.PP
+Take an ascii encoding from \fBeet_data_text_dump()\fP and re-encode in binary. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fItext\fP The pointer to the string data to parse and encode. 
+.br
+\fItextlen\fP The size of the string in bytes (not including 0 byte terminator). 
+.br
+\fIsize_ret\fP This gets filled in with the encoded data blob size in bytes. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The encoded data on success, NULL on failure.
+.RE
+.PP
+This function will parse the string pointed to by \fCtext\fP and return an encoded data lump the same way \fBeet_data_descriptor_encode()\fP takes an in-memory data struct and encodes into a binary blob. \fCtext\fP is a normal C string.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_write (Eet_File * ef, Eet_Data_Descriptor * edd, const char * name, const void * data, int compress)"
+.PP
+Write a data structure from memory and store in an eet file. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP The eet file handle to write to. 
+.br
+\fIedd\fP The data descriptor to use when encoding. 
+.br
+\fIname\fP The key to store the data under in the eet file. 
+.br
+\fIdata\fP A pointer to the data structure to ssave and encode. 
+.br
+\fIcompress\fP Compression flags for storage. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on successful write, 0 on failure.
+.RE
+.PP
+This function is the reverse of \fBeet_data_read()\fP, saving a data structure to an eet file.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_delete (Eet_File * ef, const char * name)"
+.PP
+Delete a specified entry from an Eet file being written or re-written. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for writing. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success or failure of the delete.
+.RE
+.PP
+This function will delete the specified chunk of data from the eet file and return greater than 0 on success. 0 will be returned on failure.
+.PP
+The eet file handle must be a valid file handle for an eet file opened for writing. If it is not, 0 will be returned and no action will be performed.
+.PP
+Name, must not be NULL, otherwise 0 will be returned.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_Dictionary* eet_dictionary_get (Eet_File * ef)"
+.PP
+Return a handle to the shared string dictionary of the Eet file. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A handle to the dictionary of the file
+.RE
+.PP
+This function returns a handle to the dictionary of an Eet file whose handle is \fCef\fP, if a dictionary exists. NULL is returned otherwise or if the file handle is known to be invalid.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_dictionary_string_check (Eet_Dictionary * ed, const char * string)"
+.PP
+Check if a given string comes from a given dictionary. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIed\fP A valid dictionary handle 
+.br
+\fIstring\fP A valid 0 byte terminated C string 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 if it is in the dictionary, 0 otherwise
+.RE
+.PP
+This checks the given dictionary to see if the given string is actually inside that dictionary (i.e. comes from it) and returns 1 if it does. If the dictionary handle is invlide, the string is NULL or the string is not in the dictionary, 0 is returned.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_init (void)"
+.PP
+Initialize the EET library. 
+.PP
+\fBReturns:\fP
+.RS 4
+The new init count.
+.RE
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI char** eet_list (Eet_File * ef, const char * glob, int * count_ret)"
+.PP
+List all entries in eet file matching shell glob. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle. 
+.br
+\fIglob\fP A shell glob to match against. 
+.br
+\fIcount_ret\fP Number of entries found to match. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to an array of strings.
+.RE
+.PP
+This function will list all entries in the eet file matching the supplied shell glob and return an allocated list of their names, if there are any, and if no memory errors occur.
+.PP
+The eet file handle must be valid and glob must not be NULL, or NULL will be returned and count_ret will be filled with 0.
+.PP
+The calling program must call free() on the array returned, but NOT on the string pointers in the array. They are taken as read-only internals from the eet file handle. They are only valid as long as the file handle is not closed. When it is closed those pointers in the array are now not valid and should not be used.
+.PP
+On success the array returned will have a list of string pointers that are the names of the entries that matched, and count_ret will have the number of entries in this array placed in it.
+.PP
+Hint: an easy way to list all entries in an eet file is to use a glob value of '*'.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_File_Mode eet_mode_get (Eet_File * ef)"
+.PP
+Get the mode an Eet_File was opened with. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The mode ef was opened with.
+.RE
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_num_entries (Eet_File * ef)"
+.PP
+Return the number of entries in the specified eet file. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of entries in ef or -1 if the number of entries cannot be read due to open mode restrictions.
+.RE
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_File* eet_open (const char * file, Eet_File_Mode mode)"
+.PP
+Open an eet file on disk, and returns a handle to it. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfile\fP The file path to the eet file. eg: '/tmp/file.eet'. 
+.br
+\fImode\fP The mode for opening. Either EET_FILE_MODE_READ, EET_FILE_MODE_WRITE or EET_FILE_MODE_READ_WRITE. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+An opened eet file handle.
+.RE
+.PP
+This function will open an exiting eet file for reading, and build the directory table in memory and return a handle to the file, if it exists and can be read, and no memory errors occur on the way, otherwise NULL will be returned.
+.PP
+It will also open an eet file for writing. This will, if successful, delete the original file and replace it with a new empty file, till the eet file handle is closed or flushed. If it cannot be opened for writing or a memory error occurs, NULL is returned.
+.PP
+You can also open the file for read/write. If you then write a key that does not exist it will be created, if the key exists it will be replaced by the new data.
+.PP
+Example: 
+.PP
+.nf
+ #include <Eet.h>
+ #include <stdio.h>
+
+ int
+ main(int argc, char **argv)
+ {
+   Eet_File *ef;
+   char buf[1024], *ret, **list;
+   int size, num, i;
+
+   strcpy(buf, 'Here is a string of data to save!');
+
+   ef = eet_open('/tmp/my_file.eet', EET_FILE_MODE_WRITE);
+   if (!ef) return -1;
+   if (!eet_write(ef, '/key/to_store/at', buf, 1024, 1))
+     fprintf(stderr, 'Error writing data!\n');
+   eet_close(ef);
+
+   ef = eet_open('/tmp/my_file.eet', EET_FILE_MODE_READ);
+   if (!ef) return -1;
+   list = eet_list(ef, '*', &num);
+   if (list)
+     {
+       for (i = 0; i < num; i++)
+         printf('Key stored: %s\n', list[i]);
+       free(list);
+     }
+   ret = eet_read(ef, '/key/to_store/at', &size);
+   if (ret)
+     {
+       printf('Data read (%i bytes):\n%s\n', size, ret);
+       free(ret);
+     }
+   eet_close(ef);
+
+   return 0;
+ }
+
+.fi
+.PP
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI void* eet_read (Eet_File * ef, const char * name, int * size_ret)"
+.PP
+Read a specified entry from an eet file and return data. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for reading. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIsize_ret\fP Number of bytes read from entry and returned. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The data stored in that entry in the eet file.
+.RE
+.PP
+This function finds an entry in the eet file that is stored under the name specified, and returns that data, decompressed, if successful. NULL is returned if the lookup fails or if memory errors are encountered. It is the job of the calling program to call free() on the returned data. The number of bytes in the returned data chunk are placed in size_ret.
+.PP
+If the eet file handle is not valid NULL is returned and size_ret is filled with 0.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI const void* eet_read_direct (Eet_File * ef, const char * name, int * size_ret)"
+.PP
+Read a specified entry from an eet file and return data. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for reading. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIsize_ret\fP Number of bytes read from entry and returned. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The data stored in that entry in the eet file.
+.RE
+.PP
+This function finds an entry in the eet file that is stored under the name specified, and returns that data if not compressed and successful. NULL is returned if the lookup fails or if memory errors are encountered or if the data is comrpessed. The calling program must never call free() on the returned data. The number of bytes in the returned data chunk are placed in size_ret.
+.PP
+If the eet file handle is not valid NULL is returned and size_ret is filled with 0.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_shutdown (void)"
+.PP
+Shut down the EET library. 
+.PP
+\fBReturns:\fP
+.RS 4
+The new init count.
+.RE
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_write (Eet_File * ef, const char * name, const void * data, int size, int compress)"
+.PP
+Write a specified entry to an eet file handle. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for writing. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIdata\fP Pointer to the data to be stored. 
+.br
+\fIsize\fP Length in bytes in the data to be stored. 
+.br
+\fIcompress\fP Compression flags (1 == compress, 0 = don't compress). 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success or failure of the write.
+.RE
+.PP
+This function will write the specified chunk of data to the eet file and return greater than 0 on success. 0 will be returned on failure.
+.PP
+The eet file handle must be a valid file handle for an eet file opened for writing. If it is not, 0 will be returned and no action will be performed.
+.PP
+Name, and data must not be NULL, and size must be > 0. If these conditions are not met, 0 will be returned.
+.PP
+The data will be copied (and optionally compressed) in ram, pending a flush to disk (it will stay in ram till the eet file handle is closed though).
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Eet from the source code.

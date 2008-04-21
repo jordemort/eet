@@ -1,7 +1,7 @@
 # get rid of that stupid cache mechanism
 rm -f config.cache
 
-AC_INIT(eet, 0.9.10.042, enlightenment-devel@lists.sourceforge.net)
+AC_INIT(eet, 1.0.0, enlightenment-devel@lists.sourceforge.net)
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(configure.in)
 AC_CANONICAL_BUILD
@@ -15,6 +15,7 @@ AC_PROG_CC
 AM_PROG_CC_STDC
 AC_HEADER_STDC
 AC_C_CONST
+AM_PROG_CC_C_O
 
 AC_LIBTOOL_WIN32_DLL
 define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
@@ -28,24 +29,53 @@ SNAP=`echo $PACKAGE_VERSION | awk -F. '{printf("%s", $4);}'`
 version_info=`expr $VMAJ + $VMIN`":$VMIC:$VMIN"
 AC_SUBST(version_info)
 
+WIN32_CFLAGS=""
+WIN32_LIBS=""
+lt_no_undefined=""
+lt_enable_auto_import=""
+case "$host_os" in
+	mingw*|cegcc)
+		PKG_CHECK_MODULES([EVIL], [evil])
+		AC_DEFINE(HAVE_EVIL, 1, [Set to 1 if evil package is installed])
+		dnl needed for correct definition of EAPI
+		AC_DEFINE(EFL_EET_BUILD, 1, [Define to mention that eet is built])
+		if test "$host_os" = "cegcc" ; then
+			WIN32_CFLAGS="-mwin32"
+			WIN32_LIBS="-lws2"
+			lt_enable_auto_import="-Wl,--enable-auto-import"
+		else
+			WIN32_LIBS="-lws2_32"
+		fi
+		lt_no_undefined="-no-undefined"
+		;;
+esac
+AC_SUBST(WIN32_CFLAGS)
+AC_SUBST(WIN32_LIBS)
+AC_SUBST(lt_no_undefined)
+AC_SUBST(lt_enable_auto_import)
+
+dnl Checking for __attribute__ support
+AC_MSG_CHECKING([for __attribute__])
+AC_CACHE_VAL(_cv_have___attribute__,
+  [
+    AC_TRY_COMPILE([#include <stdlib.h>],
+      [int func(int x); int foo(int x __attribute__ ((unused))) { exit(1); }],
+      [_cv_have___attribute__="yes"],
+      [_cv_have___attribute__="no"])
+  ]
+)
+
+if test "x${_cv_have___attribute__}" = "xyes" ; then
+   AC_DEFINE(HAVE___ATTRIBUTE__, 1, [Define to 1 if your compiler has __attribute__])
+fi
+AC_MSG_RESULT(${_cv_have___attribute__})
+
 AC_FUNC_ALLOCA
 
 AC_CHECK_HEADER(zlib.h,, AC_MSG_ERROR("Cannot find zlib.h. Make sure your CFLAGS environment variable contains include lines for the location of this file"))
 AC_CHECK_HEADER(jpeglib.h,, AC_MSG_ERROR("Cannot find jpeglib.h. Make sure your CFLAGS environment variable contains include lines for the location of this file"))
 
 AC_CHECK_HEADERS(netinet/in.h)
-
-winsock_libs=""
-create_shared_lib=""
-case "$host_os" in
-	mingw|mingw32)
-		winsock_libs="-lwsock32"
-		create_shared_lib="-no-undefined "
-		;;
-esac
-
-AC_SUBST(winsock_libs)
-AC_SUBST(create_shared_lib)
 
 AC_CHECK_HEADER(fnmatch.h,, AC_MSG_ERROR([Cannot find fnmatch.h. Make sure your CFLAGS environment variable contains include lines for the location of this file. MinGW users: see the INSTALL file]))
 
@@ -67,7 +97,6 @@ AC_SUBST(fnmatch_libs)
 
 dnl These are needed for fmemopen/open_memstream
 AC_DEFINE(_GNU_SOURCE, , [Enable GNU extensions])
-AC_DEFINE(__USE_GNU, , [Enable GNU extensions])
 
 AC_CHECK_FUNCS(fmemopen open_memstream realpath)
 
@@ -107,7 +136,7 @@ echo
 echo
 echo
 echo "------------------------------------------------------------------------"
-echo "$PACKAGE $VERSION"
+echo "$PACKAGE_NAME $PACKAGE_VERSION"
 echo "------------------------------------------------------------------------"
 echo
 echo "Configuration Options Summary:"

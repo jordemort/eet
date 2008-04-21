@@ -1,3 +1,38 @@
+/*
+ * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
+ */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#elif defined _MSC_VER
+# include <malloc.h>
+# define alloca _alloca
+#else
+# include <stddef.h>
+# ifdef  __cplusplus
+extern "C"
+# endif
+void *alloca (size_t);
+#endif
+
+#ifdef HAVE_NETINET_IN_H
+# include <netinet/in.h>
+#endif
+
+#include <stdio.h>
+#include <string.h>
+#include <zlib.h>
+#include <jpeglib.h>
+#include <setjmp.h>
+
 #include "Eet.h"
 #include "Eet_private.h"
 
@@ -728,12 +763,13 @@ eet_data_image_read(Eet_File *ef, const char *name,
 		    unsigned int *w, unsigned int *h, int *alpha,
 		    int *compress, int *quality, int *lossy)
 {
-   void		*data;
-   int		size;
    unsigned int *d = NULL;
-   int		free_data = 0;
+   void		*data;
+   int		 size;
+   int		 free_data = 0;
 
-   data = (void*) eet_read_direct (ef, name, &size);
+
+   data = (void *)eet_read_direct(ef, name, &size);
    if (!data)
      {
 	data = eet_read(ef, name, &size);
@@ -759,7 +795,7 @@ eet_data_image_header_read(Eet_File *ef, const char *name,
    int	d;
    int	free_data = 0;
 
-   data = (void*) eet_read_direct (ef, name, &size);
+   data = (void *)eet_read_direct(ef, name, &size);
    if (!data)
      {
 	data = eet_read(ef, name, &size);

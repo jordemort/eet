@@ -1,3 +1,15 @@
+/*
+ * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
+ */
+
+#define _GNU_SOURCE
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <stdio.h>
+
 #include "Eet.h"
 #include "Eet_private.h"
 
@@ -5,7 +17,7 @@ FILE *
 _eet_memfile_read_open(const void *data, size_t size)
 {
 #ifdef HAVE_FMEMOPEN
-   return (FILE *)fmemopen((void*)data, size, "rb");
+   return fmemopen((void*)data, size, "rb");
 #else
    FILE *f;
 
@@ -56,7 +68,7 @@ void _eet_memfile_shutdown()
 
    for (i = 0; i < _eet_memfile_info_num; i++)
      free(_eet_memfile_info[i].data);
-   
+
    free(_eet_memfile_info);
    _eet_memfile_info = NULL;
 #endif
