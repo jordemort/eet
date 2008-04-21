@@ -1,4 +1,20 @@
-Eet 0.9.10.042
+Eet 1.0.0
+
+Requirements:
+-------------
+Must:
+  libc libm zlib libjpeg
+  Windows: evil
+
+******************************************************************************
+***
+*** THIS IS AN ALPHA RELEASE - PLEASE REPORT ANY PROBLEMS TO:
+*** enlightenment-devel@lists.sourceforge.net
+***
+*** We want to weed out any build, porting, compatability or functionality
+*** bugs
+***
+******************************************************************************
 
 Eet is a tiny library designed to write an arbitary set of chunks of
 data to a file and optionally compress each chunk (very much like a
@@ -17,27 +33,16 @@ COMPILING AND INSTALLING:
 
   ./configure
   make
-(as root unless youa re installing in your users directories):
+(do this as root unless you are installing in your users directories):
   make install
-      
+
 ------------------------------------------------------------------------------
 BUILDING PACKAGES:
 
 RPM: To build rpm packages:
-  
-  sudo rpm -ta eet-0.9.10.042.tar.gz
+
+  sudo rpm -ta eet-1.0.0.tar.gz
 
 You will find rpm packages in your system /usr/src/redhat/* dirs (note you may
 not need to use sudo or root if you have your own ~/.rpmrc. see rpm documents
 for more details)
-
-DEB: To build deb packages:
-
-  tar zvf eet-0.9.10.042.tar.gz
-  cd eet-0.9.10.042
-  dpkg-buildpackage -us -uc -rfakeroot
-  cd ..
-  rm -rf eet-0.9.10.042
-
-You will find all the debian source, binary etc. packages put in the directory
-where you first untarred the source tarball.

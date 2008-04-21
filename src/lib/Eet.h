@@ -4,14 +4,19 @@
 #include <stdlib.h>
 
 #ifdef EAPI
-#undef EAPI
+# undef EAPI
 #endif
-#ifdef _MSC_VER
-# ifdef BUILDING_DLL
-#  define EAPI __declspec(dllexport)
+
+#ifdef _WIN32
+# ifdef EFL_EET_BUILD
+#  ifdef DLL_EXPORT
+#   define EAPI __declspec(dllexport)
+#  else
+#   define EAPI
+#  endif /* ! DLL_EXPORT */
 # else
 #  define EAPI __declspec(dllimport)
-# endif
+# endif /* ! EFL_EET_BUILD */
 #else
 # ifdef __GNUC__
 #  if __GNUC__ >= 4
@@ -22,7 +27,7 @@
 # else
 #  define EAPI
 # endif
-#endif
+#endif /* ! _WIN32 */
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,19 +43,20 @@ extern "C" {
 
 /***************************************************************************/
 
-#define EET_T_UNKNOW     0 /**< Unknown data encoding type */
-#define EET_T_CHAR       1 /**< Data type: char */
-#define EET_T_SHORT      2 /**< Data type: short */
-#define EET_T_INT        3 /**< Data type: int */
-#define EET_T_LONG_LONG  4 /**< Data type: long long */
-#define EET_T_FLOAT      5 /**< Data type: float */
-#define EET_T_DOUBLE     6 /**< Data type: double */
-#define EET_T_UCHAR      7 /**< Data type: unsigned char */
-#define EET_T_USHORT     8 /**< Data type: unsigned short */
-#define EET_T_UINT       9 /**< Data type: unsigned int */
-#define EET_T_ULONG_LONG 10 /**< Data type: unsigned long long */
-#define EET_T_STRING     11 /**< Data type: char * */
-#define EET_T_LAST       12 /**< Last data type */
+#define EET_T_UNKNOW            0 /**< Unknown data encoding type */
+#define EET_T_CHAR              1 /**< Data type: char */
+#define EET_T_SHORT             2 /**< Data type: short */
+#define EET_T_INT               3 /**< Data type: int */
+#define EET_T_LONG_LONG         4 /**< Data type: long long */
+#define EET_T_FLOAT             5 /**< Data type: float */
+#define EET_T_DOUBLE            6 /**< Data type: double */
+#define EET_T_UCHAR             7 /**< Data type: unsigned char */
+#define EET_T_USHORT            8 /**< Data type: unsigned short */
+#define EET_T_UINT              9 /**< Data type: unsigned int */
+#define EET_T_ULONG_LONG        10 /**< Data type: unsigned long long */
+#define EET_T_STRING            11 /**< Data type: char * */
+#define EET_T_INLINED_STRING    12 /**< Data type: char * (but compressed inside the resulting eet) */
+#define EET_T_LAST              13 /**< Last data type */
 
 #define EET_G_UNKNOWN    100 /**< Unknown group data encoding type */
 #define EET_G_ARRAY      101 /**< Fixed size array group type */
@@ -84,11 +90,12 @@ extern "C" {
      } Eet_Error;
 
    typedef struct _Eet_File                  Eet_File;
+   typedef struct _Eet_Dictionary            Eet_Dictionary;
    typedef struct _Eet_Data_Descriptor       Eet_Data_Descriptor;
 
    typedef struct _Eet_Data_Descriptor_Class Eet_Data_Descriptor_Class;
 
-#define EET_DATA_DESCRIPTOR_CLASS_VERSION 1
+#define EET_DATA_DESCRIPTOR_CLASS_VERSION 2
    struct _Eet_Data_Descriptor_Class
      {
 	int         version;
@@ -97,7 +104,7 @@ extern "C" {
 	struct {
 	   void   *(*mem_alloc) (size_t size);
 	   void    (*mem_free) (void *mem);
-	   char   *(*str_alloc) (const char *str);
+           char   *(*str_alloc) (const char *str);
 	   void    (*str_free) (const char *str);
 	   void   *(*list_next) (void *l);
 	   void   *(*list_append) (void *l, void *d);
@@ -106,6 +113,8 @@ extern "C" {
 	   void    (*hash_foreach) (void *h, int (*func) (void *h, const char *k, void *dt, void *fdt), void *fdt);
 	   void   *(*hash_add) (void *h, const char *k, void *d);
 	   void    (*hash_free) (void *h);
+           char   *(*str_direct_alloc) (const char *str);
+           void    (*str_direct_free) (const char *str);
 	} func;
      };
 
@@ -115,6 +124,8 @@ extern "C" {
     * Initialize the EET library.
     *
     * @return The new init count.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_init(void);
 
@@ -122,6 +133,8 @@ extern "C" {
     * Shut down the EET library.
     *
     * @return The new init count.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_shutdown(void);
 
@@ -131,6 +144,8 @@ extern "C" {
     * Eet didn't free items by default. If you are under memory presure, just
     * call this function to recall all memory that are not yet referenced anymore.
     * The cache take care of modification on disk.
+    *
+    * @since 1.0.0
     */
    EAPI void eet_clearcache(void);
 
@@ -194,6 +209,8 @@ extern "C" {
     *   return 0;
     * }
     * @endcode
+    *
+    * @since 1.0.0
     */
    EAPI Eet_File *eet_open(const char *file, Eet_File_Mode mode);
 
@@ -201,6 +218,8 @@ extern "C" {
     * Get the mode an Eet_File was opened with.
     * @param ef A valid eet file handle.
     * @return The mode ef was opened with.
+    *
+    * @since 1.0.0
     */
    EAPI Eet_File_Mode eet_mode_get(Eet_File *ef);
 
@@ -213,8 +232,39 @@ extern "C" {
     * and file, and close the file.
     *
     * If the eet file handle is not valid nothing will be done.
+    *
+    * @since 1.0.0
     */
    EAPI Eet_Error eet_close(Eet_File *ef);
+
+
+   /**
+    * Return a handle to the shared string dictionary of the Eet file
+    * @param ef A valid eet file handle.
+    * @return A handle to the dictionary of the file
+    *
+    * This function returns a handle to the dictionary of an Eet file whose
+    * handle is @p ef, if a dictionary exists. NULL is returned otherwise or
+    * if the file handle is known to be invalid.
+    *
+    * @since 1.0.0
+    */
+   EAPI Eet_Dictionary *eet_dictionary_get(Eet_File *ef);
+
+   /**
+    * Check if a given string comes from a given dictionary
+    * @param ed A valid dictionary handle
+    * @param string A valid 0 byte terminated C string
+    * @return 1 if it is in the dictionary, 0 otherwise
+    *
+    * This checks the given dictionary to see if the given string is actually
+    * inside that dictionary (i.e. comes from it) and returns 1 if it does.
+    * If the dictionary handle is invlide, the string is NULL or the string is
+    * not in the dictionary, 0 is returned.
+    *
+    * @since 1.0.0
+    */
+   EAPI int eet_dictionary_string_check(Eet_Dictionary *ed, const char *string);
 
    /**
     * Read a specified entry from an eet file and return data
@@ -232,12 +282,13 @@ extern "C" {
     *
     * If the eet file handle is not valid NULL is returned and size_ret is
     * filled with 0.
+    *
+    * @since 1.0.0
     */
    EAPI void *eet_read(Eet_File *ef, const char *name, int *size_ret);
 
    /**
-
-        * Read a specified entry from an eet file and return data
+    * Read a specified entry from an eet file and return data
     * @param ef A valid eet file handle opened for reading.
     * @param name Name of the entry. eg: "/base/file_i_want".
     * @param size_ret Number of bytes read from entry and returned.
@@ -252,6 +303,8 @@ extern "C" {
     *
     * If the eet file handle is not valid NULL is returned and size_ret is
     * filled with 0.
+    *
+    * @since 1.0.0
     */
    EAPI const void *eet_read_direct(Eet_File *ef, const char *name, int *size_ret);
 
@@ -277,6 +330,8 @@ extern "C" {
     * The data will be copied (and optionally compressed) in ram, pending
     * a flush to disk (it will stay in ram till the eet file handle is
     * closed though).
+    *
+    * @since 1.0.0
     */
    EAPI int eet_write(Eet_File *ef, const char *name, const void *data, int size, int compress);
 
@@ -294,6 +349,8 @@ extern "C" {
     * performed.
     *
     * Name, must not be NULL, otherwise 0 will be returned.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_delete(Eet_File *ef, const char *name);
 
@@ -323,6 +380,8 @@ extern "C" {
     *
     * Hint: an easy way to list all entries in an eet file is to use a glob
     * value of "*".
+    *
+    * @since 1.0.0
     */
    EAPI char **eet_list(Eet_File *ef, const char *glob, int *count_ret);
 
@@ -331,6 +390,8 @@ extern "C" {
     * @param ef A valid eet file handle.
     * @return Number of entries in ef or -1 if the number of entries
     *         cannot be read due to open mode restrictions.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_num_entries(Eet_File *ef);
 
@@ -366,6 +427,8 @@ extern "C" {
     *
     * On success the function returns 1 indicating the header was read and
     * decoded properly, or 0 on failure.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_data_image_header_read(Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
@@ -401,6 +464,8 @@ extern "C" {
     * calling application is responsible for calling free() on the image data
     * when it is done with it. On failure NULL is returned and the parameter
     * values may not contain any sensible data.
+    *
+    * @since 1.0.0
     */
    EAPI void *eet_data_image_read(Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
@@ -433,6 +498,8 @@ extern "C" {
     *
     * On success this function returns the number of bytes that were required
     * to encode the image data, or on failure it returns 0.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_data_image_write(Eet_File *ef, const char *name, const void *data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy);
 
@@ -466,6 +533,8 @@ extern "C" {
     *
     * On success the function returns 1 indicating the header was read and
     * decoded properly, or 0 on failure.
+    *
+    * @since 1.0.0
     */
    EAPI int eet_data_image_header_decode(const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
@@ -501,6 +570,8 @@ extern "C" {
     * calling application is responsible for calling free() on the image data
     * when it is done with it. On failure NULL is returned and the parameter
     * values may not contain any sensible data.
+    *
+    * @since 1.0.0
     */
    EAPI void *eet_data_image_decode(const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
@@ -532,6 +603,8 @@ extern "C" {
     *
     * On success this function returns a pointer to the encoded data that you
     * can free with free() when no longer needed.
+    *
+    * @since 1.0.0
     */
    EAPI void *eet_data_image_encode(const void *data, int *size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy);
 
@@ -563,6 +636,9 @@ extern "C" {
     * saved eet can load and save those members for you, encode them into
     * endian-independant serialised data chunks for transmission across a
     * a network or more.
+    *
+    * The function pointers to the list and hash table functions are only 
+    * needed if you use those data types, else you can pass NULL instead.
     *
     * Example:
     *
@@ -667,12 +743,6 @@ extern "C" {
     *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
     *
     *    data = eet_data_descriptor_encode(edd, &blah, &size);
-    *    f = fopen("out", "w");
-    *    if (f)
-    *      {
-    *         fwrite(data, size, 1, f);
-    *         fclose(f);
-    *      }
     *    printf("-----DECODING\n");
     *    blah_in = eet_data_descriptor_decode(edd, data, size);
     *
@@ -707,6 +777,7 @@ extern "C" {
     *
     * @endcode
     *
+    * @since 1.0.0
     */
    EAPI Eet_Data_Descriptor *eet_data_descriptor_new(const char *name, int size, void *(*func_list_next) (void *l), void *(*func_list_append) (void *l, void *d), void *(*func_list_data) (void *l), void *(*func_list_free) (void *l), void  (*func_hash_foreach) (void *h, int (*func) (void *h, const char *k, void *dt, void *fdt), void *fdt), void *(*func_hash_add) (void *h, const char *k, void *d), void  (*func_hash_free) (void *h));
    /*
@@ -716,6 +787,7 @@ extern "C" {
     * move happens - but be warned
     */
    EAPI Eet_Data_Descriptor *eet_data_descriptor2_new(Eet_Data_Descriptor_Class *eddc);
+   EAPI Eet_Data_Descriptor *eet_data_descriptor3_new(Eet_Data_Descriptor_Class *eddc);
 
    /**
     * This function frees a data descriptor when it is not needed anymore.
@@ -725,6 +797,7 @@ extern "C" {
     * data allocated for the data descriptor and the handle itself. After this
     * call the descriptor is no longer valid.
     *
+    * @since 1.0.0
     */
    EAPI void eet_data_descriptor_free(Eet_Data_Descriptor *edd);
 
@@ -736,6 +809,7 @@ extern "C" {
     * complex to use by hand and should be left to be used by the macros, and
     * thus is not documented.
     *
+    * @since 1.0.0
     */
    EAPI void eet_data_descriptor_element_add(Eet_Data_Descriptor *edd, const char *name, int type, int group_type, int offset, int count, const char *counter_name, Eet_Data_Descriptor *subtype);
 
@@ -761,6 +835,7 @@ extern "C" {
     * from an eet file, or from a chunk of memory is as simple as a single
     * function call.
     *
+    * @since 1.0.0
     */
    EAPI void *eet_data_read(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name);
 
@@ -776,6 +851,7 @@ extern "C" {
     * This function is the reverse of eet_data_read(), saving a data structure
     * to an eet file.
     *
+    * @since 1.0.0
     */
    EAPI int eet_data_write(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name, const void *data, int compress);
 
@@ -820,6 +896,7 @@ extern "C" {
     * }
     * @endcode
     *
+    * @since 1.0.0
     */
    EAPI int eet_data_text_dump(const void *data_in, int size_in, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
 
@@ -835,8 +912,48 @@ extern "C" {
     * in-memory data struct and encodes into a binary blob. @p text is a normal
     * C string.
     *
+    * @since 1.0.0
     */
    EAPI void *eet_data_text_undump(const char *text, int textlen, int *size_ret);
+
+   /**
+    * Dump an eet encoded data structure from an eet file into ascii text
+    * @param ef A valid eet file handle.
+    * @param name Name of the entry. eg: "/base/file_i_want".
+    * @param dumpfunc The function to call passed a string when new data is converted to text
+    * @param dumpdata The data to pass to the @p dumpfunc callback.
+    * @return 1 on success, 0 on failure
+    *
+    * This function will take an open and valid eet file from eet_open() request
+    * the data encoded by eet_data_descriptor_encode() corresponding to the key @p name
+    * and convert it into human readable ascii text. It does this by calling the
+    * @p dumpfunc callback for all new text that is generated. This callback should
+    * append to any existing text buffer and will be passed the pointer @p dumpdata
+    * as a parameter as well as a string with new text to be appended.
+    *
+    * @since 1.0.0
+    */
+   EAPI int eet_data_dump(Eet_File *ef, const char *name, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
+
+   /**
+    * Take an ascii encoding from eet_data_dump() and re-encode in binary.
+    * @param ef A valid eet file handle.
+    * @param name Name of the entry. eg: "/base/file_i_want".
+    * @param text The pointer to the string data to parse and encode.
+    * @param textlen The size of the string in bytes (not including 0 byte terminator).
+    * @param compress Compression flags (1 == compress, 0 = don't compress).
+    * @return 1 on success, 0 on failure
+    *
+    * This function will parse the string pointed to by @p text, encode it the same
+    * way eet_data_descriptor_encode() takes an in-memory data struct and encodes into a
+    * binary blob.
+    *
+    * The data (optionally compressed) will be in ram, pending a flush to
+    * disk (it will stay in ram till the eet file handle is closed though).
+    *
+    * @since 1.0.0
+    */
+   EAPI int eet_data_undump(Eet_File *ef, const char *name, const char *text, int textlen, int compress);
 
    /**
     * Decode a data structure from an arbitary location in memory.
@@ -860,6 +977,7 @@ extern "C" {
     *
     * Please see eet_data_read() for more information.
     *
+    * @since 1.0.0
     */
    EAPI void *eet_data_descriptor_decode(Eet_Data_Descriptor *edd, const void *data_in, int size_in);
 
@@ -887,6 +1005,7 @@ extern "C" {
     *
     * Please see eet_data_write() for more information.
     *
+    * @since 1.0.0
     */
    EAPI void *eet_data_descriptor_encode(Eet_Data_Descriptor *edd, const void *data_in, int *size_ret);
 
@@ -904,11 +1023,12 @@ extern "C" {
     * parameter defines a string that will be used to uniquely name that
     * member of the struct (it is suggested to use the struct member itself).
     * The @p member parameter is the actual struct member itself (for
-    * example: values), and @p type is the basic data type of the member which
+eet_dictionary_string_check    * example: values), and @p type is the basic data type of the member which
     * must be one of: EET_T_CHAR, EET_T_SHORT, EET_T_INT, EET_T_LONG_LONG,
     * EET_T_FLOAT, EET_T_DOUBLE, EET_T_UCHAR, EET_T_USHORT, EET_T_UINT,
     * EET_T_ULONG_LONG or EET_T_STRING.
     *
+    * @since 1.0.0
     */
 #define EET_DATA_DESCRIPTOR_ADD_BASIC(edd, struct_type, name, member, type) \
      { \
@@ -933,6 +1053,7 @@ extern "C" {
     * This must be the data descriptor of the struct that is pointed to by
     * this element.
     *
+    * @since 1.0.0
     */
 #define EET_DATA_DESCRIPTOR_ADD_SUB(edd, struct_type, name, member, subtype) \
      { \
@@ -956,6 +1077,7 @@ extern "C" {
     * @p subtype being the exception. This must be the data descriptor of the
     * element that is in each member of the linked list to be stored.
     *
+    * @since 1.0.0
     */
 #define EET_DATA_DESCRIPTOR_ADD_LIST(edd, struct_type, name, member, subtype) \
      { \
@@ -979,6 +1101,7 @@ extern "C" {
     * @p subtype being the exception. This must be the data descriptor of the
     * element that is in each member of the hash to be stored.
     *
+    * @since 1.0.0
     */
 #define EET_DATA_DESCRIPTOR_ADD_HASH(edd, struct_type, name, member, subtype) \
      { \
