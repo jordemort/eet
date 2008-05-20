@@ -97,16 +97,25 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CHECK_CFLAGS = @CHECK_CFLAGS@
+CHECK_LIBS = @CHECK_LIBS@
+COVERAGE_CFLAGS = @COVERAGE_CFLAGS@
+COVERAGE_LIBS = @COVERAGE_LIBS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EET_ENABLE_COVERAGE_FALSE = @EET_ENABLE_COVERAGE_FALSE@
+EET_ENABLE_COVERAGE_TRUE = @EET_ENABLE_COVERAGE_TRUE@
+EET_ENABLE_TESTS_FALSE = @EET_ENABLE_TESTS_FALSE@
+EET_ENABLE_TESTS_TRUE = @EET_ENABLE_TESTS_TRUE@
 EGREP = @EGREP@
 EVIL_CFLAGS = @EVIL_CFLAGS@
 EVIL_LIBS = @EVIL_LIBS@
@@ -123,6 +132,7 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -161,6 +171,7 @@ docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 fnmatch_libs = @fnmatch_libs@
+have_lcov = @have_lcov@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -591,6 +602,7 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) check-local
 check: check-recursive
 all-am: Makefile $(DATA) config.h
 installdirs: installdirs-recursive
@@ -623,9 +635,10 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+@EET_ENABLE_COVERAGE_FALSE@clean-local:
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -676,22 +689,58 @@ uninstall-am: uninstall-info-am uninstall-pkgconfigDATA
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am am--refresh check \
-	check-am clean clean-generic clean-libtool clean-recursive \
-	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
-	dist-shar dist-tarZ dist-zip distcheck distclean \
-	distclean-generic distclean-hdr distclean-libtool \
-	distclean-recursive distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-pkgconfigDATA install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic maintainer-clean-recursive \
-	mostlyclean mostlyclean-generic mostlyclean-libtool \
-	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-info-am \
+	check-am check-local clean clean-generic clean-libtool \
+	clean-local clean-recursive ctags ctags-recursive dist \
+	dist-all dist-bzip2 dist-gzip dist-shar dist-tarZ dist-zip \
+	distcheck distclean distclean-generic distclean-hdr \
+	distclean-libtool distclean-recursive distclean-tags \
+	distcleancheck distdir distuninstallcheck dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-pkgconfigDATA \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	maintainer-clean-recursive mostlyclean mostlyclean-generic \
+	mostlyclean-libtool mostlyclean-recursive pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am uninstall-info-am \
 	uninstall-pkgconfigDATA
 
+
+@EET_ENABLE_TESTS_TRUE@check-local:
+@EET_ENABLE_TESTS_TRUE@	@./src/tests/eet_suite
+
+@EET_ENABLE_TESTS_FALSE@check-local:
+@EET_ENABLE_TESTS_FALSE@	@echo "reconfigure with --enable-tests"
+
+@EET_ENABLE_COVERAGE_TRUE@lcov-reset:
+@EET_ENABLE_COVERAGE_TRUE@	@rm -rf coverage
+@EET_ENABLE_COVERAGE_TRUE@	@find . -name "*.gcda" -exec rm {} \;
+@EET_ENABLE_COVERAGE_TRUE@	@lcov --directory . --zerocounters
+
+@EET_ENABLE_COVERAGE_TRUE@lcov-report:
+@EET_ENABLE_COVERAGE_TRUE@	@mkdir coverage
+@EET_ENABLE_COVERAGE_TRUE@	@lcov --compat-libtool --directory . --capture --output-file coverage/coverage.info
+@EET_ENABLE_COVERAGE_TRUE@	@lcov -l coverage/coverage.info | grep -v "`cd $(top_srcdir) && pwd`" | cut -d: -f1 > coverage/remove
+@EET_ENABLE_COVERAGE_TRUE@	@lcov -r coverage/coverage.info `cat coverage/remove` > coverage/coverage.cleaned.info
+@EET_ENABLE_COVERAGE_TRUE@	@rm coverage/remove
+@EET_ENABLE_COVERAGE_TRUE@	@mv coverage/coverage.cleaned.info coverage/coverage.info
+@EET_ENABLE_COVERAGE_TRUE@	@genhtml -t "$(PACKAGE_STRING)" -o coverage coverage/coverage.info
+
+@EET_ENABLE_COVERAGE_TRUE@coverage:
+@EET_ENABLE_COVERAGE_TRUE@	@make lcov-reset
+@EET_ENABLE_COVERAGE_TRUE@	@make check
+@EET_ENABLE_COVERAGE_TRUE@	@make lcov-report
+
+@EET_ENABLE_COVERAGE_TRUE@clean-local:
+@EET_ENABLE_COVERAGE_TRUE@	@rm -rf coverage
+@EET_ENABLE_COVERAGE_FALSE@lcov-reset:
+@EET_ENABLE_COVERAGE_FALSE@	@echo "reconfigure with --enable-gcov"
+
+@EET_ENABLE_COVERAGE_FALSE@lcov-report:
+@EET_ENABLE_COVERAGE_FALSE@	@echo "reconfigure with --enable-gcov"
+
+@EET_ENABLE_COVERAGE_FALSE@coverage:
+@EET_ENABLE_COVERAGE_FALSE@	@echo "reconfigure with --enable-tests --enable-gcov"
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

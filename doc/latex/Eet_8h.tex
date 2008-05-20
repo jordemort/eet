@@ -2,6 +2,8 @@
 \section{Eet.h File Reference}
 \label{Eet_8h}\index{Eet.h@{Eet.h}}
 }
+The file that provides the eet functions. 
+
 \subsection*{Defines}
 \begin{CompactItemize}
 \item 
@@ -170,6 +172,10 @@ EAPI int \hyperlink{Eet_8h_73eea56513db9eeb5a0f30514471fa75}{eet\_\-data\_\-text
 \begin{CompactList}\small\item\em Dump an eet encoded data structure into ascii text. \item\end{CompactList}\item 
 EAPI void $\ast$ \hyperlink{Eet_8h_7ec4079e08e657a80bee05bd12e1b972}{eet\_\-data\_\-text\_\-undump} (const char $\ast$text, int textlen, int $\ast$size\_\-ret)
 \begin{CompactList}\small\item\em Take an ascii encoding from \hyperlink{Eet_8h_73eea56513db9eeb5a0f30514471fa75}{eet\_\-data\_\-text\_\-dump()} and re-encode in binary. \item\end{CompactList}\item 
+EAPI int \hyperlink{Eet_8h_e4ead9639aa9d6ce0db2354b5636f56d}{eet\_\-data\_\-dump} (Eet\_\-File $\ast$ef, const char $\ast$name, void($\ast$dumpfunc)(void $\ast$data, const char $\ast$str), void $\ast$dumpdata)
+\begin{CompactList}\small\item\em Dump an eet encoded data structure from an eet file into ascii text. \item\end{CompactList}\item 
+EAPI int \hyperlink{Eet_8h_fb1d3207c31e349ed184645e21aa838d}{eet\_\-data\_\-undump} (Eet\_\-File $\ast$ef, const char $\ast$name, const char $\ast$text, int textlen, int compress)
+\begin{CompactList}\small\item\em Take an ascii encoding from \hyperlink{Eet_8h_e4ead9639aa9d6ce0db2354b5636f56d}{eet\_\-data\_\-dump()} and re-encode in binary. \item\end{CompactList}\item 
 EAPI void $\ast$ \hyperlink{Eet_8h_ad95530fdaec27047c41a5ceace5c231}{eet\_\-data\_\-descriptor\_\-decode} (Eet\_\-Data\_\-Descriptor $\ast$edd, const void $\ast$data\_\-in, int size\_\-in)
 \begin{CompactList}\small\item\em Decode a data structure from an arbitary location in memory. \item\end{CompactList}\item 
 EAPI void $\ast$ \hyperlink{Eet_8h_a7c3b3a8cbeffc34c21dbbb1decc3c2d}{eet\_\-data\_\-descriptor\_\-encode} (Eet\_\-Data\_\-Descriptor $\ast$edd, const void $\ast$data\_\-in, int $\ast$size\_\-ret)
@@ -177,15 +183,15 @@ EAPI void $\ast$ \hyperlink{Eet_8h_a7c3b3a8cbeffc34c21dbbb1decc3c2d}{eet\_\-data
 
 
 \subsection{Detailed Description}
-The file that provides the eet functions.
+The file that provides the eet functions. 
 
 This header provides the Eet management functions. 
 
 \subsection{Define Documentation}
 \hypertarget{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b3a}{
-\index{Eet.h@{Eet.h}!EET_DATA_DESCRIPTOR_ADD_BASIC@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC}}
-\index{EET_DATA_DESCRIPTOR_ADD_BASIC@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC(edd, struct\_\-type, name, member, type)}}
+\index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC}}
+\index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC(edd, \/  struct\_\-type, \/  name, \/  member, \/  type)}}
 \label{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b3a}
 
 
@@ -212,9 +218,9 @@ This macro is a convenience macro provided to add a member to the data descripto
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_d5e348ead4ba0b441c1e020f9bf23365}{
-\index{Eet.h@{Eet.h}!EET_DATA_DESCRIPTOR_ADD_HASH@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH}}
-\index{EET_DATA_DESCRIPTOR_ADD_HASH@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH(edd, struct\_\-type, name, member, subtype)}}
+\index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH}}
+\index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH(edd, \/  struct\_\-type, \/  name, \/  member, \/  subtype)}}
 \label{Eet_8h_d5e348ead4ba0b441c1e020f9bf23365}
 
 
@@ -241,9 +247,9 @@ This macro lets you easily add a hash of other data types. All the parameters ar
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_bb4c7833ba053f2322e6b667a9ec7f04}{
-\index{Eet.h@{Eet.h}!EET_DATA_DESCRIPTOR_ADD_LIST@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST}}
-\index{EET_DATA_DESCRIPTOR_ADD_LIST@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST(edd, struct\_\-type, name, member, subtype)}}
+\index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST}}
+\index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST(edd, \/  struct\_\-type, \/  name, \/  member, \/  subtype)}}
 \label{Eet_8h_bb4c7833ba053f2322e6b667a9ec7f04}
 
 
@@ -270,9 +276,9 @@ This macro lets you easily add a linked list of other data types. All the parame
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_6c1f33c4c503be76f64555c3ab999725}{
-\index{Eet.h@{Eet.h}!EET_DATA_DESCRIPTOR_ADD_SUB@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB}}
-\index{EET_DATA_DESCRIPTOR_ADD_SUB@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB(edd, struct\_\-type, name, member, subtype)}}
+\index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB}}
+\index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB(edd, \/  struct\_\-type, \/  name, \/  member, \/  subtype)}}
 \label{Eet_8h_6c1f33c4c503be76f64555c3ab999725}
 
 
@@ -302,8 +308,8 @@ This macro lets you easily add a sub-type (a struct that's pointed to by this on
 
 \subsection{Function Documentation}
 \hypertarget{Eet_8h_5b3f70f4842551426befbff648e4094b}{
-\index{Eet.h@{Eet.h}!eet_clearcache@{eet\_\-clearcache}}
-\index{eet_clearcache@{eet\_\-clearcache}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-clearcache@{eet\_\-clearcache}}
+\index{eet\_\-clearcache@{eet\_\-clearcache}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-clearcache (void)}}
 \label{Eet_8h_5b3f70f4842551426befbff648e4094b}
 
@@ -315,8 +321,8 @@ Eet didn't free items by default. If you are under memory presure, just call thi
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_1675fef1f6012c1e02ae313d13dc3e03}{
-\index{Eet.h@{Eet.h}!eet_close@{eet\_\-close}}
-\index{eet_close@{eet\_\-close}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-close@{eet\_\-close}}
+\index{eet\_\-close@{eet\_\-close}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-Error eet\_\-close (Eet\_\-File $\ast$ {\em ef})}}
 \label{Eet_8h_1675fef1f6012c1e02ae313d13dc3e03}
 
@@ -335,9 +341,9 @@ If the eet file handle is not valid nothing will be done.
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_ad95530fdaec27047c41a5ceace5c231}{
-\index{Eet.h@{Eet.h}!eet_data_descriptor_decode@{eet\_\-data\_\-descriptor\_\-decode}}
-\index{eet_data_descriptor_decode@{eet\_\-data\_\-descriptor\_\-decode}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-descriptor\_\-decode (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, const void $\ast$ {\em data\_\-in}, int {\em size\_\-in})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-descriptor\_\-decode@{eet\_\-data\_\-descriptor\_\-decode}}
+\index{eet\_\-data\_\-descriptor\_\-decode@{eet\_\-data\_\-descriptor\_\-decode}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-descriptor\_\-decode (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, \/  const void $\ast$ {\em data\_\-in}, \/  int {\em size\_\-in})}}
 \label{Eet_8h_ad95530fdaec27047c41a5ceace5c231}
 
 
@@ -361,9 +367,9 @@ Please see \hyperlink{Eet_8h_4d1807cbbc448304f22a8808318a3429}{eet\_\-data\_\-re
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_450fd478c0c2531a5d2beb4f1af7cd34}{
-\index{Eet.h@{Eet.h}!eet_data_descriptor_element_add@{eet\_\-data\_\-descriptor\_\-element\_\-add}}
-\index{eet_data_descriptor_element_add@{eet\_\-data\_\-descriptor\_\-element\_\-add}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-data\_\-descriptor\_\-element\_\-add (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, const char $\ast$ {\em name}, int {\em type}, int {\em group\_\-type}, int {\em offset}, int {\em count}, const char $\ast$ {\em counter\_\-name}, Eet\_\-Data\_\-Descriptor $\ast$ {\em subtype})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-descriptor\_\-element\_\-add@{eet\_\-data\_\-descriptor\_\-element\_\-add}}
+\index{eet\_\-data\_\-descriptor\_\-element\_\-add@{eet\_\-data\_\-descriptor\_\-element\_\-add}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-data\_\-descriptor\_\-element\_\-add (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, \/  const char $\ast$ {\em name}, \/  int {\em type}, \/  int {\em group\_\-type}, \/  int {\em offset}, \/  int {\em count}, \/  const char $\ast$ {\em counter\_\-name}, \/  Eet\_\-Data\_\-Descriptor $\ast$ {\em subtype})}}
 \label{Eet_8h_450fd478c0c2531a5d2beb4f1af7cd34}
 
 
@@ -374,9 +380,9 @@ This function is used by macros \hyperlink{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_a7c3b3a8cbeffc34c21dbbb1decc3c2d}{
-\index{Eet.h@{Eet.h}!eet_data_descriptor_encode@{eet\_\-data\_\-descriptor\_\-encode}}
-\index{eet_data_descriptor_encode@{eet\_\-data\_\-descriptor\_\-encode}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-descriptor\_\-encode (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, const void $\ast$ {\em data\_\-in}, int $\ast$ {\em size\_\-ret})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-descriptor\_\-encode@{eet\_\-data\_\-descriptor\_\-encode}}
+\index{eet\_\-data\_\-descriptor\_\-encode@{eet\_\-data\_\-descriptor\_\-encode}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-descriptor\_\-encode (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, \/  const void $\ast$ {\em data\_\-in}, \/  int $\ast$ {\em size\_\-ret})}}
 \label{Eet_8h_a7c3b3a8cbeffc34c21dbbb1decc3c2d}
 
 
@@ -400,8 +406,8 @@ Please see \hyperlink{Eet_8h_c66d1c49e3490bc5d803982d833ff8aa}{eet\_\-data\_\-wr
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_3e2b601720973d0e1f4683768a593c4d}{
-\index{Eet.h@{Eet.h}!eet_data_descriptor_free@{eet\_\-data\_\-descriptor\_\-free}}
-\index{eet_data_descriptor_free@{eet\_\-data\_\-descriptor\_\-free}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-descriptor\_\-free@{eet\_\-data\_\-descriptor\_\-free}}
+\index{eet\_\-data\_\-descriptor\_\-free@{eet\_\-data\_\-descriptor\_\-free}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-data\_\-descriptor\_\-free (Eet\_\-Data\_\-Descriptor $\ast$ {\em edd})}}
 \label{Eet_8h_3e2b601720973d0e1f4683768a593c4d}
 
@@ -418,9 +424,9 @@ This function takes a data descriptor handle as a parameter and frees all data a
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_221fc1365596d92e23d339caf7867431}{
-\index{Eet.h@{Eet.h}!eet_data_descriptor_new@{eet\_\-data\_\-descriptor\_\-new}}
-\index{eet_data_descriptor_new@{eet\_\-data\_\-descriptor\_\-new}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-Data\_\-Descriptor$\ast$ eet\_\-data\_\-descriptor\_\-new (const char $\ast$ {\em name}, int {\em size}, void $\ast$($\ast$)(void $\ast$l) {\em func\_\-list\_\-next}, void $\ast$($\ast$)(void $\ast$l, void $\ast$d) {\em func\_\-list\_\-append}, void $\ast$($\ast$)(void $\ast$l) {\em func\_\-list\_\-data}, void $\ast$($\ast$)(void $\ast$l) {\em func\_\-list\_\-free}, void($\ast$)(void $\ast$h, int($\ast$func)(void $\ast$h, const char $\ast$k, void $\ast$dt, void $\ast$fdt), void $\ast$fdt) {\em func\_\-hash\_\-foreach}, void $\ast$($\ast$)(void $\ast$h, const char $\ast$k, void $\ast$d) {\em func\_\-hash\_\-add}, void($\ast$)(void $\ast$h) {\em func\_\-hash\_\-free})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-descriptor\_\-new@{eet\_\-data\_\-descriptor\_\-new}}
+\index{eet\_\-data\_\-descriptor\_\-new@{eet\_\-data\_\-descriptor\_\-new}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-Data\_\-Descriptor$\ast$ eet\_\-data\_\-descriptor\_\-new (const char $\ast$ {\em name}, \/  int {\em size}, \/  void $\ast$($\ast$)(void $\ast$l) {\em func\_\-list\_\-next}, \/  void $\ast$($\ast$)(void $\ast$l, void $\ast$d) {\em func\_\-list\_\-append}, \/  void $\ast$($\ast$)(void $\ast$l) {\em func\_\-list\_\-data}, \/  void $\ast$($\ast$)(void $\ast$l) {\em func\_\-list\_\-free}, \/  void($\ast$)(void $\ast$h, int($\ast$func)(void $\ast$h, const char $\ast$k, void $\ast$dt, void $\ast$fdt), void $\ast$fdt) {\em func\_\-hash\_\-foreach}, \/  void $\ast$($\ast$)(void $\ast$h, const char $\ast$k, void $\ast$d) {\em func\_\-hash\_\-add}, \/  void($\ast$)(void $\ast$h) {\em func\_\-hash\_\-free})}}
 \label{Eet_8h_221fc1365596d92e23d339caf7867431}
 
 
@@ -438,6 +444,8 @@ This function creates a new data descriptore and returns a handle to the new dat
 You add structure members to the data descriptor using the macros \hyperlink{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b3a}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC()}, \hyperlink{Eet_8h_6c1f33c4c503be76f64555c3ab999725}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-SUB()} and \hyperlink{Eet_8h_bb4c7833ba053f2322e6b667a9ec7f04}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST()}, depending on what type of member you are adding to the description.
 
 Once you have described all the members of a struct you want loaded, or saved eet can load and save those members for you, encode them into endian-independant serialised data chunks for transmission across a a network or more.
+
+The function pointers to the list and hash table functions are only needed if you use those data types, else you can pass NULL instead.
 
 Example:
 
@@ -581,10 +589,30 @@ Example:
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_e4ead9639aa9d6ce0db2354b5636f56d}{
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-dump@{eet\_\-data\_\-dump}}
+\index{eet\_\-data\_\-dump@{eet\_\-data\_\-dump}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-dump (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  void($\ast$)(void $\ast$data, const char $\ast$str) {\em dumpfunc}, \/  void $\ast$ {\em dumpdata})}}
+\label{Eet_8h_e4ead9639aa9d6ce0db2354b5636f56d}
+
+
+Dump an eet encoded data structure from an eet file into ascii text. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ef}]A valid eet file handle. \item[{\em name}]Name of the entry. eg: \char`\"{}/base/file\_\-i\_\-want\char`\"{}. \item[{\em dumpfunc}]The function to call passed a string when new data is converted to text \item[{\em dumpdata}]The data to pass to the {\tt dumpfunc} callback. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]1 on success, 0 on failure\end{Desc}
+This function will take an open and valid eet file from \hyperlink{Eet_8h_5f55956b860aa2c77af9b1a880c4c256}{eet\_\-open()} request the data encoded by \hyperlink{Eet_8h_a7c3b3a8cbeffc34c21dbbb1decc3c2d}{eet\_\-data\_\-descriptor\_\-encode()} corresponding to the key {\tt name} and convert it into human readable ascii text. It does this by calling the {\tt dumpfunc} callback for all new text that is generated. This callback should append to any existing text buffer and will be passed the pointer {\tt dumpdata} as a parameter as well as a string with new text to be appended.
+
+\begin{Desc}
+\item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_30e8d570dc36db3721dfb68ec762b920}{
-\index{Eet.h@{Eet.h}!eet_data_image_decode@{eet\_\-data\_\-image\_\-decode}}
-\index{eet_data_image_decode@{eet\_\-data\_\-image\_\-decode}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-image\_\-decode (const void $\ast$ {\em data}, int {\em size}, unsigned int $\ast$ {\em w}, unsigned int $\ast$ {\em h}, int $\ast$ {\em alpha}, int $\ast$ {\em compress}, int $\ast$ {\em quality}, int $\ast$ {\em lossy})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-decode@{eet\_\-data\_\-image\_\-decode}}
+\index{eet\_\-data\_\-image\_\-decode@{eet\_\-data\_\-image\_\-decode}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-image\_\-decode (const void $\ast$ {\em data}, \/  int {\em size}, \/  unsigned int $\ast$ {\em w}, \/  unsigned int $\ast$ {\em h}, \/  int $\ast$ {\em alpha}, \/  int $\ast$ {\em compress}, \/  int $\ast$ {\em quality}, \/  int $\ast$ {\em lossy})}}
 \label{Eet_8h_30e8d570dc36db3721dfb68ec762b920}
 
 
@@ -606,9 +634,9 @@ On success the function returns a pointer to the image data decoded. The calling
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_9c8c63fc1a235751e8a145f06a4a43ad}{
-\index{Eet.h@{Eet.h}!eet_data_image_encode@{eet\_\-data\_\-image\_\-encode}}
-\index{eet_data_image_encode@{eet\_\-data\_\-image\_\-encode}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-image\_\-encode (const void $\ast$ {\em data}, int $\ast$ {\em size\_\-ret}, unsigned int {\em w}, unsigned int {\em h}, int {\em alpha}, int {\em compress}, int {\em quality}, int {\em lossy})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-encode@{eet\_\-data\_\-image\_\-encode}}
+\index{eet\_\-data\_\-image\_\-encode@{eet\_\-data\_\-image\_\-encode}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-image\_\-encode (const void $\ast$ {\em data}, \/  int $\ast$ {\em size\_\-ret}, \/  unsigned int {\em w}, \/  unsigned int {\em h}, \/  int {\em alpha}, \/  int {\em compress}, \/  int {\em quality}, \/  int {\em lossy})}}
 \label{Eet_8h_9c8c63fc1a235751e8a145f06a4a43ad}
 
 
@@ -630,9 +658,9 @@ On success this function returns a pointer to the encoded data that you can free
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_a869497f3b8c88b85decd8728d7d51f1}{
-\index{Eet.h@{Eet.h}!eet_data_image_header_decode@{eet\_\-data\_\-image\_\-header\_\-decode}}
-\index{eet_data_image_header_decode@{eet\_\-data\_\-image\_\-header\_\-decode}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-header\_\-decode (const void $\ast$ {\em data}, int {\em size}, unsigned int $\ast$ {\em w}, unsigned int $\ast$ {\em h}, int $\ast$ {\em alpha}, int $\ast$ {\em compress}, int $\ast$ {\em quality}, int $\ast$ {\em lossy})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-header\_\-decode@{eet\_\-data\_\-image\_\-header\_\-decode}}
+\index{eet\_\-data\_\-image\_\-header\_\-decode@{eet\_\-data\_\-image\_\-header\_\-decode}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-header\_\-decode (const void $\ast$ {\em data}, \/  int {\em size}, \/  unsigned int $\ast$ {\em w}, \/  unsigned int $\ast$ {\em h}, \/  int $\ast$ {\em alpha}, \/  int $\ast$ {\em compress}, \/  int $\ast$ {\em quality}, \/  int $\ast$ {\em lossy})}}
 \label{Eet_8h_a869497f3b8c88b85decd8728d7d51f1}
 
 
@@ -654,9 +682,9 @@ On success the function returns 1 indicating the header was read and decoded pro
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_ebfb8aaa5a499081f5439463ead332f2}{
-\index{Eet.h@{Eet.h}!eet_data_image_header_read@{eet\_\-data\_\-image\_\-header\_\-read}}
-\index{eet_data_image_header_read@{eet\_\-data\_\-image\_\-header\_\-read}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-header\_\-read (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name}, unsigned int $\ast$ {\em w}, unsigned int $\ast$ {\em h}, int $\ast$ {\em alpha}, int $\ast$ {\em compress}, int $\ast$ {\em quality}, int $\ast$ {\em lossy})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-header\_\-read@{eet\_\-data\_\-image\_\-header\_\-read}}
+\index{eet\_\-data\_\-image\_\-header\_\-read@{eet\_\-data\_\-image\_\-header\_\-read}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-header\_\-read (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  unsigned int $\ast$ {\em w}, \/  unsigned int $\ast$ {\em h}, \/  int $\ast$ {\em alpha}, \/  int $\ast$ {\em compress}, \/  int $\ast$ {\em quality}, \/  int $\ast$ {\em lossy})}}
 \label{Eet_8h_ebfb8aaa5a499081f5439463ead332f2}
 
 
@@ -678,9 +706,9 @@ On success the function returns 1 indicating the header was read and decoded pro
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_986872ec682c29f842b2ef6dad810257}{
-\index{Eet.h@{Eet.h}!eet_data_image_read@{eet\_\-data\_\-image\_\-read}}
-\index{eet_data_image_read@{eet\_\-data\_\-image\_\-read}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-image\_\-read (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name}, unsigned int $\ast$ {\em w}, unsigned int $\ast$ {\em h}, int $\ast$ {\em alpha}, int $\ast$ {\em compress}, int $\ast$ {\em quality}, int $\ast$ {\em lossy})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-read@{eet\_\-data\_\-image\_\-read}}
+\index{eet\_\-data\_\-image\_\-read@{eet\_\-data\_\-image\_\-read}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-image\_\-read (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  unsigned int $\ast$ {\em w}, \/  unsigned int $\ast$ {\em h}, \/  int $\ast$ {\em alpha}, \/  int $\ast$ {\em compress}, \/  int $\ast$ {\em quality}, \/  int $\ast$ {\em lossy})}}
 \label{Eet_8h_986872ec682c29f842b2ef6dad810257}
 
 
@@ -702,9 +730,9 @@ On success the function returns a pointer to the image data decoded. The calling
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_b4e8a3419744fac22bca24af533f5051}{
-\index{Eet.h@{Eet.h}!eet_data_image_write@{eet\_\-data\_\-image\_\-write}}
-\index{eet_data_image_write@{eet\_\-data\_\-image\_\-write}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-write (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name}, const void $\ast$ {\em data}, unsigned int {\em w}, unsigned int {\em h}, int {\em alpha}, int {\em compress}, int {\em quality}, int {\em lossy})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-write@{eet\_\-data\_\-image\_\-write}}
+\index{eet\_\-data\_\-image\_\-write@{eet\_\-data\_\-image\_\-write}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-write (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  const void $\ast$ {\em data}, \/  unsigned int {\em w}, \/  unsigned int {\em h}, \/  int {\em alpha}, \/  int {\em compress}, \/  int {\em quality}, \/  int {\em lossy})}}
 \label{Eet_8h_b4e8a3419744fac22bca24af533f5051}
 
 
@@ -726,9 +754,9 @@ On success this function returns the number of bytes that were required to encod
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_4d1807cbbc448304f22a8808318a3429}{
-\index{Eet.h@{Eet.h}!eet_data_read@{eet\_\-data\_\-read}}
-\index{eet_data_read@{eet\_\-data\_\-read}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-read (Eet\_\-File $\ast$ {\em ef}, Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, const char $\ast$ {\em name})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-read@{eet\_\-data\_\-read}}
+\index{eet\_\-data\_\-read@{eet\_\-data\_\-read}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-read (Eet\_\-File $\ast$ {\em ef}, \/  Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, \/  const char $\ast$ {\em name})}}
 \label{Eet_8h_4d1807cbbc448304f22a8808318a3429}
 
 
@@ -748,9 +776,9 @@ Once a data structure has been described by the programmer with the fields they 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_73eea56513db9eeb5a0f30514471fa75}{
-\index{Eet.h@{Eet.h}!eet_data_text_dump@{eet\_\-data\_\-text\_\-dump}}
-\index{eet_data_text_dump@{eet\_\-data\_\-text\_\-dump}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-text\_\-dump (const void $\ast$ {\em data\_\-in}, int {\em size\_\-in}, void($\ast$)(void $\ast$data, const char $\ast$str) {\em dumpfunc}, void $\ast$ {\em dumpdata})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-text\_\-dump@{eet\_\-data\_\-text\_\-dump}}
+\index{eet\_\-data\_\-text\_\-dump@{eet\_\-data\_\-text\_\-dump}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-text\_\-dump (const void $\ast$ {\em data\_\-in}, \/  int {\em size\_\-in}, \/  void($\ast$)(void $\ast$data, const char $\ast$str) {\em dumpfunc}, \/  void $\ast$ {\em dumpdata})}}
 \label{Eet_8h_73eea56513db9eeb5a0f30514471fa75}
 
 
@@ -797,9 +825,9 @@ Example:
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_7ec4079e08e657a80bee05bd12e1b972}{
-\index{Eet.h@{Eet.h}!eet_data_text_undump@{eet\_\-data\_\-text\_\-undump}}
-\index{eet_data_text_undump@{eet\_\-data\_\-text\_\-undump}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-text\_\-undump (const char $\ast$ {\em text}, int {\em textlen}, int $\ast$ {\em size\_\-ret})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-text\_\-undump@{eet\_\-data\_\-text\_\-undump}}
+\index{eet\_\-data\_\-text\_\-undump@{eet\_\-data\_\-text\_\-undump}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-data\_\-text\_\-undump (const char $\ast$ {\em text}, \/  int {\em textlen}, \/  int $\ast$ {\em size\_\-ret})}}
 \label{Eet_8h_7ec4079e08e657a80bee05bd12e1b972}
 
 
@@ -816,10 +844,32 @@ This function will parse the string pointed to by {\tt text} and return an encod
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_fb1d3207c31e349ed184645e21aa838d}{
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-undump@{eet\_\-data\_\-undump}}
+\index{eet\_\-data\_\-undump@{eet\_\-data\_\-undump}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-undump (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  const char $\ast$ {\em text}, \/  int {\em textlen}, \/  int {\em compress})}}
+\label{Eet_8h_fb1d3207c31e349ed184645e21aa838d}
+
+
+Take an ascii encoding from \hyperlink{Eet_8h_e4ead9639aa9d6ce0db2354b5636f56d}{eet\_\-data\_\-dump()} and re-encode in binary. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ef}]A valid eet file handle. \item[{\em name}]Name of the entry. eg: \char`\"{}/base/file\_\-i\_\-want\char`\"{}. \item[{\em text}]The pointer to the string data to parse and encode. \item[{\em textlen}]The size of the string in bytes (not including 0 byte terminator). \item[{\em compress}]Compression flags (1 == compress, 0 = don't compress). \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]1 on success, 0 on failure\end{Desc}
+This function will parse the string pointed to by {\tt text}, encode it the same way \hyperlink{Eet_8h_a7c3b3a8cbeffc34c21dbbb1decc3c2d}{eet\_\-data\_\-descriptor\_\-encode()} takes an in-memory data struct and encodes into a binary blob.
+
+The data (optionally compressed) will be in ram, pending a flush to disk (it will stay in ram till the eet file handle is closed though).
+
+\begin{Desc}
+\item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_c66d1c49e3490bc5d803982d833ff8aa}{
-\index{Eet.h@{Eet.h}!eet_data_write@{eet\_\-data\_\-write}}
-\index{eet_data_write@{eet\_\-data\_\-write}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-write (Eet\_\-File $\ast$ {\em ef}, Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, const char $\ast$ {\em name}, const void $\ast$ {\em data}, int {\em compress})}}
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-write@{eet\_\-data\_\-write}}
+\index{eet\_\-data\_\-write@{eet\_\-data\_\-write}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-write (Eet\_\-File $\ast$ {\em ef}, \/  Eet\_\-Data\_\-Descriptor $\ast$ {\em edd}, \/  const char $\ast$ {\em name}, \/  const void $\ast$ {\em data}, \/  int {\em compress})}}
 \label{Eet_8h_c66d1c49e3490bc5d803982d833ff8aa}
 
 
@@ -837,9 +887,9 @@ This function is the reverse of \hyperlink{Eet_8h_4d1807cbbc448304f22a8808318a34
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_a8a980d684123dfbaf12e7efefdb57f5}{
-\index{Eet.h@{Eet.h}!eet_delete@{eet\_\-delete}}
-\index{eet_delete@{eet\_\-delete}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-delete (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name})}}
+\index{Eet.h@{Eet.h}!eet\_\-delete@{eet\_\-delete}}
+\index{eet\_\-delete@{eet\_\-delete}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-delete (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name})}}
 \label{Eet_8h_a8a980d684123dfbaf12e7efefdb57f5}
 
 
@@ -861,8 +911,8 @@ Name, must not be NULL, otherwise 0 will be returned.
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_b45ad39596d2fb54a88fda93e7fa0b0f}{
-\index{Eet.h@{Eet.h}!eet_dictionary_get@{eet\_\-dictionary\_\-get}}
-\index{eet_dictionary_get@{eet\_\-dictionary\_\-get}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-dictionary\_\-get@{eet\_\-dictionary\_\-get}}
+\index{eet\_\-dictionary\_\-get@{eet\_\-dictionary\_\-get}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-Dictionary$\ast$ eet\_\-dictionary\_\-get (Eet\_\-File $\ast$ {\em ef})}}
 \label{Eet_8h_b45ad39596d2fb54a88fda93e7fa0b0f}
 
@@ -881,9 +931,9 @@ This function returns a handle to the dictionary of an Eet file whose handle is 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_53290da52edb929b85e51f25e79d27c8}{
-\index{Eet.h@{Eet.h}!eet_dictionary_string_check@{eet\_\-dictionary\_\-string\_\-check}}
-\index{eet_dictionary_string_check@{eet\_\-dictionary\_\-string\_\-check}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-dictionary\_\-string\_\-check (Eet\_\-Dictionary $\ast$ {\em ed}, const char $\ast$ {\em string})}}
+\index{Eet.h@{Eet.h}!eet\_\-dictionary\_\-string\_\-check@{eet\_\-dictionary\_\-string\_\-check}}
+\index{eet\_\-dictionary\_\-string\_\-check@{eet\_\-dictionary\_\-string\_\-check}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-dictionary\_\-string\_\-check (Eet\_\-Dictionary $\ast$ {\em ed}, \/  const char $\ast$ {\em string})}}
 \label{Eet_8h_53290da52edb929b85e51f25e79d27c8}
 
 
@@ -901,8 +951,8 @@ This checks the given dictionary to see if the given string is actually inside t
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_9903687bfa20fe9a9e59d4c1d213e89a}{
-\index{Eet.h@{Eet.h}!eet_init@{eet\_\-init}}
-\index{eet_init@{eet\_\-init}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-init@{eet\_\-init}}
+\index{eet\_\-init@{eet\_\-init}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-init (void)}}
 \label{Eet_8h_9903687bfa20fe9a9e59d4c1d213e89a}
 
@@ -914,9 +964,9 @@ Initialize the EET library.
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_6700a425f59086e7c8a945d6923874d3}{
-\index{Eet.h@{Eet.h}!eet_list@{eet\_\-list}}
-\index{eet_list@{eet\_\-list}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI char$\ast$$\ast$ eet\_\-list (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em glob}, int $\ast$ {\em count\_\-ret})}}
+\index{Eet.h@{Eet.h}!eet\_\-list@{eet\_\-list}}
+\index{eet\_\-list@{eet\_\-list}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI char$\ast$$\ast$ eet\_\-list (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em glob}, \/  int $\ast$ {\em count\_\-ret})}}
 \label{Eet_8h_6700a425f59086e7c8a945d6923874d3}
 
 
@@ -942,8 +992,8 @@ Hint: an easy way to list all entries in an eet file is to use a glob value of \
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_806f64e7ad3463cd40337c5022c7e83c}{
-\index{Eet.h@{Eet.h}!eet_mode_get@{eet\_\-mode\_\-get}}
-\index{eet_mode_get@{eet\_\-mode\_\-get}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-mode\_\-get@{eet\_\-mode\_\-get}}
+\index{eet\_\-mode\_\-get@{eet\_\-mode\_\-get}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-File\_\-Mode eet\_\-mode\_\-get (Eet\_\-File $\ast$ {\em ef})}}
 \label{Eet_8h_806f64e7ad3463cd40337c5022c7e83c}
 
@@ -960,8 +1010,8 @@ Get the mode an Eet\_\-File was opened with.
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_53bf1cf96267787aa93a99a0fe7ba8f7}{
-\index{Eet.h@{Eet.h}!eet_num_entries@{eet\_\-num\_\-entries}}
-\index{eet_num_entries@{eet\_\-num\_\-entries}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-num\_\-entries@{eet\_\-num\_\-entries}}
+\index{eet\_\-num\_\-entries@{eet\_\-num\_\-entries}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-num\_\-entries (Eet\_\-File $\ast$ {\em ef})}}
 \label{Eet_8h_53bf1cf96267787aa93a99a0fe7ba8f7}
 
@@ -978,9 +1028,9 @@ Return the number of entries in the specified eet file.
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_5f55956b860aa2c77af9b1a880c4c256}{
-\index{Eet.h@{Eet.h}!eet_open@{eet\_\-open}}
-\index{eet_open@{eet\_\-open}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-File$\ast$ eet\_\-open (const char $\ast$ {\em file}, Eet\_\-File\_\-Mode {\em mode})}}
+\index{Eet.h@{Eet.h}!eet\_\-open@{eet\_\-open}}
+\index{eet\_\-open@{eet\_\-open}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-File$\ast$ eet\_\-open (const char $\ast$ {\em file}, \/  Eet\_\-File\_\-Mode {\em mode})}}
 \label{Eet_8h_5f55956b860aa2c77af9b1a880c4c256}
 
 
@@ -1046,9 +1096,9 @@ Example:
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_c13cdf7782d1e513f5b1abcc529962f4}{
-\index{Eet.h@{Eet.h}!eet_read@{eet\_\-read}}
-\index{eet_read@{eet\_\-read}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-read (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name}, int $\ast$ {\em size\_\-ret})}}
+\index{Eet.h@{Eet.h}!eet\_\-read@{eet\_\-read}}
+\index{eet\_\-read@{eet\_\-read}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void$\ast$ eet\_\-read (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  int $\ast$ {\em size\_\-ret})}}
 \label{Eet_8h_c13cdf7782d1e513f5b1abcc529962f4}
 
 
@@ -1068,9 +1118,9 @@ If the eet file handle is not valid NULL is returned and size\_\-ret is filled w
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_73852ab3d1276c2913715b3716cf4a04}{
-\index{Eet.h@{Eet.h}!eet_read_direct@{eet\_\-read\_\-direct}}
-\index{eet_read_direct@{eet\_\-read\_\-direct}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI const void$\ast$ eet\_\-read\_\-direct (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name}, int $\ast$ {\em size\_\-ret})}}
+\index{Eet.h@{Eet.h}!eet\_\-read\_\-direct@{eet\_\-read\_\-direct}}
+\index{eet\_\-read\_\-direct@{eet\_\-read\_\-direct}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI const void$\ast$ eet\_\-read\_\-direct (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  int $\ast$ {\em size\_\-ret})}}
 \label{Eet_8h_73852ab3d1276c2913715b3716cf4a04}
 
 
@@ -1090,8 +1140,8 @@ If the eet file handle is not valid NULL is returned and size\_\-ret is filled w
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_cbc7583179399d3b3e7b003e911f866f}{
-\index{Eet.h@{Eet.h}!eet_shutdown@{eet\_\-shutdown}}
-\index{eet_shutdown@{eet\_\-shutdown}!Eet.h@{Eet.h}}
+\index{Eet.h@{Eet.h}!eet\_\-shutdown@{eet\_\-shutdown}}
+\index{eet\_\-shutdown@{eet\_\-shutdown}!Eet.h@{Eet.h}}
 \subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-shutdown (void)}}
 \label{Eet_8h_cbc7583179399d3b3e7b003e911f866f}
 
@@ -1103,9 +1153,9 @@ Shut down the EET library.
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
 \hypertarget{Eet_8h_682d04715f0e11380c460814c4a9bd21}{
-\index{Eet.h@{Eet.h}!eet_write@{eet\_\-write}}
-\index{eet_write@{eet\_\-write}!Eet.h@{Eet.h}}
-\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-write (Eet\_\-File $\ast$ {\em ef}, const char $\ast$ {\em name}, const void $\ast$ {\em data}, int {\em size}, int {\em compress})}}
+\index{Eet.h@{Eet.h}!eet\_\-write@{eet\_\-write}}
+\index{eet\_\-write@{eet\_\-write}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-write (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  const void $\ast$ {\em data}, \/  int {\em size}, \/  int {\em compress})}}
 \label{Eet_8h_682d04715f0e11380c460814c4a9bd21}
 
 

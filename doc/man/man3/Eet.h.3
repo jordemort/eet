@@ -1,8 +1,8 @@
-.TH "Eet.h" 3 "1 Apr 2008" "Eet" \" -*- nroff -*-
+.TH "Eet.h" 3 "19 May 2008" "Eet" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-Eet.h \- 
+Eet.h \- The file that provides the eet functions. 
 .SH SYNOPSIS
 .br
 .PP
@@ -218,6 +218,14 @@ Eet.h \-
 .br
 .RI "\fITake an ascii encoding from \fBeet_data_text_dump()\fP and re-encode in binary. \fP"
 .ti -1c
+.RI "EAPI int \fBeet_data_dump\fP (Eet_File *ef, const char *name, void(*dumpfunc)(void *data, const char *str), void *dumpdata)"
+.br
+.RI "\fIDump an eet encoded data structure from an eet file into ascii text. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_undump\fP (Eet_File *ef, const char *name, const char *text, int textlen, int compress)"
+.br
+.RI "\fITake an ascii encoding from \fBeet_data_dump()\fP and re-encode in binary. \fP"
+.ti -1c
 .RI "EAPI void * \fBeet_data_descriptor_decode\fP (Eet_Data_Descriptor *edd, const void *data_in, int size_in)"
 .br
 .RI "\fIDecode a data structure from an arbitary location in memory. \fP"
@@ -228,8 +236,8 @@ Eet.h \-
 .in -1c
 .SH "Detailed Description"
 .PP 
-The file that provides the eet functions.
-.PP
+The file that provides the eet functions. 
+
 This header provides the Eet management functions. 
 .SH "Define Documentation"
 .PP 
@@ -539,6 +547,8 @@ You add structure members to the data descriptor using the macros \fBEET_DATA_DE
 .PP
 Once you have described all the members of a struct you want loaded, or saved eet can load and save those members for you, encode them into endian-independant serialised data chunks for transmission across a a network or more.
 .PP
+The function pointers to the list and hash table functions are only needed if you use those data types, else you can pass NULL instead.
+.PP
 Example:
 .PP
 .PP
@@ -676,6 +686,34 @@ Example:
  }
 .fi
 .PP
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_dump (Eet_File * ef, const char * name, void(*)(void *data, const char *str) dumpfunc, void * dumpdata)"
+.PP
+Dump an eet encoded data structure from an eet file into ascii text. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIdumpfunc\fP The function to call passed a string when new data is converted to text 
+.br
+\fIdumpdata\fP The data to pass to the \fCdumpfunc\fP callback. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 on failure
+.RE
+.PP
+This function will take an open and valid eet file from \fBeet_open()\fP request the data encoded by \fBeet_data_descriptor_encode()\fP corresponding to the key \fCname\fP and convert it into human readable ascii text. It does this by calling the \fCdumpfunc\fP callback for all new text that is generated. This callback should append to any existing text buffer and will be passed the pointer \fCdumpdata\fP as a parameter as well as a string with new text to be appended.
 .PP
 \fBSince:\fP
 .RS 4
@@ -1027,6 +1065,38 @@ The encoded data on success, NULL on failure.
 .RE
 .PP
 This function will parse the string pointed to by \fCtext\fP and return an encoded data lump the same way \fBeet_data_descriptor_encode()\fP takes an in-memory data struct and encodes into a binary blob. \fCtext\fP is a normal C string.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_undump (Eet_File * ef, const char * name, const char * text, int textlen, int compress)"
+.PP
+Take an ascii encoding from \fBeet_data_dump()\fP and re-encode in binary. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fItext\fP The pointer to the string data to parse and encode. 
+.br
+\fItextlen\fP The size of the string in bytes (not including 0 byte terminator). 
+.br
+\fIcompress\fP Compression flags (1 == compress, 0 = don't compress). 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 on failure
+.RE
+.PP
+This function will parse the string pointed to by \fCtext\fP, encode it the same way \fBeet_data_descriptor_encode()\fP takes an in-memory data struct and encodes into a binary blob.
+.PP
+The data (optionally compressed) will be in ram, pending a flush to disk (it will stay in ram till the eet file handle is closed though).
 .PP
 \fBSince:\fP
 .RS 4

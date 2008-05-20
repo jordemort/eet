@@ -92,16 +92,25 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CHECK_CFLAGS = @CHECK_CFLAGS@
+CHECK_LIBS = @CHECK_LIBS@
+COVERAGE_CFLAGS = @COVERAGE_CFLAGS@
+COVERAGE_LIBS = @COVERAGE_LIBS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EET_ENABLE_COVERAGE_FALSE = @EET_ENABLE_COVERAGE_FALSE@
+EET_ENABLE_COVERAGE_TRUE = @EET_ENABLE_COVERAGE_TRUE@
+EET_ENABLE_TESTS_FALSE = @EET_ENABLE_TESTS_FALSE@
+EET_ENABLE_TESTS_TRUE = @EET_ENABLE_TESTS_TRUE@
 EGREP = @EGREP@
 EVIL_CFLAGS = @EVIL_CFLAGS@
 EVIL_LIBS = @EVIL_LIBS@
@@ -118,6 +127,7 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -156,6 +166,7 @@ docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 fnmatch_libs = @fnmatch_libs@
+have_lcov = @have_lcov@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -190,7 +201,8 @@ AM_CPPFLAGS = \
 -DPACKAGE_BIN_DIR=\"$(bindir)\" \
 -DPACKAGE_LIB_DIR=\"$(libdir)\" \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
-@EVIL_CFLAGS@
+@EVIL_CFLAGS@ \
+@COVERAGE_CFLAGS@
 
 include_HEADERS = Eet.h
 lib_LTLIBRARIES = libeet.la
@@ -203,7 +215,7 @@ eet_dictionary.c \
 eet_utils.c
 
 libeet_la_CFLAGS = @WIN32_CFLAGS@
-libeet_la_LIBADD = @EVIL_LIBS@ @WIN32_LIBS@ -lz -ljpeg @fnmatch_libs@ -lm
+libeet_la_LIBADD = @COVERAGE_LIBS@ @EVIL_LIBS@ @WIN32_LIBS@ -lz -ljpeg @fnmatch_libs@ -lm
 libeet_la_LDFLAGS = @lt_no_undefined@ @lt_enable_auto_import@ -version-info @version_info@
 libeet_la_DEPENDENCIES = $(top_builddir)/config.h
 EXTRA_DIST = Eet_private.h
@@ -482,7 +494,7 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -533,7 +545,7 @@ uninstall-am: uninstall-includeHEADERS uninstall-info-am \
 	uninstall-libLTLIBRARIES
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libLTLIBRARIES clean-libtool ctags distclean \
+	clean-libLTLIBRARIES clean-libtool clean-local ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-exec \
@@ -546,6 +558,9 @@ uninstall-am: uninstall-includeHEADERS uninstall-info-am \
 	uninstall-includeHEADERS uninstall-info-am \
 	uninstall-libLTLIBRARIES
 
+
+clean-local:
+	@rm -rf *.gcno
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

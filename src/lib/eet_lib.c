@@ -1163,18 +1163,23 @@ eet_open(const char *file, Eet_File_Mode mode)
    if ((mode == EET_FILE_MODE_READ) || (mode == EET_FILE_MODE_READ_WRITE))
      {
 	fp = fopen(file, "rb");
-	if (!fp) return NULL;
+	if (!fp) goto on_error;
 	if (fstat(fileno(fp), &file_stat))
 	  {
 	     fclose(fp);
-	     return NULL;
+	     fp = NULL;
+	     goto on_error;
 	  }
 	if ((mode == EET_FILE_MODE_READ) &&
 	    (file_stat.st_size < (sizeof(int) * 3)))
 	  {
 	     fclose(fp);
-	     return NULL;
+	     fp = NULL;
+	     goto on_error;
 	  }
+
+     on_error:
+	if (fp == NULL && mode == EET_FILE_MODE_READ) return NULL;
      }
    else
      {
@@ -1197,7 +1202,7 @@ eet_open(const char *file, Eet_File_Mode mode)
    if (ef)
      {
 	/* reference it up and return it */
-        fclose(fp);
+	if (fp != NULL) fclose(fp);
 	ef->references++;
 	return ef;
      }
@@ -1221,8 +1226,11 @@ eet_open(const char *file, Eet_File_Mode mode)
    ef->data = NULL;
    ef->data_size = 0;
 
-   /* FIXME: Add new ed on EET_FILE_MODE_WRITE */
-   ef->ed = mode == EET_FILE_MODE_WRITE ? eet_dictionary_add() : NULL;
+   ef->ed = (mode == EET_FILE_MODE_WRITE)
+     || (ef->fp == NULL && mode == EET_FILE_MODE_READ_WRITE) ?
+     eet_dictionary_add() : NULL;
+
+   if (ef->fp == NULL && mode == EET_FILE_MODE_READ_WRITE) goto empty_file;
 
    /* if we can't open - bail out */
    if (eet_test_close(!ef->fp, ef))
@@ -1241,12 +1249,14 @@ eet_open(const char *file, Eet_File_Mode mode)
 	  return NULL;
      }
 
+ empty_file:
    /* we need to delete the original file in read-write mode and re-open for writing */
    if (ef->mode == EET_FILE_MODE_READ_WRITE)
      {
 	ef->readfp = ef->fp;
 	unlink(ef->path);
 	ef->fp = fopen(ef->path, "wb");
+	fcntl(fileno(ef->fp), F_SETFD, FD_CLOEXEC);
      }
 
    /* add to cache */
@@ -1472,6 +1482,9 @@ eet_read_direct(Eet_File *ef, const char *name, int *size_ret)
    if (!efn)
      return NULL;
 
+   if (efn->offset < 0 && efn->data == NULL)
+     return NULL;
+
    /* get size (uncompressed, if compressed at all) */
    size = efn->data_size;
 
@@ -1580,6 +1593,7 @@ eet_write(Eet_File *ef, const char *name, const void *data, int size, int compre
 	     efn->size = data_size;
 	     efn->data_size = size;
 	     efn->data = data2;
+	     efn->offset = -1;
 	     exists_already = 1;
 	     break;
 	  }
@@ -1598,7 +1612,7 @@ eet_write(Eet_File *ef, const char *name, const void *data, int size, int compre
 
 	efn->next = ef->header->directory->nodes[hash];
 	ef->header->directory->nodes[hash] = efn;
-	efn->offset = 0;
+	efn->offset = -1;
 	efn->compression = !!compress;
 	efn->size = data_size;
 	efn->data_size = size;
@@ -1785,6 +1799,8 @@ find_node_by_name(Eet_File *ef, const char *name)
 static int
 read_data_from_disk(Eet_File *ef, Eet_File_Node *efn, void *buf, int len)
 {
+   if (efn->offset < 0) return 0;
+
    if (ef->data)
      {
 	if ((efn->offset + len) > ef->data_size) return 0;
