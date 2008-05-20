@@ -1,4 +1,4 @@
-Eet 1.0.0
+Eet 1.0.1
 
 Requirements:
 -------------
@@ -8,11 +8,8 @@ Must:
 
 ******************************************************************************
 ***
-*** THIS IS AN ALPHA RELEASE - PLEASE REPORT ANY PROBLEMS TO:
+*** FOR ANY ISSUES WITH EET PLEASE EMAIL:
 *** enlightenment-devel@lists.sourceforge.net
-***
-*** We want to weed out any build, porting, compatability or functionality
-*** bugs
 ***
 ******************************************************************************
 
@@ -41,7 +38,7 @@ BUILDING PACKAGES:
 
 RPM: To build rpm packages:
 
-  sudo rpm -ta eet-1.0.0.tar.gz
+  sudo rpm -ta eet-1.0.1.tar.gz
 
 You will find rpm packages in your system /usr/src/redhat/* dirs (note you may
 not need to use sudo or root if you have your own ~/.rpmrc. see rpm documents
