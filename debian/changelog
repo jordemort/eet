@@ -1,8 +1,8 @@
-eet (1.0.1-1) UNRELEASED; urgency=low
+eet (1.0.1-1) unstable; urgency=low
 
   * New upstream release
 
- -- Jan Lübbe <jluebbe@debian.org>  Tue, 20 May 2008 13:35:22 +0200
+ -- Jan Lübbe <jluebbe@debian.org>  Tue, 20 May 2008 18:21:30 +0200
 
 eet (1.0.0-1) unstable; urgency=low
 
