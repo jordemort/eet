@@ -1,4 +1,4 @@
-.TH "Eet.h" 3 "19 May 2008" "Eet" \" -*- nroff -*-
+.TH "Eet.h" 3 "25 Sep 2008" "Eet" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -105,6 +105,22 @@ Eet.h \- The file that provides the eet functions.
 .RI "#define \fBEET_DATA_DESCRIPTOR_ADD_HASH\fP(edd, struct_type, name, member, subtype)"
 .br
 .RI "\fIAdd a hash type to a data descriptor. \fP"
+.ti -1c
+.RI "#define \fBEET_DATA_DESCRIPTOR_ADD_ARRAY\fP(edd, struct_type, name, member, subtype)"
+.br
+.RI "\fIAdd a fixed size array type to a data descriptor. \fP"
+.ti -1c
+.RI "#define \fBEET_DATA_DESCRIPTOR_ADD_VAR_ARRAY\fP(edd, struct_type, name, member, subtype)"
+.br
+.RI "\fIAdd a variable size array type to a data descriptor. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef int(* \fBEet_Key_Password_Callback\fP )(char *buffer, int size, int rwflag, void *data)"
+.br
+.RI "\fICallback used to request if needed the password of a private key. \fP"
 .in -1c
 .SS "Functions"
 
@@ -126,6 +142,10 @@ Eet.h \- The file that provides the eet functions.
 .br
 .RI "\fIOpen an eet file on disk, and returns a handle to it. \fP"
 .ti -1c
+.RI "EAPI Eet_File * \fBeet_memopen_read\fP (const void *data, size_t size)"
+.br
+.RI "\fIOpen an eet file directly from a memory location. \fP"
+.ti -1c
 .RI "EAPI Eet_File_Mode \fBeet_mode_get\fP (Eet_File *ef)"
 .br
 .RI "\fIGet the mode an Eet_File was opened with. \fP"
@@ -133,6 +153,30 @@ Eet.h \- The file that provides the eet functions.
 .RI "EAPI Eet_Error \fBeet_close\fP (Eet_File *ef)"
 .br
 .RI "\fIClose an eet file handle and flush and writes pending. \fP"
+.ti -1c
+.RI "EAPI Eet_Key * \fBeet_identity_open\fP (const char *certificate_file, const char *private_key_file, \fBEet_Key_Password_Callback\fP cb)"
+.br
+.RI "\fICreate an Eet_Key needed for signing an eet file. \fP"
+.ti -1c
+.RI "EAPI void \fBeet_identity_close\fP (Eet_Key *key)"
+.br
+.RI "\fIClose and release all ressource used by an Eet_Key. \fP"
+.ti -1c
+.RI "EAPI Eet_Error \fBeet_identity_set\fP (Eet_File *ef, Eet_Key *key)"
+.br
+.RI "\fISet a key to sign a file. \fP"
+.ti -1c
+.RI "EAPI void \fBeet_identity_print\fP (Eet_Key *key, FILE *out)"
+.br
+.RI "\fIDisplay both private and public key of an Eet_Key. \fP"
+.ti -1c
+.RI "EAPI const void * \fBeet_identity_x509\fP (Eet_File *ef, int *der_length)"
+.br
+.RI "\fIGet the x509 der certificate associated with an Eet_File. \fP"
+.ti -1c
+.RI "EAPI void \fBeet_identity_certificate_print\fP (const unsigned char *certificate, int der_length, FILE *out)"
+.br
+.RI "\fIDisplay the x509 der certificate to out. \fP"
 .ti -1c
 .RI "EAPI Eet_Dictionary * \fBeet_dictionary_get\fP (Eet_File *ef)"
 .br
@@ -174,6 +218,10 @@ Eet.h \- The file that provides the eet functions.
 .br
 .RI "\fIRead image data from the named key in the eet file. \fP"
 .ti -1c
+.RI "EAPI int \fBeet_data_image_read_to_surface\fP (Eet_File *ef, const char *name, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy)"
+.br
+.RI "\fIRead image data from the named key in the eet file. \fP"
+.ti -1c
 .RI "EAPI int \fBeet_data_image_write\fP (Eet_File *ef, const char *name, const void *data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)"
 .br
 .RI "\fIWrite image data to the named key in an eet file. \fP"
@@ -183,6 +231,10 @@ Eet.h \- The file that provides the eet functions.
 .RI "\fIDecode Image data header only to get information. \fP"
 .ti -1c
 .RI "EAPI void * \fBeet_data_image_decode\fP (const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)"
+.br
+.RI "\fIDecode Image data into pixel data. \fP"
+.ti -1c
+.RI "EAPI int \fBeet_data_image_decode_to_surface\fP (const void *data, int size, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy)"
 .br
 .RI "\fIDecode Image data into pixel data. \fP"
 .ti -1c
@@ -241,6 +293,42 @@ The file that provides the eet functions.
 This header provides the Eet management functions. 
 .SH "Define Documentation"
 .PP 
+.SS "#define EET_DATA_DESCRIPTOR_ADD_ARRAY(edd, struct_type, name, member, subtype)"
+.PP
+\fBValue:\fP
+.PP
+.nf
+{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_ARRAY, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          /* 0,  */sizeof(___ett.member)/sizeof(___ett.member[0]), NULL, subtype); \
+     }
+.fi
+Add a fixed size array type to a data descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to add the type to. 
+.br
+\fIstruct_type\fP The type of the struct. 
+.br
+\fIname\fP The string name to use to encode/decode this member (must be a constant global and never change). 
+.br
+\fImember\fP The struct member itself to be encoded. 
+.br
+\fIsubtype\fP The type of hash member to add.
+.RE
+.PP
+This macro lets you easily add a fixed size array of other data types. All the parameters are the same as for \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, with the \fCsubtype\fP being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.2 
+.RE
+.PP
+
 .SS "#define EET_DATA_DESCRIPTOR_ADD_BASIC(edd, struct_type, name, member, type)"
 .PP
 \fBValue:\fP
@@ -251,7 +339,7 @@ This header provides the Eet management functions.
   \
   eet_data_descriptor_element_add(edd, name, type, EET_G_UNKNOWN, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, NULL); \
+          0, /* 0,  */NULL, NULL); \
      }
 .fi
 Add a basic data element to a data descriptor. 
@@ -287,7 +375,7 @@ This macro is a convenience macro provided to add a member to the data descripto
   \
   eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_HASH, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, subtype); \
+          0, /* 0,  */NULL, subtype); \
      }
 .fi
 Add a hash type to a data descriptor. 
@@ -323,7 +411,7 @@ This macro lets you easily add a hash of other data types. All the parameters ar
   \
   eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_LIST, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, subtype); \
+          0, /* 0,  */NULL, subtype); \
      }
 .fi
 Add a linked list type to a data descriptor. 
@@ -359,7 +447,7 @@ This macro lets you easily add a linked list of other data types. All the parame
   \
   eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_UNKNOWN, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, subtype); \
+          0, /* 0,  */NULL, subtype); \
      }
 .fi
 Add a sub-element type to a data descriptor. 
@@ -382,6 +470,54 @@ This macro lets you easily add a sub-type (a struct that's pointed to by this on
 \fBSince:\fP
 .RS 4
 1.0.0 
+.RE
+.PP
+
+.SS "#define EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY(edd, struct_type, name, member, subtype)"
+.PP
+\fBValue:\fP
+.PP
+.nf
+{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_VAR_ARRAY, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          (char *)(&(___ett.member ## _count)) - (char *)(&(___ett)), /* 0,  */NULL, subtype); \
+     }
+.fi
+Add a variable size array type to a data descriptor. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIedd\fP The data descriptor to add the type to. 
+.br
+\fIstruct_type\fP The type of the struct. 
+.br
+\fIname\fP The string name to use to encode/decode this member (must be a constant global and never change). 
+.br
+\fImember\fP The struct member itself to be encoded. 
+.br
+\fIsubtype\fP The type of hash member to add.
+.RE
+.PP
+This macro lets you easily add a fixed size array of other data types. All the parameters are the same as for \fBEET_DATA_DESCRIPTOR_ADD_BASIC()\fP, with the \fCsubtype\fP being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.2 
+.RE
+.PP
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef int(* \fBEet_Key_Password_Callback\fP)(char *buffer, int size, int rwflag, void *data)"
+.PP
+Callback used to request if needed the password of a private key. 
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
 .RE
 .PP
 
@@ -761,6 +897,54 @@ On success the function returns a pointer to the image data decoded. The calling
 .RE
 .PP
 
+.SS "EAPI int eet_data_image_decode_to_surface (const void * data, int size, unsigned int src_x, unsigned int src_y, unsigned int * d, unsigned int w, unsigned int h, unsigned int row_stride, int * alpha, int * compress, int * quality, int * lossy)"
+.PP
+Decode Image data into pixel data. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The encoded pixel data. 
+.br
+\fIsize\fP The size, in bytes, of the encoded pixel data. 
+.br
+\fIsrc_x\fP The starting x coordinate from where to dump the stream. 
+.br
+\fIsrc_y\fP The starting y coordinate from where to dump the stream. 
+.br
+\fId\fP A pointer to the pixel surface. 
+.br
+\fIw\fP The expected width in pixels of the pixel surface to decode. 
+.br
+\fIh\fP The expected height in pixels of the pixel surface to decode. 
+.br
+\fIrow_stride\fP The length of a pixels line in the destination surface. 
+.br
+\fIalpha\fP A pointer to the int to hold the alpha flag. 
+.br
+\fIcompress\fP A pointer to the int to hold the compression amount. 
+.br
+\fIquality\fP A pointer to the int to hold the quality amount. 
+.br
+\fIlossy\fP A pointer to the int to hold the lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 otherwise.
+.RE
+.PP
+This function takes encoded pixel data and decodes it into raw RGBA pixels on success.
+.PP
+The other parameters of the image (alpha, compress etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pixel is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+.PP
+On success the function returns 1, and 0 on failure. On failure the parameter values may not contain any sensible data.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.2 
+.RE
+.PP
+
 .SS "EAPI void* eet_data_image_encode (const void * data, int * size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)"
 .PP
 Encode image data for storage or transmission. 
@@ -918,6 +1102,54 @@ On success the function returns a pointer to the image data decoded. The calling
 \fBSince:\fP
 .RS 4
 1.0.0 
+.RE
+.PP
+
+.SS "EAPI int eet_data_image_read_to_surface (Eet_File * ef, const char * name, unsigned int src_x, unsigned int src_y, unsigned int * d, unsigned int w, unsigned int h, unsigned int row_stride, int * alpha, int * compress, int * quality, int * lossy)"
+.PP
+Read image data from the named key in the eet file. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIef\fP A valid eet file handle opened for reading. 
+.br
+\fIname\fP Name of the entry. eg: '/base/file_i_want'. 
+.br
+\fIsrc_x\fP The starting x coordinate from where to dump the stream. 
+.br
+\fIsrc_y\fP The starting y coordinate from where to dump the stream. 
+.br
+\fId\fP A pointer to the pixel surface. 
+.br
+\fIw\fP The expected width in pixels of the pixel surface to decode. 
+.br
+\fIh\fP The expected height in pixels of the pixel surface to decode. 
+.br
+\fIrow_stride\fP The length of a pixels line in the destination surface. 
+.br
+\fIalpha\fP A pointer to the int to hold the alpha flag. 
+.br
+\fIcompress\fP A pointer to the int to hold the compression amount. 
+.br
+\fIquality\fP A pointer to the int to hold the quality amount. 
+.br
+\fIlossy\fP A pointer to the int to hold the lossiness flag. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 otherwise.
+.RE
+.PP
+This function reads an image from an eet file stored under the named key in the eet file and return a pointer to the decompressed pixel data.
+.PP
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pile is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+.PP
+On success the function returns 1, and 0 on failure. On failure the parameter values may not contain any sensible data.
+.PP
+\fBSince:\fP
+.RS 4
+1.0.2 
 .RE
 .PP
 
@@ -1208,6 +1440,72 @@ This checks the given dictionary to see if the given string is actually inside t
 .RE
 .PP
 
+.SS "EAPI void eet_identity_certificate_print (const unsigned char * certificate, int der_length, FILE * out)"
+.PP
+Display the x509 der certificate to out. 
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
+.RE
+.PP
+
+.SS "EAPI void eet_identity_close (Eet_Key * key)"
+.PP
+Close and release all ressource used by an Eet_Key. 
+.PP
+An reference counter prevent it from being freed until all file using it are also closed.
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_Key* eet_identity_open (const char * certificate_file, const char * private_key_file, \fBEet_Key_Password_Callback\fP cb)"
+.PP
+Create an Eet_Key needed for signing an eet file. 
+.PP
+The certificate should provide the public that match the private key. No verification is done to ensure that.
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
+.RE
+.PP
+
+.SS "EAPI void eet_identity_print (Eet_Key * key, FILE * out)"
+.PP
+Display both private and public key of an Eet_Key. 
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_Error eet_identity_set (Eet_File * ef, Eet_Key * key)"
+.PP
+Set a key to sign a file. 
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
+.RE
+.PP
+
+.SS "EAPI const void* eet_identity_x509 (Eet_File * ef, int * der_length)"
+.PP
+Get the x509 der certificate associated with an Eet_File. 
+.PP
+Will return NULL if the file is not signed.
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
+.RE
+.PP
+
 .SS "EAPI int eet_init (void)"
 .PP
 Initialize the EET library. 
@@ -1254,6 +1552,18 @@ Hint: an easy way to list all entries in an eet file is to use a glob value of '
 \fBSince:\fP
 .RS 4
 1.0.0 
+.RE
+.PP
+
+.SS "EAPI Eet_File* eet_memopen_read (const void * data, size_t size)"
+.PP
+Open an eet file directly from a memory location. 
+.PP
+The data are not copied, so you must keep them around as long as the eet file is open. Their is currently no cache for this kind of Eet_File, so it's reopen every time you do use eet_memopen_read.
+.PP
+\fBSince:\fP
+.RS 4
+2.0.0 
 .RE
 .PP
 

@@ -13,20 +13,8 @@ _eet_hash_gen(const char *key, int hash_size)
 {
    int			hash_num = 0;
    int			value, i;
+   int                  mask;
    unsigned char	*ptr;
-
-   const int masks[9] =
-     {
-	0x00,
-	0x01,
-	0x03,
-	0x07,
-	0x0f,
-	0x1f,
-	0x3f,
-	0x7f,
-	0xff
-     };
 
    /* no string - index 0 */
    if (!key) return 0;
@@ -38,7 +26,8 @@ _eet_hash_gen(const char *key, int hash_size)
      hash_num ^= (value | (value << 8)) >> (i & 0x7);
 
    /* mask it */
-   hash_num &= masks[hash_size];
+   mask = (1 << hash_size) - 1;
+   hash_num &= mask;
    /* return it */
    return hash_num;
 }
@@ -150,7 +139,7 @@ _eet_string_to_double_convert(const char *src, long long *m, long *e)
 /*                                                         */
 /* where h is a hexadecimal number and e a decimal number. */
 void
-_eet_double_to_string_convert(char *des, double d)
+_eet_double_to_string_convert(char des[128], double d)
 {
    static const char look_up_table[] = {'0', '1', '2', '3', '4',
                                         '5', '6', '7', '8', '9',
@@ -199,5 +188,5 @@ _eet_double_to_string_convert(char *des, double d)
    else
      *(des++) = '+';
 
-   sprintf(des, "%d", p);
+   snprintf(des, 128, "%d", p);
 }

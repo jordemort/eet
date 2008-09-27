@@ -1,8 +1,16 @@
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #include <check.h>
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "eet_suite.h"
 
@@ -34,6 +42,8 @@ struct _Eet_Test_Basic_Type
    unsigned short us;
    unsigned int ui;
    unsigned long long ul;
+   Eet_Test_Basic_Type *empty;
+   Eet_Test_Basic_Type *with;
 };
 
 #define EET_TEST_CHAR 0x42
@@ -91,61 +101,59 @@ static const Eet_Test_Image test_alpha = {
   }
 };
 
-
-START_TEST(eet_test_basic_data_type_encoding_decoding)
+static void
+_eet_test_basic_set(Eet_Test_Basic_Type *res, int i)
 {
-   Eet_Data_Descriptor *edd;
-   Eet_Test_Basic_Type *result;
-   Eet_Data_Descriptor_Class eddc;
-   Eet_Test_Basic_Type etbt;
-   void *transfert;
-   int size;
+   res->c = EET_TEST_CHAR;
+   res->s = EET_TEST_SHORT;
+   res->i = EET_TEST_INT + i;
+   res->l = EET_TEST_LONG_LONG;
+   res->str = EET_TEST_STRING;
+   res->istr = EET_TEST_STRING;
+   res->f1 = - EET_TEST_FLOAT;
+   res->d = - EET_TEST_DOUBLE;
+   res->f2 = EET_TEST_FLOAT4;
+   res->uc = EET_TEST_CHAR;
+   res->us = EET_TEST_SHORT;
+   res->ui = EET_TEST_INT;
+   res->ul = EET_TEST_LONG_LONG;
+   res->empty = NULL;
+   res->with = NULL;
+
+   if (i == 0)
+     {
+	Eet_Test_Basic_Type *tmp;
+
+	tmp = malloc(sizeof (Eet_Test_Basic_Type));
+	fail_if(!tmp);
+
+	res->with = tmp;
+	tmp->c = EET_TEST_CHAR;
+	tmp->s = EET_TEST_SHORT;
+	tmp->i = EET_TEST_INT + i + 1;
+	tmp->l = EET_TEST_LONG_LONG;
+	tmp->str = EET_TEST_STRING;
+	tmp->istr = EET_TEST_STRING;
+	tmp->f1 = - EET_TEST_FLOAT;
+	tmp->d = - EET_TEST_DOUBLE;
+	tmp->f2 = EET_TEST_FLOAT4;
+	tmp->uc = EET_TEST_CHAR;
+	tmp->us = EET_TEST_SHORT;
+	tmp->ui = EET_TEST_INT;
+	tmp->ul = EET_TEST_LONG_LONG;
+	tmp->empty = NULL;
+	tmp->with = NULL;
+     }
+}
+
+static void
+_eet_test_basic_check(Eet_Test_Basic_Type *result, int i)
+{
    float tmp;
-
-   etbt.c = EET_TEST_CHAR;
-   etbt.s = EET_TEST_SHORT;
-   etbt.i = EET_TEST_INT;
-   etbt.l = EET_TEST_LONG_LONG;
-   etbt.str = EET_TEST_STRING;
-   etbt.istr = EET_TEST_STRING;
-   etbt.f1 = - EET_TEST_FLOAT;
-   etbt.d = - EET_TEST_DOUBLE;
-   etbt.f2 = EET_TEST_FLOAT4;
-   etbt.uc = EET_TEST_CHAR;
-   etbt.us = EET_TEST_SHORT;
-   etbt.ui = EET_TEST_INT;
-   etbt.ul = EET_TEST_LONG_LONG;
-
-   eet_test_setup_eddc(&eddc);
-   eddc.name = "Eet_Test_Basic_Type";
-   eddc.size = sizeof(Eet_Test_Basic_Type);
-
-   edd = eet_data_descriptor2_new(&eddc);
-   fail_if(!edd);
-
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "c", c, EET_T_CHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "s", s, EET_T_SHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "i", i, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "l", l, EET_T_LONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "str", str, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "istr", istr, EET_T_INLINED_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "f1", f1, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "f2", f2, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "d", d, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "uc", uc, EET_T_UCHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "us", us, EET_T_USHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "ui", ui, EET_T_UINT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "ul", ul, EET_T_ULONG_LONG);
-
-   transfert = eet_data_descriptor_encode(edd, &etbt, &size);
-   fail_if(!transfert || size <= 0);
-
-   result = eet_data_descriptor_decode(edd, transfert, size);
-   fail_if(!result);
 
    fail_if(result->c != EET_TEST_CHAR);
    fail_if(result->s != EET_TEST_SHORT);
-   fail_if(result->i != EET_TEST_INT);
+   fail_if(result->i != EET_TEST_INT + i);
    fail_if(result->l != EET_TEST_LONG_LONG);
    fail_if(strcmp(result->str, EET_TEST_STRING) != 0);
    fail_if(strcmp(result->istr, EET_TEST_STRING) != 0);
@@ -166,10 +174,86 @@ START_TEST(eet_test_basic_data_type_encoding_decoding)
    if (tmp < 0) tmp = -tmp;
    fail_if(tmp > 0.00005);
 
+   fail_if(result->empty != NULL);
+   if (i == 0)
+     {
+	Eet_Test_Basic_Type *tmp;
+
+	tmp = result->with;
+	fail_if(tmp == NULL);
+
+	fail_if(tmp->c != EET_TEST_CHAR);
+	fail_if(tmp->s != EET_TEST_SHORT);
+	fail_if(tmp->i != EET_TEST_INT + i + 1);
+	fail_if(tmp->l != EET_TEST_LONG_LONG);
+	fail_if(strcmp(tmp->str, EET_TEST_STRING) != 0);
+	fail_if(strcmp(tmp->istr, EET_TEST_STRING) != 0);
+	fail_if(tmp->uc != EET_TEST_CHAR);
+	fail_if(tmp->us != EET_TEST_SHORT);
+	fail_if(tmp->ui != EET_TEST_INT);
+	fail_if(tmp->ul != EET_TEST_LONG_LONG);
+     }
+   else
+     fail_if(result->with != NULL);
+}
+
+static void
+_eet_build_basic_descriptor(Eet_Data_Descriptor *edd)
+{
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "c", c, EET_T_CHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "s", s, EET_T_SHORT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "i", i, EET_T_INT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "l", l, EET_T_LONG_LONG);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "str", str, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "istr", istr, EET_T_INLINED_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "f1", f1, EET_T_FLOAT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "f2", f2, EET_T_FLOAT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "d", d, EET_T_DOUBLE);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "uc", uc, EET_T_UCHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "us", us, EET_T_USHORT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "ui", ui, EET_T_UINT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Basic_Type, "ul", ul, EET_T_ULONG_LONG);
+
+   EET_DATA_DESCRIPTOR_ADD_SUB(edd, Eet_Test_Basic_Type, "empty", empty, edd);
+   EET_DATA_DESCRIPTOR_ADD_SUB(edd, Eet_Test_Basic_Type, "with", with, edd);
+}
+
+START_TEST(eet_test_basic_data_type_encoding_decoding)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_Test_Basic_Type *result;
+   Eet_Data_Descriptor_Class eddc;
+   Eet_Test_Basic_Type etbt;
+   void *transfert;
+   int size;
+
+   eet_init();
+
+   _eet_test_basic_set(&etbt, 0);
+
+   eet_test_setup_eddc(&eddc);
+   eddc.name = "Eet_Test_Basic_Type";
+   eddc.size = sizeof(Eet_Test_Basic_Type);
+
+   edd = eet_data_descriptor2_new(&eddc);
+   fail_if(!edd);
+
+   _eet_build_basic_descriptor(edd);
+
+   transfert = eet_data_descriptor_encode(edd, &etbt, &size);
+   fail_if(!transfert || size <= 0);
+
+   result = eet_data_descriptor_decode(edd, transfert, size);
+   fail_if(!result);
+
+   _eet_test_basic_check(result, 0);
+
    free(result->str);
    free(result);
 
    eet_data_descriptor_free(edd);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -194,6 +278,12 @@ struct _Eet_Test_Ex_Type
    Eet_Hash *hash;
    Eet_List *ilist;
    Eet_Hash *ihash;
+   Eet_Test_Basic_Type sarray1[10];
+   unsigned int sarray2[5];
+   unsigned int varray1_count;
+   unsigned int *varray1;
+   unsigned int varray2_count;
+   Eet_Test_Basic_Type *varray2;
    unsigned char uc;
    unsigned short us;
    unsigned int ui;
@@ -203,9 +293,63 @@ struct _Eet_Test_Ex_Type
 static int i42 = 42;
 static int i7 = 7;
 
+
+static void
+_eet_build_ex_descriptor(Eet_Data_Descriptor *edd)
+{
+   Eet_Data_Descriptor_Class eddc;
+   Eet_Test_Ex_Type etbt;
+   Eet_Data_Descriptor *eddb;
+
+   eet_test_setup_eddc(&eddc);
+   eddc.name = "Eet_Test_Basic_Type";
+   eddc.size = sizeof(Eet_Test_Basic_Type);
+   eddb = eet_data_descriptor3_new(&eddc);
+   fail_if(!eddb);
+
+   _eet_build_basic_descriptor(eddb);
+
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "c", c, EET_T_CHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "s", s, EET_T_SHORT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "i", i, EET_T_INT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "l", l, EET_T_LONG_LONG);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "str", str, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "istr", istr, EET_T_INLINED_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f1", f1, EET_T_FLOAT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f2", f2, EET_T_FLOAT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f3", f3, EET_T_FLOAT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f4", f4, EET_T_FLOAT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d1", d1, EET_T_DOUBLE);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d2", d2, EET_T_DOUBLE);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d3", d3, EET_T_DOUBLE);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d4", d4, EET_T_DOUBLE);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "uc", uc, EET_T_UCHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "us", us, EET_T_USHORT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ui", ui, EET_T_UINT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ul", ul, EET_T_ULONG_LONG);
+   EET_DATA_DESCRIPTOR_ADD_ARRAY(edd, Eet_Test_Ex_Type, "sarray1", sarray1, eddb);
+   EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY(edd, Eet_Test_Ex_Type, "varray2", varray2, eddb);
+   eet_data_descriptor_element_add(edd, "varray1", EET_T_INT, EET_G_VAR_ARRAY,
+				   (char *)(&(etbt.varray1)) - (char *)(&(etbt)),
+				   (char *)(&(etbt.varray1_count)) - (char *)(&(etbt)), /* 0,  */NULL, NULL);
+   eet_data_descriptor_element_add(edd, "sarray2", EET_T_INT, EET_G_ARRAY,
+				   (char *)(&(etbt.sarray2)) - (char *)(&(etbt)),
+				   /* 0,  */sizeof(etbt.sarray2)/sizeof(etbt.sarray2[0]), NULL, NULL);
+   EET_DATA_DESCRIPTOR_ADD_LIST(edd, Eet_Test_Ex_Type, "list", list, edd);
+   EET_DATA_DESCRIPTOR_ADD_HASH(edd, Eet_Test_Ex_Type, "hash", hash, edd);
+   eet_data_descriptor_element_add(edd, "ilist", EET_T_INT, EET_G_LIST,
+				   (char *)(&(etbt.ilist)) - (char *)(&(etbt)),
+				   0, /* 0,  */NULL, NULL);
+   eet_data_descriptor_element_add(edd, "ihash", EET_T_INT, EET_G_HASH,
+				   (char *)(&(etbt.ihash)) - (char *)(&(etbt)),
+				   0, /* 0,  */NULL, NULL);
+}
+
 static Eet_Test_Ex_Type*
 _eet_test_ex_set(Eet_Test_Ex_Type *res, int offset)
 {
+   int i;
+
    if (!res) res = malloc( sizeof(Eet_Test_Ex_Type));
    if (!res) return NULL;
 
@@ -227,6 +371,23 @@ _eet_test_ex_set(Eet_Test_Ex_Type *res, int offset)
    res->hash = NULL;
    res->ilist = NULL;
    res->ihash = NULL;
+
+   res->varray2 = malloc(sizeof (Eet_Test_Basic_Type) * 10);
+   res->varray1 = malloc(sizeof (int) * 5);
+   fail_if(!res->varray1 || !res->varray2);
+   for (i = 0; i < 10; ++i)
+     {
+	_eet_test_basic_set(res->sarray1 + i, i);
+	_eet_test_basic_set(res->varray2 + i, i);
+     }
+   res->varray2_count = 10;
+   for (i = 0; i < 5; ++i)
+     {
+	res->sarray2[i] = i * 42 + 1;
+	res->varray1[i] = i * 42 + 1;
+     }
+   res->varray1_count = 5;
+
    res->uc = EET_TEST_CHAR + offset;
    res->us = EET_TEST_SHORT + offset;
    res->ui = EET_TEST_INT + offset;
@@ -239,6 +400,7 @@ static int
 _eet_test_ex_check(Eet_Test_Ex_Type *stuff, int offset)
 {
    double tmp;
+   int i;
 
    if (!stuff) return 1;
 
@@ -270,6 +432,13 @@ _eet_test_ex_check(Eet_Test_Ex_Type *stuff, int offset)
    if (stuff->us != EET_TEST_SHORT + offset) return 1;
    if (stuff->ui != EET_TEST_INT + offset) return 1;
    if (stuff->ul != EET_TEST_LONG_LONG + offset) return 1;
+
+   for (i = 0; i < 5; ++i)
+     if (stuff->sarray2[i] != i * 42 + 1)
+       return 1;
+
+   for (i = 0; i < 10; ++i)
+     _eet_test_basic_check(stuff->sarray1 + i, i);
 
    return 0;
 }
@@ -310,6 +479,8 @@ START_TEST(eet_test_data_type_encoding_decoding)
    int size;
    int test;
 
+   eet_init();
+
    _eet_test_ex_set(&etbt, 0);
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
    etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
@@ -323,32 +494,7 @@ START_TEST(eet_test_data_type_encoding_decoding)
    edd = eet_data_descriptor3_new(&eddc);
    fail_if(!edd);
 
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "c", c, EET_T_CHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "s", s, EET_T_SHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "i", i, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "l", l, EET_T_LONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "str", str, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "istr", istr, EET_T_INLINED_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f1", f1, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f2", f2, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f3", f3, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f4", f4, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d1", d1, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d2", d2, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d3", d3, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d4", d4, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "uc", uc, EET_T_UCHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "us", us, EET_T_USHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ui", ui, EET_T_UINT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ul", ul, EET_T_ULONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_LIST(edd, Eet_Test_Ex_Type, "list", list, edd);
-   EET_DATA_DESCRIPTOR_ADD_HASH(edd, Eet_Test_Ex_Type, "hash", hash, edd);
-   eet_data_descriptor_element_add(edd, "ilist", EET_T_INT, EET_G_LIST,
-				   (char *)(&(etbt.ilist)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
-   eet_data_descriptor_element_add(edd, "ihash", EET_T_INT, EET_G_HASH,
-				   (char *)(&(etbt.ihash)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
+   _eet_build_ex_descriptor(edd);
 
    transfert = eet_data_descriptor_encode(edd, &etbt, &size);
    fail_if(!transfert || size <= 0);
@@ -366,6 +512,8 @@ START_TEST(eet_test_data_type_encoding_decoding)
    fail_if(test != 0);
    eet_hash_foreach(result->ihash, func7, &test);
    fail_if(test != 0);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -400,6 +548,8 @@ START_TEST(eet_test_data_type_dump_undump)
 
    int i;
 
+   eet_init();
+
    _eet_test_ex_set(&etbt, 0);
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
@@ -417,32 +567,7 @@ START_TEST(eet_test_data_type_dump_undump)
    edd = eet_data_descriptor3_new(&eddc);
    fail_if(!edd);
 
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "c", c, EET_T_CHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "s", s, EET_T_SHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "i", i, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "l", l, EET_T_LONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "str", str, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "istr", istr, EET_T_INLINED_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f1", f1, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f2", f2, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f3", f3, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f4", f4, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d1", d1, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d2", d2, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d3", d3, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d4", d4, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "uc", uc, EET_T_UCHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "us", us, EET_T_USHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ui", ui, EET_T_UINT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ul", ul, EET_T_ULONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_LIST(edd, Eet_Test_Ex_Type, "list", list, edd);
-   EET_DATA_DESCRIPTOR_ADD_HASH(edd, Eet_Test_Ex_Type, "hash", hash, edd);
-   eet_data_descriptor_element_add(edd, "ilist", EET_T_INT, EET_G_LIST,
-				   (char *)(&(etbt.ilist)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
-   eet_data_descriptor_element_add(edd, "ihash", EET_T_INT, EET_G_HASH,
-				   (char *)(&(etbt.ihash)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
+   _eet_build_ex_descriptor(edd);
 
    transfert1 = eet_data_descriptor_encode(edd, &etbt, &size1);
    fail_if(!transfert1 || size1 <= 0);
@@ -474,6 +599,8 @@ START_TEST(eet_test_data_type_dump_undump)
    fail_if(test != 0);
    eet_hash_foreach(result->ihash, func7, &test);
    fail_if(test != 0);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -485,6 +612,8 @@ START_TEST(eet_file_simple_write)
    char *file = strdup("/tmp/eet_suite_testXXXXXX");
    int size;
 
+   eet_init();
+
    mktemp(file);
 
    fail_if(eet_mode_get(NULL) != EET_FILE_MODE_INVALID);
@@ -492,7 +621,7 @@ START_TEST(eet_file_simple_write)
    ef = eet_open(file, EET_FILE_MODE_WRITE);
    fail_if(!ef);
 
-   fail_if(!eet_write(ef, "keys/tests", buffer, sizeof(*buffer), 1));
+   fail_if(!eet_write(ef, "keys/tests", buffer, strlen(buffer) + 1, 1));
 
    fail_if(eet_mode_get(ef) != EET_FILE_MODE_WRITE);
 
@@ -507,9 +636,9 @@ START_TEST(eet_file_simple_write)
 
    test = eet_read(ef, "keys/tests", &size);
    fail_if(!test);
-   fail_if(size != sizeof(*buffer));
+   fail_if(size != strlen(buffer) + 1);
 
-   fail_if(memcmp(test, buffer, sizeof(*buffer)) != 0);
+   fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
 
    fail_if(eet_mode_get(ef) != EET_FILE_MODE_READ);
    fail_if(eet_num_entries(ef) != 1);
@@ -522,13 +651,15 @@ START_TEST(eet_file_simple_write)
 
    test = eet_read(ef, "keys/tests", &size);
    fail_if(!test);
-   fail_if(size != sizeof(*buffer));
+   fail_if(size != strlen(buffer) + 1);
 
-   fail_if(memcmp(test, buffer, sizeof(*buffer)) != 0);
+   fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
 
    eet_close(ef);
 
    fail_if(unlink(file) != 0);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -555,6 +686,8 @@ START_TEST(eet_file_data_test)
 
    int i;
 
+   eet_init();
+
    _eet_test_ex_set(&etbt, 0);
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
@@ -572,32 +705,7 @@ START_TEST(eet_file_data_test)
    edd = eet_data_descriptor3_new(&eddc);
    fail_if(!edd);
 
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "c", c, EET_T_CHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "s", s, EET_T_SHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "i", i, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "l", l, EET_T_LONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "str", str, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "istr", istr, EET_T_INLINED_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f1", f1, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f2", f2, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f3", f3, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f4", f4, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d1", d1, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d2", d2, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d3", d3, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d4", d4, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "uc", uc, EET_T_UCHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "us", us, EET_T_USHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ui", ui, EET_T_UINT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ul", ul, EET_T_ULONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_LIST(edd, Eet_Test_Ex_Type, "list", list, edd);
-   EET_DATA_DESCRIPTOR_ADD_HASH(edd, Eet_Test_Ex_Type, "hash", hash, edd);
-   eet_data_descriptor_element_add(edd, "ilist", EET_T_INT, EET_G_LIST,
-				   (char *)(&(etbt.ilist)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
-   eet_data_descriptor_element_add(edd, "ihash", EET_T_INT, EET_G_HASH,
-				   (char *)(&(etbt.ihash)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
+   _eet_build_ex_descriptor(edd);
 
    mktemp(file);
 
@@ -608,7 +716,7 @@ START_TEST(eet_file_data_test)
    ef = eet_open(file, EET_FILE_MODE_READ_WRITE);
    fail_if(!ef);
 
-   fail_if(!eet_data_write(ef, edd, EET_TEST_FILE_KEY1, &etbt, 1));
+   fail_if(!eet_data_write(ef, edd, EET_TEST_FILE_KEY1, &etbt, 0));
 
    result = eet_data_read(ef, edd, EET_TEST_FILE_KEY1);
    fail_if(!result);
@@ -688,6 +796,8 @@ START_TEST(eet_file_data_test)
    eet_close(ef);
 
    fail_if(unlink(file) != 0);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -712,6 +822,8 @@ START_TEST(eet_file_data_dump_test)
 
    int i;
 
+   eet_init();
+
    _eet_test_ex_set(&etbt, 0);
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
    etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
@@ -729,32 +841,7 @@ START_TEST(eet_file_data_dump_test)
    edd = eet_data_descriptor3_new(&eddc);
    fail_if(!edd);
 
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "c", c, EET_T_CHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "s", s, EET_T_SHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "i", i, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "l", l, EET_T_LONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "str", str, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "istr", istr, EET_T_INLINED_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f1", f1, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f2", f2, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f3", f3, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "f4", f4, EET_T_FLOAT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d1", d1, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d2", d2, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d3", d3, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "d4", d4, EET_T_DOUBLE);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "uc", uc, EET_T_UCHAR);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "us", us, EET_T_USHORT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ui", ui, EET_T_UINT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Eet_Test_Ex_Type, "ul", ul, EET_T_ULONG_LONG);
-   EET_DATA_DESCRIPTOR_ADD_LIST(edd, Eet_Test_Ex_Type, "list", list, edd);
-   EET_DATA_DESCRIPTOR_ADD_HASH(edd, Eet_Test_Ex_Type, "hash", hash, edd);
-   eet_data_descriptor_element_add(edd, "ilist", EET_T_INT, EET_G_LIST,
-				   (char *)(&(etbt.ilist)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
-   eet_data_descriptor_element_add(edd, "ihash", EET_T_INT, EET_G_HASH,
-				   (char *)(&(etbt.ihash)) - (char *)(&(etbt)),
-				   0, NULL, NULL);
+   _eet_build_ex_descriptor(edd);
 
    mktemp(file);
 
@@ -799,6 +886,8 @@ START_TEST(eet_file_data_dump_test)
    fail_if(test != 0);
 
    fail_if(unlink(file) != 0);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -903,10 +992,21 @@ START_TEST(eet_image)
    fail_if(compress != 0);
    fail_if(lossy != 0);
 
-   data = eet_data_image_read(ef, EET_TEST_FILE_IMAGE "0", &w, &h, &alpha, &compress, &quality, &lossy);
+   data = malloc(w * h * 4);
    fail_if(data == NULL);
-   fail_if(w != test_noalpha.w);
-   fail_if(h != test_noalpha.h);
+   result = eet_data_image_read_to_surface(ef, EET_TEST_FILE_IMAGE "0", 4, 4, data, 2, 2, w * 4, &alpha, &compress, &quality, &lossy);
+   fail_if(result != 1);
+   fail_if(alpha != test_noalpha.alpha);
+   fail_if(compress != 0);
+   fail_if(quality != 100);
+   fail_if(lossy != 0);
+   fail_if(data[0] != test_noalpha.color[4 + 4 * w]);
+   free(data);
+
+   data = malloc(w * h * 4);
+   fail_if(data == NULL);
+   result = eet_data_image_read_to_surface(ef, EET_TEST_FILE_IMAGE "0", 0, 0, data, w, h, w * 4, &alpha, &compress, &quality, &lossy);
+   fail_if(result != 1);
    fail_if(alpha != test_noalpha.alpha);
    fail_if(compress != 0);
    fail_if(quality != 100);
@@ -993,6 +1093,134 @@ START_TEST(eet_image)
    free(data);
 
    eet_close(ef);
+
+   eet_shutdown();
+}
+END_TEST
+
+#define IM0 0x00112233
+#define IM1 0x44556677
+#define IM2 0x8899aabb
+#define IM3 0xccddeeff
+
+START_TEST(eet_small_image)
+{
+   char *file = strdup("/tmp/eet_suite_testXXXXXX");
+   unsigned int image[4];
+   unsigned int *data;
+   Eet_File *ef;
+   int w;
+   int h;
+   int alpha;
+   int compression;
+   int quality;
+   int lossy;
+   int result;
+
+   image[0] = IM0;
+   image[1] = IM1;
+   image[2] = IM2;
+   image[3] = IM3;
+
+   eet_init();
+
+   mktemp(file);
+
+   ef = eet_open(file, EET_FILE_MODE_WRITE);
+   fail_if(!ef);
+
+   result = eet_data_image_write(ef, "/images/test", image, 2, 2, 1, 9, 100, 0);
+   fail_if(result == 0);
+
+   eet_close(ef);
+
+   ef = eet_open(file, EET_FILE_MODE_READ);
+   fail_if(!ef);
+
+   data = (unsigned int*) eet_data_image_read(ef, "/images/test", &w, &h, &alpha, &compression, &quality, &lossy);
+   fail_if(data == NULL);
+
+   eet_close(ef);
+
+   fail_if(data[0] != IM0);
+   fail_if(data[1] != IM1);
+   fail_if(data[2] != IM2);
+   fail_if(data[3] != IM3);
+
+   free(data);
+
+   eet_shutdown();
+}
+END_TEST
+
+START_TEST(eet_identity_simple)
+{
+   const char *buffer = "Here is a string of data to save !";
+   const void *tmp;
+   Eet_File *ef;
+   Eet_Key *k;
+   char *test;
+   char *file = strdup("/tmp/eet_suite_testXXXXXX");
+   int size;
+   int fd;
+
+   eet_init();
+
+   mktemp(file);
+   chdir("src/tests");
+
+   /* Sign an eet file. */
+   ef = eet_open(file, EET_FILE_MODE_WRITE);
+   fail_if(!ef);
+
+   fail_if(!eet_write(ef, "keys/tests", buffer, strlen(buffer) + 1, 0));
+
+   k = eet_identity_open("cert.pem", "key.pem", NULL);
+   fail_if(!k);
+
+   fail_if(eet_identity_set(ef, k) != EET_ERROR_NONE);
+
+   eet_close(ef);
+
+   /* Open a signed file. */
+   ef = eet_open(file, EET_FILE_MODE_READ);
+   fail_if(!ef);
+
+   test = eet_read(ef, "keys/tests", &size);
+   fail_if(!test);
+   fail_if(size != strlen(buffer) + 1);
+
+   fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
+
+   tmp = eet_identity_x509(ef, &size);
+   fail_if(tmp == NULL);
+
+   eet_close(ef);
+
+   /* As we are changing file contain in less than 1s, this could get unnoticed
+      by eet cache system. */
+   eet_clearcache();
+
+   /* Corrupting the file. */
+   fd = open(file, O_WRONLY);
+   fail_if(fd < 0);
+
+   fail_if(lseek(fd, 200, SEEK_SET) != 200);
+   fail_if(write(fd, "42", 2) != 2);
+   fail_if(lseek(fd, 50, SEEK_SET) != 50);
+   fail_if(write(fd, "42", 2) != 2);
+   fail_if(lseek(fd, 88, SEEK_SET) != 88);
+   fail_if(write(fd, "42", 2) != 2);
+
+   close(fd);
+
+   /* Attempt to open a modified file. */
+   ef = eet_open(file, EET_FILE_MODE_READ);
+   fail_if(ef);
+
+   fail_if(unlink(file) != 0);
+
+   eet_shutdown();
 }
 END_TEST
 
@@ -1022,7 +1250,14 @@ eet_suite(void)
 
    tc = tcase_create("Eet Image");
    tcase_add_test(tc, eet_image);
+   tcase_add_test(tc, eet_small_image);
    suite_add_tcase(s, tc);
+
+#ifdef HAVE_SIGNATURE
+   tc = tcase_create("Eet Identity");
+   tcase_add_test(tc, eet_identity_simple);
+   suite_add_tcase(s, tc);
+#endif
 
    return s;
 }
