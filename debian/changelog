@@ -1,6 +1,13 @@
 eet (1.1.0-1) UNRELEASED; urgency=low
 
   * New upstream release
+  * debian/rules:
+    - No longer delete eet_docs.tar.gz in clean, we no longer generate it.
+    - Add support for building and running unit tests. They are disabled for
+      now, as they are not 100% functionnal yet.
+    - Stop removing doc/man/man3/todo.3, this is now shipped in the upstream
+      tarball. Explicitely list the manpages we want in DEB_INSTALL_MANPAGES
+      instead.
 
  -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 27 Sep 2008 13:47:11 +0200
 
