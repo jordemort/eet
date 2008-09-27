@@ -12,11 +12,11 @@
 #define __UNUSED__
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include <limits.h>
 
 #ifdef HAVE_NETINET_IN_H
 # include <netinet/in.h>
@@ -70,7 +70,8 @@
 /*---*/
 
 typedef struct _Eet_Data_Element            Eet_Data_Element;
-typedef struct _Eet_Data_Basic_Type_Decoder Eet_Data_Basic_Type_Decoder;
+typedef struct _Eet_Data_Basic_Type_Codec   Eet_Data_Basic_Type_Codec;
+typedef struct _Eet_Data_Group_Type_Codec   Eet_Data_Group_Type_Codec;
 typedef struct _Eet_Data_Chunk              Eet_Data_Chunk;
 typedef struct _Eet_Data_Stream             Eet_Data_Stream;
 typedef struct _Eet_Data_Descriptor_Hash    Eet_Data_Descriptor_Hash;
@@ -78,7 +79,11 @@ typedef struct _Eet_Data_Encode_Hash_Info   Eet_Data_Encode_Hash_Info;
 
 /*---*/
 
-struct _Eet_Data_Basic_Type_Decoder
+/* TODO:
+ * Eet_Data_Basic_Type_Codec (Coder, Decoder)
+ * Eet_Data_Group_Type_Codec (Coder, Decoder)
+ */
+struct _Eet_Data_Basic_Type_Codec
 {
    int         size;
    const char *name;
@@ -86,11 +91,18 @@ struct _Eet_Data_Basic_Type_Decoder
    void     *(*put) (Eet_Dictionary *ed, const void *src, int *size_ret);
 };
 
+struct _Eet_Data_Group_Type_Codec
+{
+   int  (*get) (const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk, int type, int group_type, void *data_in, int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata, char **p, int *size);
+   void (*put) (Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in);
+};
+
 struct _Eet_Data_Chunk
 {
    char          *name;
    int            len;
    int            size;
+   int            hash;
    void          *data;
    unsigned char  type;
    unsigned char  group_type;
@@ -112,6 +124,7 @@ struct _Eet_Data_Descriptor_Hash
 struct _Eet_Data_Descriptor
 {
    const char           *name;
+   const Eet_Dictionary *ed;
    int                   size;
    struct {
       void *(*mem_alloc) (size_t size);
@@ -144,11 +157,13 @@ struct _Eet_Data_Element
 {
    const char          *name;
    const char          *counter_name;
+   const char          *directory_name_ptr;
    Eet_Data_Descriptor *subtype;
-   int                  offset;
-   int                  count;
-   unsigned char        type;
-   unsigned char        group_type;
+   int                  offset;         /* offset in bytes from the base element */
+   int                  count;          /* number of elements for a fixed array */
+   int                  counter_offset; /* for a variable array we need the offset of the count variable */
+   unsigned char        type;           /* EET_T_XXX */
+   unsigned char        group_type;     /* EET_G_XXX */
 };
 
 struct _Eet_Data_Encode_Hash_Info
@@ -164,7 +179,7 @@ static int   eet_data_get_char(const Eet_Dictionary *ed, const void *src, const 
 static void *eet_data_put_char(Eet_Dictionary *ed, const void *src, int *size_ret);
 static int   eet_data_get_short(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_short(Eet_Dictionary *ed, const void *src, int *size_ret);
-static int   eet_data_get_int(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
+static inline int   eet_data_get_int(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_int(Eet_Dictionary *ed, const void *src, int *size_ret);
 static int   eet_data_get_long_long(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_long_long(Eet_Dictionary *ed, const void *src, int *size_ret);
@@ -172,13 +187,22 @@ static int   eet_data_get_float(const Eet_Dictionary *ed, const void *src, const
 static void *eet_data_put_float(Eet_Dictionary *ed, const void *src, int *size_ret);
 static int   eet_data_get_double(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_double(Eet_Dictionary *ed, const void *src, int *size_ret);
-static int   eet_data_get_string(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
+static inline int   eet_data_get_string(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_string(Eet_Dictionary *ed, const void *src, int *size_ret);
 static int   eet_data_get_istring(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_istring(Eet_Dictionary *ed, const void *src, int *size_ret);
 
 static int   eet_data_get_type(const Eet_Dictionary *ed, int type, const void *src, const void *src_end, void *dest);
 static void *eet_data_put_type(Eet_Dictionary *ed, int type, const void *src, int *size_ret);
+
+static int  eet_data_get_unknown(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk, int type, int group_type, void *data_in, int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata, char **p, int *size);
+static void eet_data_put_unknown(Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in);
+static void eet_data_put_array(Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in);
+static int  eet_data_get_array(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk, int type, int group_type, void *data, int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata, char **p, int *size);
+static int  eet_data_get_list(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk, int type, int group_type, void *data_in, int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata, char **p, int *size);
+static void eet_data_put_list(Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in);
+static void eet_data_put_hash(Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in);
+static int  eet_data_get_hash(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk, int type, int group_type, void *data, int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata, char **p, int *size);
 
 static void            eet_data_chunk_get(const Eet_Dictionary *ed, Eet_Data_Chunk *chnk, const void *src, int size);
 static Eet_Data_Chunk *eet_data_chunk_new(void *data, int size, const char *name, int type, int group_type);
@@ -202,7 +226,7 @@ static void     *_eet_data_descriptor_decode(const Eet_Dictionary *ed,
 
 /*---*/
 
-const Eet_Data_Basic_Type_Decoder eet_coder[] =
+static const Eet_Data_Basic_Type_Codec eet_basic_codec[] =
 {
      {sizeof(char),      "char",       eet_data_get_char,      eet_data_put_char     },
      {sizeof(short),     "short",      eet_data_get_short,     eet_data_put_short    },
@@ -216,6 +240,15 @@ const Eet_Data_Basic_Type_Decoder eet_coder[] =
      {sizeof(long long), "ulong_long", eet_data_get_long_long, eet_data_put_long_long},
      {sizeof(char *),    "string",     eet_data_get_string,    eet_data_put_string   },
      {sizeof(char *),    "inlined",    eet_data_get_istring,   eet_data_put_istring  }
+};
+
+static const Eet_Data_Group_Type_Codec eet_group_codec[] =
+{
+     { eet_data_get_unknown,  eet_data_put_unknown },
+     { eet_data_get_array,    eet_data_put_array },
+     { eet_data_get_array,    eet_data_put_array },
+     { eet_data_get_list,     eet_data_put_list },
+     { eet_data_get_hash,     eet_data_put_hash }
 };
 
 static int words_bigendian = -1;
@@ -305,7 +338,7 @@ eet_data_put_short(Eet_Dictionary *ed __UNUSED__, const void *src, int *size_ret
 }
 
 /* INT TYPE */
-static int
+static inline int
 eet_data_get_int(const Eet_Dictionary *ed __UNUSED__, const void *src, const void *src_end, void *dst)
 {
    int *d;
@@ -359,7 +392,22 @@ eet_data_put_long_long(Eet_Dictionary *ed __UNUSED__, const void *src, int *size
 }
 
 /* STRING TYPE */
-static int
+static inline int
+eet_data_get_string_hash(const Eet_Dictionary *ed, const void *src, const void *src_end)
+{
+   if (ed)
+     {
+        int               index;
+
+        if (eet_data_get_int(ed, src, src_end, &index) < 0) return -1;
+
+        return eet_dictionary_string_get_hash(ed, index);
+     }
+
+   return -1;
+}
+
+static inline int
 eet_data_get_string(const Eet_Dictionary *ed, const void *src, const void *src_end, void *dst)
 {
    char *s, **d;
@@ -417,7 +465,7 @@ eet_data_put_string(Eet_Dictionary *ed, const void *src, int *size_ret)
    len = strlen(s);
    d = malloc(len + 1);
    if (!d) return NULL;
-   strcpy(d, s);
+   memcpy(d, s, len + 1);
    *size_ret = len + 1;
    return d;
 }
@@ -513,7 +561,7 @@ eet_data_get_float(const Eet_Dictionary *ed, const void *src, const void *src_en
 static void *
 eet_data_put_float(Eet_Dictionary *ed, const void *src, int *size_ret)
 {
-   char  buf[64];
+   char  buf[128];
    int   index;
 
    _eet_double_to_string_convert(buf, (double)(*(float *)src));
@@ -526,7 +574,7 @@ eet_data_put_float(Eet_Dictionary *ed, const void *src, int *size_ret)
         len = strlen(buf);
         d = malloc(len + 1);
         if (!d) return NULL;
-        strcpy(d, buf);
+	memcpy(d, buf, len + 1);
         *size_ret = len + 1;
         return d;
      }
@@ -589,7 +637,7 @@ eet_data_put_double(Eet_Dictionary *ed, const void *src, int *size_ret)
         len = strlen(buf);
         d = malloc(len + 1);
         if (!d) return NULL;
-        strcpy(d, buf);
+	memcpy(d, buf, len + 1);
         *size_ret = len + 1;
 
         return d;
@@ -601,21 +649,21 @@ eet_data_put_double(Eet_Dictionary *ed, const void *src, int *size_ret)
    return eet_data_put_int(ed, &index, size_ret);
 }
 
-static int
+static inline int
 eet_data_get_type(const Eet_Dictionary *ed, int type, const void *src, const void *src_end, void *dest)
 {
    int ret;
 
-   ret = eet_coder[type - 1].get(ed, src, src_end, dest);
+   ret = eet_basic_codec[type - 1].get(ed, src, src_end, dest);
    return ret;
 }
 
-static void *
+static inline void *
 eet_data_put_type(Eet_Dictionary *ed, int type, const void *src, int *size_ret)
 {
    void *ret;
 
-   ret = eet_coder[type - 1].put(ed, src, size_ret);
+   ret = eet_basic_codec[type - 1].put(ed, src, size_ret);
    return ret;
 }
 
@@ -625,15 +673,16 @@ eet_data_put_type(Eet_Dictionary *ed, int type, const void *src, int *size_ret)
  * char[4] = "CHKx"; // typed data - x == type
  *
  * int     = chunk size (including magic string);
- * char[]  = chuck magic/name string (0 byte terminated);
+ * char[]  = chunk magic/name string (0 byte terminated);
  * ... sub-chunks (a chunk can contain chuncks recusrively) ...
  * or
  * ... payload data ...
  *
  */
 
-static void
-eet_data_chunk_get(const Eet_Dictionary *ed, Eet_Data_Chunk *chnk, const void *src, int size)
+static inline void
+eet_data_chunk_get(const Eet_Dictionary *ed, Eet_Data_Chunk *chnk,
+		   const void *src, int size)
 {
    const char *s;
    int ret1, ret2;
@@ -688,6 +737,10 @@ eet_data_chunk_get(const Eet_Dictionary *ed, Eet_Data_Chunk *chnk, const void *s
      }
 
    chnk->len = ret2;
+
+   /* Precalc hash */
+   chnk->hash = eet_data_get_string_hash(ed, (s + 8), (s + size));
+
    if (ed)
      {
         chnk->data = (char *)src + 4 + ret1 + sizeof(int);
@@ -702,7 +755,7 @@ eet_data_chunk_get(const Eet_Dictionary *ed, Eet_Data_Chunk *chnk, const void *s
    return;
 }
 
-static Eet_Data_Chunk *
+static inline Eet_Data_Chunk *
 eet_data_chunk_new(void *data, int size, const char *name, int type, int group_type)
 {
    Eet_Data_Chunk *chnk;
@@ -720,14 +773,14 @@ eet_data_chunk_new(void *data, int size, const char *name, int type, int group_t
    return chnk;
 }
 
-static void
+static inline void
 eet_data_chunk_free(Eet_Data_Chunk *chnk)
 {
    if (chnk->name) free(chnk->name);
    free(chnk);
 }
 
-static Eet_Data_Stream *
+static inline Eet_Data_Stream *
 eet_data_stream_new(void)
 {
    Eet_Data_Stream *ds;
@@ -737,14 +790,14 @@ eet_data_stream_new(void)
    return ds;
 }
 
-static void
+static inline void
 eet_data_stream_free(Eet_Data_Stream *ds)
 {
    if (ds->data) free(ds->data);
    free(ds);
 }
 
-static void
+static inline void
 eet_data_stream_write(Eet_Data_Stream *ds, const void *data, int size)
 {
    char *p;
@@ -861,19 +914,34 @@ _eet_descriptor_hash_free(Eet_Data_Descriptor *edd)
 }
 
 static Eet_Data_Element *
-_eet_descriptor_hash_find(Eet_Data_Descriptor *edd, char *name)
+_eet_descriptor_hash_find(Eet_Data_Descriptor *edd, char *name, int hash)
 {
-   int hash;
    Eet_Data_Descriptor_Hash *bucket;
 
-   hash = _eet_hash_gen(name, 6);
+   if (hash < 0) hash = _eet_hash_gen(name, 6);
+   else hash &= 0x3f;
    if (!edd->elements.hash.buckets[hash].element) return NULL;
-   if (!strcmp(edd->elements.hash.buckets[hash].element->name, name))
+   /*
+     When we use the dictionnary as a source for chunk name, we will always
+     have the same pointer in name. It's a good idea to just compare pointer
+     instead of running strcmp on both string.
+   */
+   if (edd->elements.hash.buckets[hash].element->directory_name_ptr == name)
      return edd->elements.hash.buckets[hash].element;
+   if (!strcmp(edd->elements.hash.buckets[hash].element->name, name))
+     {
+	edd->elements.hash.buckets[hash].element->directory_name_ptr = name;
+	return edd->elements.hash.buckets[hash].element;
+     }
    bucket = edd->elements.hash.buckets[hash].next;
    while (bucket)
      {
-	if (!strcmp(bucket->element->name, name)) return bucket->element;
+	if (bucket->element->directory_name_ptr == name) return bucket->element;
+	if (!strcmp(bucket->element->name, name))
+	  {
+	     bucket->element->directory_name_ptr = name;
+	     return bucket->element;
+	  }
 	bucket = bucket->next;
      }
    return NULL;
@@ -923,6 +991,7 @@ eet_data_descriptor_new(const char *name,
    if (!edd) return NULL;
 
    edd->name = name;
+   edd->ed = NULL;
    edd->size = size;
    edd->func.mem_alloc = _eet_mem_alloc;
    edd->func.mem_free = _eet_mem_free;
@@ -952,6 +1021,7 @@ eet_data_descriptor2_new(Eet_Data_Descriptor_Class *eddc)
    if (!edd) return NULL;
 
    edd->name = eddc->name;
+   edd->ed = NULL;
    edd->size = eddc->size;
    edd->func.mem_alloc = _eet_mem_alloc;
    edd->func.mem_free = _eet_mem_free;
@@ -987,6 +1057,7 @@ eet_data_descriptor3_new(Eet_Data_Descriptor_Class *eddc)
    if (!edd) return NULL;
 
    edd->name = eddc->name;
+   edd->ed = NULL;
    edd->size = eddc->size;
    edd->func.mem_alloc = _eet_mem_alloc;
    edd->func.mem_free = _eet_mem_free;
@@ -1023,14 +1094,16 @@ eet_data_descriptor_free(Eet_Data_Descriptor *edd)
 
 EAPI void
 eet_data_descriptor_element_add(Eet_Data_Descriptor *edd,
-				const char *name, int type,
+				const char *name,
+				int type,
 				int group_type,
 				int offset,
-				int count, const char *counter_name,
+				int count,
+/* 				int counter_offset, */
+				const char *counter_name /* Useless should go on a major release */,
 				Eet_Data_Descriptor *subtype)
 {
    Eet_Data_Element *ede;
-   Eet_Data_Descriptor *simple_type;
    /* int l1, l2, p1, p2, i;
    char *ps;*/
 
@@ -1040,6 +1113,7 @@ eet_data_descriptor_element_add(Eet_Data_Descriptor *edd,
    if (!edd->elements.set) return;
    ede = &(edd->elements.set[edd->elements.num - 1]);
    ede->name = name;
+   ede->directory_name_ptr = NULL;
 
    /*
     * We do a special case when we do list,hash or whatever group of simple type.
@@ -1054,11 +1128,11 @@ eet_data_descriptor_element_add(Eet_Data_Descriptor *edd,
 	subtype = calloc(1, sizeof (Eet_Data_Descriptor));
 	if (!subtype) return ;
 	subtype->name = "implicit";
-	subtype->size = eet_coder[type - 1].size;
+	subtype->size = eet_basic_codec[type - 1].size;
 	memcpy(&subtype->func, &edd->func, sizeof(subtype->func));
 
-	eet_data_descriptor_element_add(subtype, eet_coder[type - 1].name, type,
-					EET_G_UNKNOWN, 0, 0, NULL, NULL);
+	eet_data_descriptor_element_add(subtype, eet_basic_codec[type - 1].name, type,
+					EET_G_UNKNOWN, 0, 0, /* 0,  */NULL, NULL);
 	type = EET_T_UNKNOW;
      }
 
@@ -1066,6 +1140,9 @@ eet_data_descriptor_element_add(Eet_Data_Descriptor *edd,
    ede->group_type = group_type;
    ede->offset = offset;
    ede->count = count;
+   /* FIXME: For the time being, EET_G_VAR_ARRAY will put the counter_offset in count. */
+   ede->counter_offset = count;
+/*    ede->counter_offset = counter_offset; */
    ede->counter_name = counter_name;
 
    ede->subtype = subtype;
@@ -1118,40 +1195,69 @@ typedef struct _Eet_Free        Eet_Free;
 struct _Eet_Free
 {
   int     ref;
-  int     len;
-  int     num;
-  void  **list;
+  int     len[256];
+  int     num[256];
+  void  **list[256];
 };
+
+static int
+_eet_free_hash(void *data)
+{
+   unsigned long ptr = (unsigned long)(data);
+   int hash;
+
+   hash = ptr;
+   hash ^= ptr >> 8;
+   hash ^= ptr >> 16;
+   hash ^= ptr >> 24;
+
+#if LONG_BIT != 32
+   hash ^= ptr >> 32;
+   hash ^= ptr >> 40;
+   hash ^= ptr >> 48;
+   hash ^= ptr >> 56;
+#endif
+
+   return hash & 0xFF;
+}
 
 static void
 _eet_free_add(Eet_Free *ef, void *data)
 {
-   int  i;
+   int hash;
+   int i;
 
-   for (i = 0; i < ef->num; ++i)
-     if (ef->list[i] == data) return;
+   hash = _eet_free_hash(data);
 
-   ef->num++;
-   if (ef->num > ef->len)
+   for (i = 0; i < ef->num[hash]; ++i)
+     if (ef->list[hash][i] == data) return;
+
+   ef->num[hash]++;
+   if (ef->num[hash] > ef->len[hash])
      {
         void    **tmp;
 
-        tmp = realloc(ef->list, (ef->len + 16) * sizeof(void*));
+        tmp = realloc(ef->list[hash], (ef->len[hash] + 16) * sizeof(void*));
         if (!tmp) return ;
 
-        ef->len += 16;
-        ef->list = tmp;
+        ef->len[hash] += 16;
+        ef->list[hash] = tmp;
      }
-   ef->list[ef->num - 1] = data;
+   ef->list[hash][ef->num[hash] - 1] = data;
 }
 static void
 _eet_free_reset(Eet_Free *ef)
 {
+   int i;
+
    if (ef->ref > 0) return ;
-   ef->len = 0;
-   ef->num = 0;
-   if (ef->list) free(ef->list);
-   ef->list = NULL;
+   for (i = 0; i < 256; ++i)
+     {
+	ef->len[i] = 0;
+	ef->num[i] = 0;
+	if (ef->list[i]) free(ef->list[i]);
+	ef->list[i] = NULL;
+     }
 }
 static void
 _eet_free_ref(Eet_Free *ef)
@@ -1164,7 +1270,7 @@ _eet_free_unref(Eet_Free *ef)
    ef->ref--;
 }
 
-static Eet_Free freelist = { 0, 0, 0, NULL };
+static Eet_Free freelist = { 0, { 0 }, { 0 }, { NULL } };
 
 #define _eet_freelist_add(Data)         _eet_free_add(&freelist, Data);
 #define _eet_freelist_reset()           _eet_free_reset(&freelist);
@@ -1174,20 +1280,22 @@ static Eet_Free freelist = { 0, 0, 0, NULL };
 static void
 _eet_freelist_free(Eet_Data_Descriptor *edd)
 {
+   int j;
    int i;
 
    if (freelist.ref > 0) return;
-   for (i = 0; i < freelist.num; i++)
-     {
-	if (edd)
-	  edd->func.mem_free(freelist.list[i]);
-	else
-	  free(freelist.list[i]);
-     }
+   for (j = 0; j < 256; ++j)
+     for (i = 0; i < freelist.num[j]; ++i)
+       {
+	  if (edd)
+	    edd->func.mem_free(freelist.list[j][i]);
+	  else
+	    free(freelist.list[j][i]);
+       }
    _eet_free_reset(&freelist);
 }
 
-static Eet_Free freelist_list = { 0, 0, 0, NULL };
+static Eet_Free freelist_list = { 0, { 0 }, { 0 }, { NULL } };
 
 #define _eet_freelist_list_add(Data)    _eet_free_add(&freelist_list, Data);
 #define _eet_freelist_list_reset()      _eet_free_reset(&freelist_list);
@@ -1197,18 +1305,20 @@ static Eet_Free freelist_list = { 0, 0, 0, NULL };
 static void
 _eet_freelist_list_free(Eet_Data_Descriptor *edd)
 {
+   int j;
    int i;
 
    if (freelist_list.ref > 0) return;
-   for (i = 0; i < freelist_list.num; i++)
-     {
-	if (edd)
-	  edd->func.list_free(*((void**)(freelist_list.list[i])));
-     }
+   for (j = 0; j < 256; ++j)
+     for (i = 0; i < freelist_list.num[j]; ++i)
+       {
+	  if (edd)
+	    edd->func.list_free(*((void**)(freelist_list.list[j][i])));
+       }
    _eet_free_reset(&freelist_list);
 }
 
-static Eet_Free freelist_str = { 0, 0, 0, NULL };
+static Eet_Free freelist_str = { 0, { 0 }, { 0 }, { NULL } };
 
 #define _eet_freelist_str_add(Data)     _eet_free_add(&freelist_str, Data);
 #define _eet_freelist_str_reset()       _eet_free_reset(&freelist_str);
@@ -1218,20 +1328,22 @@ static Eet_Free freelist_str = { 0, 0, 0, NULL };
 static void
 _eet_freelist_str_free(Eet_Data_Descriptor *edd)
 {
+   int j;
    int i;
 
    if (freelist_str.ref > 0) return;
-   for (i = 0; i < freelist_str.num; i++)
-     {
-	if (edd)
-          edd->func.str_free(freelist_str.list[i]);
-	else
-	  free(freelist_str.list[i]);
-     }
+   for (j = 0; j < 256; ++j)
+     for (i = 0; i < freelist_str.num[j]; ++i)
+       {
+	  if (edd)
+	    edd->func.str_free(freelist_str.list[j][i]);
+	  else
+	    free(freelist_str.list[j][i]);
+       }
    _eet_free_reset(&freelist_str);
 }
 
-static Eet_Free freelist_direct_str = { 0, 0, 0, NULL };
+static Eet_Free freelist_direct_str = { 0, { 0 }, { 0 }, { NULL } };
 
 #define _eet_freelist_direct_str_add(Data)      _eet_free_add(&freelist_direct_str, Data);
 #define _eet_freelist_direct_str_reset()        _eet_free_reset(&freelist_direct_str);
@@ -1241,16 +1353,18 @@ static Eet_Free freelist_direct_str = { 0, 0, 0, NULL };
 static void
 _eet_freelist_direct_str_free(Eet_Data_Descriptor *edd)
 {
+   int j;
    int i;
 
    if (freelist_str.ref > 0) return;
-   for (i = 0; i < freelist_str.num; i++)
-     {
-	if (edd)
-          edd->func.str_direct_free(freelist_str.list[i]);
-	else
-	  free(freelist_str.list[i]);
-     }
+   for (j = 0; j < 256; ++j)
+     for (i = 0; i < freelist_str.num[j]; ++i)
+       {
+	  if (edd)
+	    edd->func.str_direct_free(freelist_str.list[j][i]);
+	  else
+	    free(freelist_str.list[j][i]);
+       }
    _eet_free_reset(&freelist_str);
 }
 
@@ -1284,7 +1398,7 @@ eet_data_descriptor_encode_hash_cb(void *hash __UNUSED__, const char *key, void 
 	data = NULL;
      }
 
-   assert(!IS_SIMPLE_TYPE(ede->type));
+   EET_ASSERT(!IS_SIMPLE_TYPE(ede->type), return 1);
 
    /* Store data */
    if (ede->subtype)
@@ -1430,6 +1544,7 @@ typedef struct _Node Node;
 struct _Node
 {
    int    type;
+   int    count;
    char  *name;
    char  *key;
    Node  *values;
@@ -1529,27 +1644,39 @@ _eet_data_dump_encode(Eet_Dictionary *ed,
 	  }
 	break;
       case EET_G_ARRAY:
-	for (n = node->values; n; n = n->next)
-	  {
-	     data = _eet_data_dump_encode(ed, n, &size);
-	     if (data)
-	       {
-		  eet_data_stream_write(ds, data, size);
-		  free(data);
-	       }
-	  }
-	break;
       case EET_G_VAR_ARRAY:
+	data = eet_data_put_type(ed,
+				 EET_T_INT,
+				 &node->count,
+				 &size);
+	if (data)
+	  {
+	     echnk = eet_data_chunk_new(data, size, node->name, node->type, node->type);
+	     eet_data_chunk_put(ed, echnk, ds);
+	     eet_data_chunk_free(echnk);
+	     free(data);
+	  }
 	for (n = node->values; n; n = n->next)
 	  {
 	     data = _eet_data_dump_encode(ed, n, &size);
 	     if (data)
 	       {
-		  eet_data_stream_write(ds, data, size);
+		  echnk = eet_data_chunk_new(data, size, node->name, node->type, node->type);
+		  eet_data_chunk_put(ed, echnk, ds);
+		  eet_data_chunk_free(echnk);
 		  free(data);
 	       }
 	  }
-	break;
+
+	/* Array is somekind of special case, so we should embed it inside another chunk. */
+	*size_ret = ds->pos;
+	cdata = ds->data;
+
+	ds->data = NULL;
+	ds->size = 0;
+	eet_data_stream_free(ds);
+
+	return cdata;
       case EET_G_LIST:
 	for (n = node->values; n; n = n->next)
 	  {
@@ -1697,7 +1824,7 @@ _eet_data_dump_encode(Eet_Dictionary *ed,
 	break;
      }
 
-   if ((node->type > EET_G_UNKNOWN) && (node->type < EET_G_LAST))
+   if ((node->type >= EET_G_UNKNOWN) && (node->type < EET_G_LAST))
      chnk = eet_data_chunk_new(ds->data, ds->pos, node->name, EET_T_UNKNOW, node->type);
    else
      chnk = eet_data_chunk_new(ds->data, ds->pos, node->name, node->type, EET_G_UNKNOWN);
@@ -1932,6 +2059,19 @@ _eet_data_dump_parse(Eet_Dictionary *ed,
 		       free(tok2);
 		    }
 	       }
+	     else if (!strcmp(tok1, "count"))
+	       {
+		  TOK_GET(tok2);
+		  if (tok2)
+		    {
+		       /* we have a 'count COUNT' */
+		       if (node)
+			 {
+			    sscanf(tok2, "%i", &(node->count));
+			 }
+		       free(tok2);
+		    }
+	       }
 	     else if (!strcmp(tok1, "}"))
 	       {
 		  /* we have an end of the group */
@@ -1952,7 +2092,7 @@ _eet_data_dump_parse(Eet_Dictionary *ed,
 #define NEXT_CHUNK(P, Size, Echnk, Ed)                  \
   {                                                     \
      int        tmp;                                    \
-     tmp = Ed ? sizeof (int) * 2 : Echnk.len + 4;       \
+     tmp = Ed ? (int) (sizeof(int) * 2) : Echnk.len + 4;\
      P += (4 + Echnk.size + tmp);                       \
      Size -= (4 + Echnk.size + tmp);                    \
   }
@@ -1984,6 +2124,12 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
      {
 	data = edd->func.mem_alloc(edd->size);
 	if (!data) return NULL;
+	if (edd->ed != ed)
+	  {
+	     for (i = 0; i < edd->elements.num; i++)
+	       edd->elements.set[i].directory_name_ptr = NULL;
+	     edd->ed = ed;
+	  }
      }
    _eet_freelist_ref();
    _eet_freelist_str_ref();
@@ -2032,7 +2178,8 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 		  dumpfunc(dumpdata, "list");
 		  break;
 		case EET_G_HASH:
-		  dumpfunc(dumpdata, "hash");break;
+		  dumpfunc(dumpdata, "hash");
+		  break;
 		default:
 		  dumpfunc(dumpdata, "???");
 		  break;
@@ -2052,10 +2199,11 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 	/* FIXME: don't REPLY on edd - work without */
 	if ((edd) && (!dumpfunc))
 	  {
-	     ede = _eet_descriptor_hash_find(edd, echnk.name);
+	     ede = _eet_descriptor_hash_find(edd, echnk.name, echnk.hash);
 	     if (ede)
 	       {
 		  int group_type = EET_G_UNKNOWN, type = EET_T_UNKNOW;
+		  int ret = 0;
 
 		  group_type = ede->group_type;
 		  type = ede->type;
@@ -2066,8 +2214,7 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 		    }
 		  else
 		    {
-		       if ((echnk.type > EET_T_UNKNOW) &&
-			   (echnk.type < EET_T_LAST) &&
+		       if (IS_SIMPLE_TYPE(echnk.type) &&
 			   (echnk.type == ede->type))
 			 type = echnk.type;
 		       else if ((echnk.group_type > EET_G_UNKNOWN) &&
@@ -2075,163 +2222,9 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 				(echnk.group_type == ede->group_type))
 			 group_type = echnk.group_type;
 		    }
-		  if (group_type == EET_G_UNKNOWN)
-		    {
-		       int ret;
-		       void *data_ret;
-
-		       if (IS_SIMPLE_TYPE(type))
-			 {
-			    ret = eet_data_get_type(ed,
-                                                    type,
-						    echnk.data,
-						    ((char *)echnk.data) + echnk.size,
-						    ((char *)data) + ede->offset);
-			    if (type == EET_T_STRING)
-			      {
-				 char **str;
-
-				 str = (char **)(((char *)data) + ede->offset);
-				 if (*str)
-				   {
-                                      if (ed == NULL
-                                          || edd->func.str_direct_alloc == NULL)
-                                        {
-                                           *str = edd->func.str_alloc(*str);
-                                           _eet_freelist_str_add(*str);
-                                        }
-                                      else
-                                        {
-                                           *str = edd->func.str_direct_alloc(*str);
-                                           _eet_freelist_direct_str_add(*str);
-                                        }
-				   }
-			      }
-			    else
-			      if (type == EET_T_INLINED_STRING)
-				{
-				   char **str;
-
-				   str = (char **)(((char *)data) + ede->offset);
-				   if (*str)
-				     {
-					*str = edd->func.str_alloc(*str);
-					_eet_freelist_str_add(*str);
-				     }
-				}
-			 }
-		       else if (ede->subtype)
-			 {
-			    void **ptr;
-
-			    data_ret = _eet_data_descriptor_decode(ed,
-                                                                   ede->subtype,
-								   echnk.data,
-								   echnk.size,
-								   level + 1,
-								   dumpfunc,
-								   dumpdata);
-			    if (!data_ret) goto error;
-			    ptr = (void **)(((char *)data) + ede->offset);
-			    *ptr = (void *)data_ret;
-			 }
-		    }
-		  else
-		    {
-		       switch (group_type)
-			 {
-			  case EET_G_ARRAY:
-			  case EET_G_VAR_ARRAY:
-			      {
-				 printf("ERROR: EET - ARRAY TYPE NOT IMPLIMENTED YET!!!\n");
-			      }
-			    break;
-			  case EET_G_LIST:
-			      {
-				 int ret;
-				 void *list = NULL;
-				 void **ptr;
-				 void *data_ret;
-
-				 ptr = (void **)(((char *)data) + ede->offset);
-				 list = *ptr;
-				 data_ret = NULL;
-
-				 assert(!IS_SIMPLE_TYPE(type));
-
-				 if (ede->subtype)
-				   data_ret = _eet_data_descriptor_decode(ed,
-                                                                          ede->subtype,
-									  echnk.data,
-									  echnk.size,
-									  level + 2,
-									  dumpfunc,
-									  dumpdata);
-				 if (data_ret)
-				   {
-				      list = edd->func.list_append(list, data_ret);
-				      *ptr = list;
-				      _eet_freelist_list_add(ptr);
-				   }
-				 else
-				   goto error;
-			      }
-			    break;
-			  case EET_G_HASH:
-			      {
-				 int ret;
-				 void *hash = NULL;
-				 void **ptr;
-				 char *key = NULL;
-				 void *data_ret = NULL;
-
-				 ptr = (void **)(((char *)data) + ede->offset);
-				 hash = *ptr;
-
-				 /* Read key */
-				 ret = eet_data_get_type(ed,
-                                                         EET_T_STRING,
-							 echnk.data,
-							 ((char *)echnk.data) + echnk.size,
-							 &key);
-				 if (ret <= 0) goto error;
-
-				 /* Advance to next chunk */
-                                 NEXT_CHUNK(p, size, echnk, ed);
-				 memset(&echnk, 0, sizeof(Eet_Data_Chunk));
-
-				 /* Read value */
-				 eet_data_chunk_get(ed, &echnk, p, size);
-				 if (!echnk.name) goto error;
-
-				 assert(!IS_SIMPLE_TYPE(type));
-
-				 if (ede->subtype)
-				   {
-				      data_ret = _eet_data_descriptor_decode(ed,
-                                                                             ede->subtype,
-									     echnk.data,
-									     echnk.size,
-									     level + 2,
-									     dumpfunc,
-									     dumpdata);
-				   }
-				 if (data_ret)
-				   {
-				      hash = edd->func.hash_add(hash, key, data_ret);
-				      *ptr = hash;
-				      _eet_freelist_list_add(ptr);
-				   }
-				 else
-				   {
-				      goto error;
-				   }
-			      }
-			    break;
-			  default:
-			    break;
-			 }
-		    }
+		  /* hashes doesnt fit well with the table */
+		  ret = eet_group_codec[group_type - 100].get(ed, edd, ede, &echnk, type, group_type, ((char *)data) + ede->offset, level, dumpfunc, dumpdata, &p, &size);
+		  if (ret <= 0) goto error;
 	       }
 	  }
 	/*...... dump func */
@@ -2376,17 +2369,53 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 		     case EET_G_ARRAY:
 		     case EET_G_VAR_ARRAY:
 			 {
-			    printf("ARRAY TYPE NOT IMPLIMENTED YET!!!\n");
+			    int count;
+			    int ret;
+			    int i;
+
+			    EET_ASSERT(!IS_SIMPLE_TYPE(type), goto error);
+
+			    ret = eet_data_get_type(ed,
+						    EET_T_INT,
+						    echnk.data,
+						    ((char *)echnk.data) + echnk.size,
+						    &count);
+			    if (ret <= 0) goto error;
+
+			    for (i = 0; i < level; i++) dumpfunc(dumpdata, "  ");
+			    dumpfunc(dumpdata, "    count ");
+			    snprintf(tbuf, sizeof(tbuf), "%i", count);
+			    dumpfunc(dumpdata, tbuf);
+			    dumpfunc(dumpdata, ";\n");
+
+			    /* get all array elements */
+			    for (i = 0; i < count; i++)
+			      {
+				 void *data_ret = NULL;
+
+				 /* Advance to next chunk */
+				 NEXT_CHUNK(p, size, echnk, ed);
+				 memset(&echnk, 0, sizeof(Eet_Data_Chunk));
+
+				 eet_data_chunk_get(ed, &echnk, p, size);
+				 if (!echnk.name) goto error;
+				 /* get the data */
+				 data_ret = _eet_data_descriptor_decode(ed,
+									NULL,
+									echnk.data,
+									echnk.size,
+									level + 2,
+									dumpfunc,
+									dumpdata);
+				 if (!data_ret) goto error;
+			      }
 			 }
 		       break;
 		     case EET_G_LIST:
 			 {
-			    int ret;
-			    void *data_ret;
+			    void *data_ret = NULL;
 
-			    data_ret = NULL;
-
-			    assert(!IS_SIMPLE_TYPE(type));
+			    EET_ASSERT(!IS_SIMPLE_TYPE(type), goto error);
 
 			    data_ret = _eet_data_descriptor_decode(ed,
 								   NULL,
@@ -2395,8 +2424,7 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 								   level + 2,
 								   dumpfunc,
 								   dumpdata);
-			    if (!data_ret)
-			      goto error;
+			    if (!data_ret) goto error;
 			 }
 		       break;
 		     case EET_G_HASH:
@@ -2421,7 +2449,7 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 			    eet_data_chunk_get(ed, &echnk, p, size);
 			    if (!echnk.name) goto error;
 
-			    assert(!IS_SIMPLE_TYPE(type));
+			    EET_ASSERT(!IS_SIMPLE_TYPE(type), goto error);
 
 			    {
 			       char *s;
@@ -2477,6 +2505,7 @@ _eet_data_descriptor_decode(const Eet_Dictionary *ed,
 	_eet_freelist_reset();
 	_eet_freelist_str_reset();
 	_eet_freelist_list_reset();
+	_eet_freelist_direct_str_reset();
      }
    if (dumpfunc)
      {
@@ -2512,6 +2541,319 @@ error:
 	  }
      }
    return NULL;
+}
+
+static int
+eet_data_get_list(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk,
+		  int type __UNUSED__, int group_type __UNUSED__, void *data,
+		  int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata,
+		  char **p __UNUSED__, int *size __UNUSED__)
+{
+   void *list = NULL;
+   void **ptr;
+   void *data_ret;
+
+   EET_ASSERT(!IS_SIMPLE_TYPE(type), return 0);
+
+   ptr = (void **)data;
+   list = *ptr;
+   data_ret = NULL;
+
+   data_ret = _eet_data_descriptor_decode(ed, ede->subtype, echnk->data, echnk->size, level + 2, dumpfunc, dumpdata);
+   if (!data_ret) return 0;
+
+   list = edd->func.list_append(list, data_ret);
+   *ptr = list;
+   _eet_freelist_list_add(ptr);
+
+   return 1;
+}
+
+static int
+eet_data_get_hash(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk,
+		  int type, int group_type __UNUSED__, void *data,
+		  int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata,
+		  char **p, int *size)
+{
+   void **ptr;
+   void *hash = NULL;
+   char *key = NULL;
+   void *data_ret = NULL;
+   int ret = 0;
+
+   EET_ASSERT(!IS_SIMPLE_TYPE(type), return 0);
+
+   ptr = (void **)data;
+   hash = *ptr;
+
+   /* Read key */
+   ret = eet_data_get_type(ed,
+			   EET_T_STRING,
+			   echnk->data,
+			   ((char *)echnk->data) + echnk->size,
+			   &key);
+   if (ret <= 0) goto on_error;
+
+   /* Advance to next chunk */
+   NEXT_CHUNK((*p), (*size), (*echnk), ed);
+   memset(echnk, 0, sizeof(Eet_Data_Chunk));
+
+   /* Read value */
+   eet_data_chunk_get(ed, echnk, *p, *size);
+   if (!echnk->name) goto on_error;
+
+   data_ret = _eet_data_descriptor_decode(ed,
+					  ede->subtype,
+					  echnk->data,
+					  echnk->size,
+					  level + 2,
+					  dumpfunc,
+					  dumpdata);
+   if (!data_ret) goto on_error;
+
+   hash = edd->func.hash_add(hash, key, data_ret);
+   *ptr = hash;
+   _eet_freelist_list_add(ptr);
+   return 1;
+
+ on_error:
+   return ret;
+}
+
+/* var arrays and fixed arrays have to
+ * get all chunks at once. for fixed arrays
+ * we can get each chunk and increment a
+ * counter stored on the element itself but
+ * it wont be thread safe. for var arrays
+ * we still need a way to get the number of
+ * elements from the data, so storing the
+ * number of elements and the element data on
+ * each chunk is pointless.
+ */
+static int
+eet_data_get_array(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd __UNUSED__, 
+		   Eet_Data_Element *ede, Eet_Data_Chunk *echnk,
+		   int type, int group_type, void *data,
+		   int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata,
+		   char **p, int *size)
+{
+   void *ptr;
+   int count;
+   int ret;
+   int i;
+
+   EET_ASSERT(!IS_SIMPLE_TYPE(type), return 0);
+
+   ptr = data;
+   /* read the number of elements */
+   ret = eet_data_get_type(ed,
+			   EET_T_INT,
+			   echnk->data,
+			   ((char *)echnk->data) + echnk->size,
+			   &count);
+   if (ret <= 0) return ret;
+   if (group_type == EET_G_VAR_ARRAY)
+     {
+	/* store the number of elements
+	 * on the counter offset */
+	*(int *)(((char *)data) + ede->count - ede->offset) = count;
+	/* allocate space for the array of elements */
+	*(void **)ptr = calloc(count, ede->subtype->size);
+
+	if (!*(void **)ptr) return 0;
+
+	_eet_freelist_add(*(void **)ptr);
+     }
+
+   /* get all array elements */
+   for (i = 0; i < count; i++)
+     {
+	void *dst;
+	void *data_ret = NULL;
+
+	/* Advance to next chunk */
+	NEXT_CHUNK((*p), (*size), (*echnk), ed);
+	memset(echnk, 0, sizeof(Eet_Data_Chunk));
+
+	eet_data_chunk_get(ed, echnk, *p, *size);
+	if (!echnk->name) return 0;
+	/* get the data */
+
+	/* get the destination pointer */
+	if (group_type == EET_G_ARRAY)
+	  dst = (char *)ptr + (ede->subtype->size * i);
+	else
+	  dst = *(char **)ptr + (ede->subtype->size * i);
+	data_ret = _eet_data_descriptor_decode(ed,
+					       ede->subtype,
+					       echnk->data,
+					       echnk->size,
+					       level + 2,
+					       dumpfunc,
+					       dumpdata);
+	if (!data_ret) return 0;
+	memcpy(dst, data_ret, ede->subtype->size);
+	free(data_ret);
+     }
+   return 1;
+}
+
+static int
+eet_data_get_unknown(const Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Chunk *echnk,
+		     int type, int group_type __UNUSED__, void *data,
+		     int level, void (*dumpfunc) (void *data, const char *str), void *dumpdata,
+		     char **p __UNUSED__, int *size __UNUSED__)
+{
+   int ret;
+   void *data_ret;
+
+   if (IS_SIMPLE_TYPE(type))
+     {
+	ret = eet_data_get_type(ed, type, echnk->data, ((char *)echnk->data) + echnk->size, ((char *)data));
+	if (ret <= 0) return ret;
+
+	if (type == EET_T_STRING)
+	  {
+	     char **str;
+
+	     str = (char **)(((char *)data));
+	     if (*str)
+	       {
+		  if ((ed == NULL) || (edd->func.str_direct_alloc == NULL))
+		    {
+		       *str = edd->func.str_alloc(*str);
+		       _eet_freelist_str_add(*str);
+		    }
+		  else
+		    {
+		       *str = edd->func.str_direct_alloc(*str);
+		       _eet_freelist_direct_str_add(*str);
+		    }
+	       }
+	  }
+	else if (type == EET_T_INLINED_STRING)
+	  {
+	     char **str;
+
+	     str = (char **)(((char *)data));
+	     if (*str)
+	       {
+		  *str = edd->func.str_alloc(*str);
+		  _eet_freelist_str_add(*str);
+	       }
+	  }
+     }
+   else if (ede->subtype)
+     {
+	void **ptr;
+
+	data_ret = _eet_data_descriptor_decode(ed, ede->subtype, echnk->data, echnk->size, level + 1, dumpfunc, dumpdata);
+	if (!data_ret) return 0;
+
+	ptr = (void **)(((char *)data));
+	*ptr = (void *)data_ret;
+     }
+
+   return 1;
+}
+
+static void
+eet_data_encode(Eet_Dictionary *ed, Eet_Data_Stream *ds, void *data, const char *name, int size, int type, int group_type)
+{
+   Eet_Data_Chunk *echnk;
+
+   echnk = eet_data_chunk_new(data, size, name, type, group_type);
+   eet_data_chunk_put(ed, echnk, ds);
+   eet_data_chunk_free(echnk);
+   free(data);
+}
+
+static void
+eet_data_put_array(Eet_Dictionary *ed, Eet_Data_Descriptor *edd __UNUSED__, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in)
+{
+   void *data;
+   int size;
+   int j;
+   int offset = 0;
+   int count;
+
+   EET_ASSERT(!IS_SIMPLE_TYPE(ede->type), return );
+
+   if (ede->group_type == EET_G_ARRAY)
+     count = ede->counter_offset;
+   else
+     count = *(int *)(((char *)data_in) + ede->count - ede->offset);
+
+   if (count <= 0) return;
+   /* Store number of elements */
+   data = eet_data_put_type(ed, EET_T_INT, &count, &size);
+   if (data) eet_data_encode(ed, ds, data, ede->name, size, ede->type, ede->group_type);
+
+   for (j = 0; j < count; j++)
+     {
+	void *d;
+
+	if (ede->group_type == EET_G_ARRAY)
+	  d = (void *)(((char *)data_in) + offset);
+	else
+	  d = *(((char **)data_in)) + offset;
+
+	data = _eet_data_descriptor_encode(ed, ede->subtype, d, &size);
+	offset += ede->subtype->size;
+	if (data) eet_data_encode(ed, ds, data, ede->name, size, ede->type, ede->group_type);
+     }
+}
+
+static void
+eet_data_put_unknown(Eet_Dictionary *ed, Eet_Data_Descriptor *edd __UNUSED__, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in)
+{
+   void *data = NULL;
+   int size;
+
+   if (IS_SIMPLE_TYPE(ede->type))
+     data = eet_data_put_type(ed, ede->type, data_in, &size);
+   else if (ede->subtype)
+     {
+	if (*((char **)data_in))
+	  data = _eet_data_descriptor_encode(ed,
+					     ede->subtype,
+					     *((char **)((char *)(data_in))),
+					     &size);
+     }
+   if (data) eet_data_encode(ed, ds, data, ede->name, size, ede->type, ede->group_type);
+}
+
+static void
+eet_data_put_list(Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in)
+{
+   void *data;
+   void *l;
+   int size;
+
+   EET_ASSERT(!IS_SIMPLE_TYPE(ede->type), return );
+
+   l = *((void **)(((char *)data_in)));
+   for (; l; l = edd->func.list_next(l))
+     {
+	data = _eet_data_descriptor_encode(ed,
+					   ede->subtype,
+					   edd->func.list_data(l),
+					   &size);
+	if (data) eet_data_encode(ed, ds, data, ede->name, size, ede->type, ede->group_type);
+     }
+}
+
+static void
+eet_data_put_hash(Eet_Dictionary *ed, Eet_Data_Descriptor *edd, Eet_Data_Element *ede, Eet_Data_Stream *ds, void *data_in)
+{
+   Eet_Data_Encode_Hash_Info fdata;
+   void *l;
+
+   l = *((void **)(((char *)data_in)));
+   fdata.ds = ds;
+   fdata.ede = ede;
+   fdata.ed = ed;
+   edd->func.hash_foreach(l, eet_data_descriptor_encode_hash_cb, &fdata);
 }
 
 EAPI int
@@ -2622,87 +2964,9 @@ _eet_data_descriptor_encode(Eet_Dictionary *ed,
    for (i = 0; i < edd->elements.num; i++)
      {
 	Eet_Data_Element *ede;
-	Eet_Data_Chunk *echnk;
-	void *data;
-	int size;
 
 	ede = &(edd->elements.set[i]);
-	data = NULL;
-	if (ede->group_type == EET_G_UNKNOWN)
-	  {
-	     if (IS_SIMPLE_TYPE(ede->type))
-	       data = eet_data_put_type(ed,
-                                        ede->type,
-					((char *)data_in) + ede->offset,
-					&size);
-	     else if (ede->subtype)
-	       {
-		  if (*((char **)(((char *)data_in) + ede->offset)))
-		    data = _eet_data_descriptor_encode(ed,
-                                                       ede->subtype,
-                                                       *((char **)(((char *)data_in) + ede->offset)),
-                                                       &size);
-	       }
-	     if (data)
-	       {
-		  echnk = eet_data_chunk_new(data, size, ede->name, ede->type, ede->group_type);
-		  eet_data_chunk_put(ed, echnk, ds);
-		  eet_data_chunk_free(echnk);
-		  free(data);
-		  data = NULL;
-	       }
-	  }
-	else
-	  {
-	     switch (ede->group_type)
-	       {
-		case EET_G_ARRAY:
-		case EET_G_VAR_ARRAY:
-		    {
-		       printf("ARRAY TYPE NOT IMPLIMENTED YET!!!\n");
-		    }
-		  break;
-		case EET_G_LIST:
-		    {
-		       void *l;
-
-		       l = *((void **)(((char *)data_in) + ede->offset));
-		       for (; l; l = edd->func.list_next(l))
-			 {
-			    assert(!IS_SIMPLE_TYPE(ede->type));
-
-			    if (ede->subtype)
-			      data = _eet_data_descriptor_encode(ed,
-                                                                 ede->subtype,
-                                                                 edd->func.list_data(l),
-                                                                 &size);
-			    if (data)
-			      {
-				 echnk = eet_data_chunk_new(data, size, ede->name, ede->type, ede->group_type);
-				 eet_data_chunk_put(ed, echnk, ds);
-				 eet_data_chunk_free(echnk);
-				 free(data);
-				 data = NULL;
-			      }
-			 }
-		    }
-		  break;
-		case EET_G_HASH:
-		    {
-		       Eet_Data_Encode_Hash_Info fdata;
-		       void *l;
-
-		       l = *((void **)(((char *)data_in) + ede->offset));
-		       fdata.ds = ds;
-		       fdata.ede = ede;
-                       fdata.ed = ed;
-		       edd->func.hash_foreach(l, eet_data_descriptor_encode_hash_cb, &fdata);
-		    }
-		  break;
-		default:
-		  break;
-	       }
-	  }
+	eet_group_codec[ede->group_type - 100].put(ed, edd, ede, ds, ((char *)data_in) + ede->offset);
      }
    chnk = eet_data_chunk_new(ds->data, ds->pos, edd->name, EET_T_UNKNOW, EET_G_UNKNOWN);
    ds->data = NULL;

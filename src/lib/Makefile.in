@@ -57,7 +57,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am_libeet_la_OBJECTS = libeet_la-eet_lib.lo libeet_la-eet_data.lo \
-	libeet_la-eet_image.lo libeet_la-eet_memfile.lo \
+	libeet_la-eet_image.lo libeet_la-eet_cypher.lo \
 	libeet_la-eet_dictionary.lo libeet_la-eet_utils.lo
 libeet_la_OBJECTS = $(am_libeet_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -107,10 +107,14 @@ ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EET_ASSERT_FALSE = @EET_ASSERT_FALSE@
+EET_ASSERT_TRUE = @EET_ASSERT_TRUE@
 EET_ENABLE_COVERAGE_FALSE = @EET_ENABLE_COVERAGE_FALSE@
 EET_ENABLE_COVERAGE_TRUE = @EET_ENABLE_COVERAGE_TRUE@
 EET_ENABLE_TESTS_FALSE = @EET_ENABLE_TESTS_FALSE@
 EET_ENABLE_TESTS_TRUE = @EET_ENABLE_TESTS_TRUE@
+EET_OLD_EET_FILE_FORMAT_FALSE = @EET_OLD_EET_FILE_FORMAT_FALSE@
+EET_OLD_EET_FILE_FORMAT_TRUE = @EET_OLD_EET_FILE_FORMAT_TRUE@
 EGREP = @EGREP@
 EVIL_CFLAGS = @EVIL_CFLAGS@
 EVIL_LIBS = @EVIL_LIBS@
@@ -130,6 +134,8 @@ MAKEINFO = @MAKEINFO@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OPENSSL_CFLAGS = @OPENSSL_CFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -202,7 +208,8 @@ AM_CPPFLAGS = \
 -DPACKAGE_LIB_DIR=\"$(libdir)\" \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
 @EVIL_CFLAGS@ \
-@COVERAGE_CFLAGS@
+@COVERAGE_CFLAGS@ \
+@OPENSSL_CFLAGS@
 
 include_HEADERS = Eet.h
 lib_LTLIBRARIES = libeet.la
@@ -210,12 +217,12 @@ libeet_la_SOURCES = \
 eet_lib.c \
 eet_data.c \
 eet_image.c \
-eet_memfile.c \
+eet_cypher.c \
 eet_dictionary.c \
 eet_utils.c
 
 libeet_la_CFLAGS = @WIN32_CFLAGS@
-libeet_la_LIBADD = @COVERAGE_LIBS@ @EVIL_LIBS@ @WIN32_LIBS@ -lz -ljpeg @fnmatch_libs@ -lm
+libeet_la_LIBADD = @OPENSSL_LIBS@ @COVERAGE_LIBS@ @EVIL_LIBS@ @WIN32_LIBS@ -lz -ljpeg @fnmatch_libs@ -lm
 libeet_la_LDFLAGS = @lt_no_undefined@ @lt_enable_auto_import@ -version-info @version_info@
 libeet_la_DEPENDENCIES = $(top_builddir)/config.h
 EXTRA_DIST = Eet_private.h
@@ -288,11 +295,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_cypher.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_data.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_dictionary.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_image.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_lib.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_memfile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libeet_la-eet_utils.Plo@am__quote@
 
 .c.o:
@@ -337,12 +344,12 @@ libeet_la-eet_image.lo: eet_image.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libeet_la_CFLAGS) $(CFLAGS) -c -o libeet_la-eet_image.lo `test -f 'eet_image.c' || echo '$(srcdir)/'`eet_image.c
 
-libeet_la-eet_memfile.lo: eet_memfile.c
-@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libeet_la_CFLAGS) $(CFLAGS) -MT libeet_la-eet_memfile.lo -MD -MP -MF "$(DEPDIR)/libeet_la-eet_memfile.Tpo" -c -o libeet_la-eet_memfile.lo `test -f 'eet_memfile.c' || echo '$(srcdir)/'`eet_memfile.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libeet_la-eet_memfile.Tpo" "$(DEPDIR)/libeet_la-eet_memfile.Plo"; else rm -f "$(DEPDIR)/libeet_la-eet_memfile.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='eet_memfile.c' object='libeet_la-eet_memfile.lo' libtool=yes @AMDEPBACKSLASH@
+libeet_la-eet_cypher.lo: eet_cypher.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libeet_la_CFLAGS) $(CFLAGS) -MT libeet_la-eet_cypher.lo -MD -MP -MF "$(DEPDIR)/libeet_la-eet_cypher.Tpo" -c -o libeet_la-eet_cypher.lo `test -f 'eet_cypher.c' || echo '$(srcdir)/'`eet_cypher.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libeet_la-eet_cypher.Tpo" "$(DEPDIR)/libeet_la-eet_cypher.Plo"; else rm -f "$(DEPDIR)/libeet_la-eet_cypher.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='eet_cypher.c' object='libeet_la-eet_cypher.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libeet_la_CFLAGS) $(CFLAGS) -c -o libeet_la-eet_memfile.lo `test -f 'eet_memfile.c' || echo '$(srcdir)/'`eet_memfile.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libeet_la_CFLAGS) $(CFLAGS) -c -o libeet_la-eet_cypher.lo `test -f 'eet_cypher.c' || echo '$(srcdir)/'`eet_cypher.c
 
 libeet_la-eet_dictionary.lo: eet_dictionary.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libeet_la_CFLAGS) $(CFLAGS) -MT libeet_la-eet_dictionary.lo -MD -MP -MF "$(DEPDIR)/libeet_la-eet_dictionary.Tpo" -c -o libeet_la-eet_dictionary.lo `test -f 'eet_dictionary.c' || echo '$(srcdir)/'`eet_dictionary.c; \

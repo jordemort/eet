@@ -114,7 +114,16 @@ The file that provides the eet functions.
 \#define \hyperlink{Eet_8h_bb4c7833ba053f2322e6b667a9ec7f04}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-LIST}(edd, struct\_\-type, name, member, subtype)
 \begin{CompactList}\small\item\em Add a linked list type to a data descriptor. \item\end{CompactList}\item 
 \#define \hyperlink{Eet_8h_d5e348ead4ba0b441c1e020f9bf23365}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-HASH}(edd, struct\_\-type, name, member, subtype)
-\begin{CompactList}\small\item\em Add a hash type to a data descriptor. \item\end{CompactList}\end{CompactItemize}
+\begin{CompactList}\small\item\em Add a hash type to a data descriptor. \item\end{CompactList}\item 
+\#define \hyperlink{Eet_8h_bc903baa4d5dc50a98f5e1a68d66fd2b}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-ARRAY}(edd, struct\_\-type, name, member, subtype)
+\begin{CompactList}\small\item\em Add a fixed size array type to a data descriptor. \item\end{CompactList}\item 
+\#define \hyperlink{Eet_8h_7adad32d2eba76566533353632f00ae4}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-VAR\_\-ARRAY}(edd, struct\_\-type, name, member, subtype)
+\begin{CompactList}\small\item\em Add a variable size array type to a data descriptor. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+typedef int($\ast$ \hyperlink{Eet_8h_874d97b532dbdc0a14bf12aa9a5202d5}{Eet\_\-Key\_\-Password\_\-Callback} )(char $\ast$buffer, int size, int rwflag, void $\ast$data)
+\begin{CompactList}\small\item\em Callback used to request if needed the password of a private key. \item\end{CompactList}\end{CompactItemize}
 \subsection*{Functions}
 \begin{CompactItemize}
 \item 
@@ -126,10 +135,24 @@ EAPI void \hyperlink{Eet_8h_5b3f70f4842551426befbff648e4094b}{eet\_\-clearcache}
 \begin{CompactList}\small\item\em Clear eet cache. \item\end{CompactList}\item 
 EAPI Eet\_\-File $\ast$ \hyperlink{Eet_8h_5f55956b860aa2c77af9b1a880c4c256}{eet\_\-open} (const char $\ast$file, Eet\_\-File\_\-Mode mode)
 \begin{CompactList}\small\item\em Open an eet file on disk, and returns a handle to it. \item\end{CompactList}\item 
+EAPI Eet\_\-File $\ast$ \hyperlink{Eet_8h_c514fa1812cfe27f0b7c0ff5fc13af45}{eet\_\-memopen\_\-read} (const void $\ast$data, size\_\-t size)
+\begin{CompactList}\small\item\em Open an eet file directly from a memory location. \item\end{CompactList}\item 
 EAPI Eet\_\-File\_\-Mode \hyperlink{Eet_8h_806f64e7ad3463cd40337c5022c7e83c}{eet\_\-mode\_\-get} (Eet\_\-File $\ast$ef)
 \begin{CompactList}\small\item\em Get the mode an Eet\_\-File was opened with. \item\end{CompactList}\item 
 EAPI Eet\_\-Error \hyperlink{Eet_8h_1675fef1f6012c1e02ae313d13dc3e03}{eet\_\-close} (Eet\_\-File $\ast$ef)
 \begin{CompactList}\small\item\em Close an eet file handle and flush and writes pending. \item\end{CompactList}\item 
+EAPI Eet\_\-Key $\ast$ \hyperlink{Eet_8h_e8be5ad35c585cdf5034309bc97f1af8}{eet\_\-identity\_\-open} (const char $\ast$certificate\_\-file, const char $\ast$private\_\-key\_\-file, \hyperlink{Eet_8h_874d97b532dbdc0a14bf12aa9a5202d5}{Eet\_\-Key\_\-Password\_\-Callback} cb)
+\begin{CompactList}\small\item\em Create an Eet\_\-Key needed for signing an eet file. \item\end{CompactList}\item 
+EAPI void \hyperlink{Eet_8h_a8b2e329d0ecdb55b564e1aa70ba557f}{eet\_\-identity\_\-close} (Eet\_\-Key $\ast$key)
+\begin{CompactList}\small\item\em Close and release all ressource used by an Eet\_\-Key. \item\end{CompactList}\item 
+EAPI Eet\_\-Error \hyperlink{Eet_8h_687984e5f508017c01f6d22a203fce16}{eet\_\-identity\_\-set} (Eet\_\-File $\ast$ef, Eet\_\-Key $\ast$key)
+\begin{CompactList}\small\item\em Set a key to sign a file. \item\end{CompactList}\item 
+EAPI void \hyperlink{Eet_8h_846b1e0f0f4a1a9c7ab9a4fc55728534}{eet\_\-identity\_\-print} (Eet\_\-Key $\ast$key, FILE $\ast$out)
+\begin{CompactList}\small\item\em Display both private and public key of an Eet\_\-Key. \item\end{CompactList}\item 
+EAPI const void $\ast$ \hyperlink{Eet_8h_6f92a1276ed7e87d5a7ba58b7943df7a}{eet\_\-identity\_\-x509} (Eet\_\-File $\ast$ef, int $\ast$der\_\-length)
+\begin{CompactList}\small\item\em Get the x509 der certificate associated with an Eet\_\-File. \item\end{CompactList}\item 
+EAPI void \hyperlink{Eet_8h_131e4a43a0ae98dc31a9a642ada33357}{eet\_\-identity\_\-certificate\_\-print} (const unsigned char $\ast$certificate, int der\_\-length, FILE $\ast$out)
+\begin{CompactList}\small\item\em Display the x509 der certificate to out. \item\end{CompactList}\item 
 EAPI Eet\_\-Dictionary $\ast$ \hyperlink{Eet_8h_b45ad39596d2fb54a88fda93e7fa0b0f}{eet\_\-dictionary\_\-get} (Eet\_\-File $\ast$ef)
 \begin{CompactList}\small\item\em Return a handle to the shared string dictionary of the Eet file. \item\end{CompactList}\item 
 EAPI int \hyperlink{Eet_8h_53290da52edb929b85e51f25e79d27c8}{eet\_\-dictionary\_\-string\_\-check} (Eet\_\-Dictionary $\ast$ed, const char $\ast$string)
@@ -150,11 +173,15 @@ EAPI int \hyperlink{Eet_8h_ebfb8aaa5a499081f5439463ead332f2}{eet\_\-data\_\-imag
 \begin{CompactList}\small\item\em Read just the header data for an image and dont decode the pixels. \item\end{CompactList}\item 
 EAPI void $\ast$ \hyperlink{Eet_8h_986872ec682c29f842b2ef6dad810257}{eet\_\-data\_\-image\_\-read} (Eet\_\-File $\ast$ef, const char $\ast$name, unsigned int $\ast$w, unsigned int $\ast$h, int $\ast$alpha, int $\ast$compress, int $\ast$quality, int $\ast$lossy)
 \begin{CompactList}\small\item\em Read image data from the named key in the eet file. \item\end{CompactList}\item 
+EAPI int \hyperlink{Eet_8h_0fb474a90c41d9698406107d984debf9}{eet\_\-data\_\-image\_\-read\_\-to\_\-surface} (Eet\_\-File $\ast$ef, const char $\ast$name, unsigned int src\_\-x, unsigned int src\_\-y, unsigned int $\ast$d, unsigned int w, unsigned int h, unsigned int row\_\-stride, int $\ast$alpha, int $\ast$compress, int $\ast$quality, int $\ast$lossy)
+\begin{CompactList}\small\item\em Read image data from the named key in the eet file. \item\end{CompactList}\item 
 EAPI int \hyperlink{Eet_8h_b4e8a3419744fac22bca24af533f5051}{eet\_\-data\_\-image\_\-write} (Eet\_\-File $\ast$ef, const char $\ast$name, const void $\ast$data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)
 \begin{CompactList}\small\item\em Write image data to the named key in an eet file. \item\end{CompactList}\item 
 EAPI int \hyperlink{Eet_8h_a869497f3b8c88b85decd8728d7d51f1}{eet\_\-data\_\-image\_\-header\_\-decode} (const void $\ast$data, int size, unsigned int $\ast$w, unsigned int $\ast$h, int $\ast$alpha, int $\ast$compress, int $\ast$quality, int $\ast$lossy)
 \begin{CompactList}\small\item\em Decode Image data header only to get information. \item\end{CompactList}\item 
 EAPI void $\ast$ \hyperlink{Eet_8h_30e8d570dc36db3721dfb68ec762b920}{eet\_\-data\_\-image\_\-decode} (const void $\ast$data, int size, unsigned int $\ast$w, unsigned int $\ast$h, int $\ast$alpha, int $\ast$compress, int $\ast$quality, int $\ast$lossy)
+\begin{CompactList}\small\item\em Decode Image data into pixel data. \item\end{CompactList}\item 
+EAPI int \hyperlink{Eet_8h_509bba18e5662365c049f19ec5978577}{eet\_\-data\_\-image\_\-decode\_\-to\_\-surface} (const void $\ast$data, int size, unsigned int src\_\-x, unsigned int src\_\-y, unsigned int $\ast$d, unsigned int w, unsigned int h, unsigned int row\_\-stride, int $\ast$alpha, int $\ast$compress, int $\ast$quality, int $\ast$lossy)
 \begin{CompactList}\small\item\em Decode Image data into pixel data. \item\end{CompactList}\item 
 EAPI void $\ast$ \hyperlink{Eet_8h_9c8c63fc1a235751e8a145f06a4a43ad}{eet\_\-data\_\-image\_\-encode} (const void $\ast$data, int $\ast$size\_\-ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)
 \begin{CompactList}\small\item\em Encode image data for storage or transmission. \item\end{CompactList}\item 
@@ -188,6 +215,35 @@ The file that provides the eet functions.
 This header provides the Eet management functions. 
 
 \subsection{Define Documentation}
+\hypertarget{Eet_8h_bc903baa4d5dc50a98f5e1a68d66fd2b}{
+\index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-ARRAY@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-ARRAY}}
+\index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-ARRAY@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-ARRAY}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-ARRAY(edd, \/  struct\_\-type, \/  name, \/  member, \/  subtype)}}
+\label{Eet_8h_bc903baa4d5dc50a98f5e1a68d66fd2b}
+
+
+\textbf{Value:}
+
+\begin{Code}\begin{verbatim}{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_ARRAY, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          /* 0,  */sizeof(___ett.member)/sizeof(___ett.member[0]), NULL, subtype); \
+     }
+\end{verbatim}
+\end{Code}
+Add a fixed size array type to a data descriptor. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em edd}]The data descriptor to add the type to. \item[{\em struct\_\-type}]The type of the struct. \item[{\em name}]The string name to use to encode/decode this member (must be a constant global and never change). \item[{\em member}]The struct member itself to be encoded. \item[{\em subtype}]The type of hash member to add.\end{description}
+\end{Desc}
+This macro lets you easily add a fixed size array of other data types. All the parameters are the same as for \hyperlink{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b3a}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC()}, with the {\tt subtype} being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.
+
+\begin{Desc}
+\item[Since:]1.0.2 \end{Desc}
 \hypertarget{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b3a}{
 \index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC}}
 \index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC}!Eet.h@{Eet.h}}
@@ -202,7 +258,7 @@ This header provides the Eet management functions.
   \
   eet_data_descriptor_element_add(edd, name, type, EET_G_UNKNOWN, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, NULL); \
+          0, /* 0,  */NULL, NULL); \
      }
 \end{verbatim}
 \end{Code}
@@ -231,7 +287,7 @@ This macro is a convenience macro provided to add a member to the data descripto
   \
   eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_HASH, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, subtype); \
+          0, /* 0,  */NULL, subtype); \
      }
 \end{verbatim}
 \end{Code}
@@ -260,7 +316,7 @@ This macro lets you easily add a hash of other data types. All the parameters ar
   \
   eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_LIST, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, subtype); \
+          0, /* 0,  */NULL, subtype); \
      }
 \end{verbatim}
 \end{Code}
@@ -289,7 +345,7 @@ This macro lets you easily add a linked list of other data types. All the parame
   \
   eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_UNKNOWN, \
           (char *)(&(___ett.member)) - (char *)(&(___ett)), \
-          0, NULL, subtype); \
+          0, /* 0,  */NULL, subtype); \
      }
 \end{verbatim}
 \end{Code}
@@ -304,6 +360,49 @@ This macro lets you easily add a sub-type (a struct that's pointed to by this on
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_7adad32d2eba76566533353632f00ae4}{
+\index{Eet.h@{Eet.h}!EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-VAR\_\-ARRAY@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-VAR\_\-ARRAY}}
+\index{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-VAR\_\-ARRAY@{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-VAR\_\-ARRAY}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-VAR\_\-ARRAY(edd, \/  struct\_\-type, \/  name, \/  member, \/  subtype)}}
+\label{Eet_8h_7adad32d2eba76566533353632f00ae4}
+
+
+\textbf{Value:}
+
+\begin{Code}\begin{verbatim}{ \
+  struct_type ___ett; \
+  \
+  eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_VAR_ARRAY, \
+          (char *)(&(___ett.member)) - (char *)(&(___ett)), \
+          (char *)(&(___ett.member ## _count)) - (char *)(&(___ett)), /* 0,  */NULL, subtype); \
+     }
+\end{verbatim}
+\end{Code}
+Add a variable size array type to a data descriptor. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em edd}]The data descriptor to add the type to. \item[{\em struct\_\-type}]The type of the struct. \item[{\em name}]The string name to use to encode/decode this member (must be a constant global and never change). \item[{\em member}]The struct member itself to be encoded. \item[{\em subtype}]The type of hash member to add.\end{description}
+\end{Desc}
+This macro lets you easily add a fixed size array of other data types. All the parameters are the same as for \hyperlink{Eet_8h_c38ce778d7eba37cfca8a19efb7a9b3a}{EET\_\-DATA\_\-DESCRIPTOR\_\-ADD\_\-BASIC()}, with the {\tt subtype} being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.
+
+\begin{Desc}
+\item[Since:]1.0.2 \end{Desc}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{Eet_8h_874d97b532dbdc0a14bf12aa9a5202d5}{
+\index{Eet.h@{Eet.h}!Eet\_\-Key\_\-Password\_\-Callback@{Eet\_\-Key\_\-Password\_\-Callback}}
+\index{Eet\_\-Key\_\-Password\_\-Callback@{Eet\_\-Key\_\-Password\_\-Callback}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ {\bf Eet\_\-Key\_\-Password\_\-Callback})(char $\ast$buffer, int size, int rwflag, void $\ast$data)}}
+\label{Eet_8h_874d97b532dbdc0a14bf12aa9a5202d5}
+
+
+Callback used to request if needed the password of a private key. 
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
 
 
 \subsection{Function Documentation}
@@ -633,6 +732,30 @@ On success the function returns a pointer to the image data decoded. The calling
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_509bba18e5662365c049f19ec5978577}{
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-decode\_\-to\_\-surface@{eet\_\-data\_\-image\_\-decode\_\-to\_\-surface}}
+\index{eet\_\-data\_\-image\_\-decode\_\-to\_\-surface@{eet\_\-data\_\-image\_\-decode\_\-to\_\-surface}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-decode\_\-to\_\-surface (const void $\ast$ {\em data}, \/  int {\em size}, \/  unsigned int {\em src\_\-x}, \/  unsigned int {\em src\_\-y}, \/  unsigned int $\ast$ {\em d}, \/  unsigned int {\em w}, \/  unsigned int {\em h}, \/  unsigned int {\em row\_\-stride}, \/  int $\ast$ {\em alpha}, \/  int $\ast$ {\em compress}, \/  int $\ast$ {\em quality}, \/  int $\ast$ {\em lossy})}}
+\label{Eet_8h_509bba18e5662365c049f19ec5978577}
+
+
+Decode Image data into pixel data. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em data}]The encoded pixel data. \item[{\em size}]The size, in bytes, of the encoded pixel data. \item[{\em src\_\-x}]The starting x coordinate from where to dump the stream. \item[{\em src\_\-y}]The starting y coordinate from where to dump the stream. \item[{\em d}]A pointer to the pixel surface. \item[{\em w}]The expected width in pixels of the pixel surface to decode. \item[{\em h}]The expected height in pixels of the pixel surface to decode. \item[{\em row\_\-stride}]The length of a pixels line in the destination surface. \item[{\em alpha}]A pointer to the int to hold the alpha flag. \item[{\em compress}]A pointer to the int to hold the compression amount. \item[{\em quality}]A pointer to the int to hold the quality amount. \item[{\em lossy}]A pointer to the int to hold the lossiness flag. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]1 on success, 0 otherwise.\end{Desc}
+This function takes encoded pixel data and decodes it into raw RGBA pixels on success.
+
+The other parameters of the image (alpha, compress etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pixel is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+
+On success the function returns 1, and 0 on failure. On failure the parameter values may not contain any sensible data.
+
+\begin{Desc}
+\item[Since:]1.0.2 \end{Desc}
 \hypertarget{Eet_8h_9c8c63fc1a235751e8a145f06a4a43ad}{
 \index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-encode@{eet\_\-data\_\-image\_\-encode}}
 \index{eet\_\-data\_\-image\_\-encode@{eet\_\-data\_\-image\_\-encode}!Eet.h@{Eet.h}}
@@ -729,6 +852,30 @@ On success the function returns a pointer to the image data decoded. The calling
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_0fb474a90c41d9698406107d984debf9}{
+\index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-read\_\-to\_\-surface@{eet\_\-data\_\-image\_\-read\_\-to\_\-surface}}
+\index{eet\_\-data\_\-image\_\-read\_\-to\_\-surface@{eet\_\-data\_\-image\_\-read\_\-to\_\-surface}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI int eet\_\-data\_\-image\_\-read\_\-to\_\-surface (Eet\_\-File $\ast$ {\em ef}, \/  const char $\ast$ {\em name}, \/  unsigned int {\em src\_\-x}, \/  unsigned int {\em src\_\-y}, \/  unsigned int $\ast$ {\em d}, \/  unsigned int {\em w}, \/  unsigned int {\em h}, \/  unsigned int {\em row\_\-stride}, \/  int $\ast$ {\em alpha}, \/  int $\ast$ {\em compress}, \/  int $\ast$ {\em quality}, \/  int $\ast$ {\em lossy})}}
+\label{Eet_8h_0fb474a90c41d9698406107d984debf9}
+
+
+Read image data from the named key in the eet file. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ef}]A valid eet file handle opened for reading. \item[{\em name}]Name of the entry. eg: \char`\"{}/base/file\_\-i\_\-want\char`\"{}. \item[{\em src\_\-x}]The starting x coordinate from where to dump the stream. \item[{\em src\_\-y}]The starting y coordinate from where to dump the stream. \item[{\em d}]A pointer to the pixel surface. \item[{\em w}]The expected width in pixels of the pixel surface to decode. \item[{\em h}]The expected height in pixels of the pixel surface to decode. \item[{\em row\_\-stride}]The length of a pixels line in the destination surface. \item[{\em alpha}]A pointer to the int to hold the alpha flag. \item[{\em compress}]A pointer to the int to hold the compression amount. \item[{\em quality}]A pointer to the int to hold the quality amount. \item[{\em lossy}]A pointer to the int to hold the lossiness flag. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]1 on success, 0 otherwise.\end{Desc}
+This function reads an image from an eet file stored under the named key in the eet file and return a pointer to the decompressed pixel data.
+
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pile is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.
+
+On success the function returns 1, and 0 on failure. On failure the parameter values may not contain any sensible data.
+
+\begin{Desc}
+\item[Since:]1.0.2 \end{Desc}
 \hypertarget{Eet_8h_b4e8a3419744fac22bca24af533f5051}{
 \index{Eet.h@{Eet.h}!eet\_\-data\_\-image\_\-write@{eet\_\-data\_\-image\_\-write}}
 \index{eet\_\-data\_\-image\_\-write@{eet\_\-data\_\-image\_\-write}!Eet.h@{Eet.h}}
@@ -950,6 +1097,78 @@ This checks the given dictionary to see if the given string is actually inside t
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_131e4a43a0ae98dc31a9a642ada33357}{
+\index{Eet.h@{Eet.h}!eet\_\-identity\_\-certificate\_\-print@{eet\_\-identity\_\-certificate\_\-print}}
+\index{eet\_\-identity\_\-certificate\_\-print@{eet\_\-identity\_\-certificate\_\-print}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-identity\_\-certificate\_\-print (const unsigned char $\ast$ {\em certificate}, \/  int {\em der\_\-length}, \/  FILE $\ast$ {\em out})}}
+\label{Eet_8h_131e4a43a0ae98dc31a9a642ada33357}
+
+
+Display the x509 der certificate to out. 
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
+\hypertarget{Eet_8h_a8b2e329d0ecdb55b564e1aa70ba557f}{
+\index{Eet.h@{Eet.h}!eet\_\-identity\_\-close@{eet\_\-identity\_\-close}}
+\index{eet\_\-identity\_\-close@{eet\_\-identity\_\-close}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-identity\_\-close (Eet\_\-Key $\ast$ {\em key})}}
+\label{Eet_8h_a8b2e329d0ecdb55b564e1aa70ba557f}
+
+
+Close and release all ressource used by an Eet\_\-Key. 
+
+An reference counter prevent it from being freed until all file using it are also closed.
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
+\hypertarget{Eet_8h_e8be5ad35c585cdf5034309bc97f1af8}{
+\index{Eet.h@{Eet.h}!eet\_\-identity\_\-open@{eet\_\-identity\_\-open}}
+\index{eet\_\-identity\_\-open@{eet\_\-identity\_\-open}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-Key$\ast$ eet\_\-identity\_\-open (const char $\ast$ {\em certificate\_\-file}, \/  const char $\ast$ {\em private\_\-key\_\-file}, \/  {\bf Eet\_\-Key\_\-Password\_\-Callback} {\em cb})}}
+\label{Eet_8h_e8be5ad35c585cdf5034309bc97f1af8}
+
+
+Create an Eet\_\-Key needed for signing an eet file. 
+
+The certificate should provide the public that match the private key. No verification is done to ensure that.
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
+\hypertarget{Eet_8h_846b1e0f0f4a1a9c7ab9a4fc55728534}{
+\index{Eet.h@{Eet.h}!eet\_\-identity\_\-print@{eet\_\-identity\_\-print}}
+\index{eet\_\-identity\_\-print@{eet\_\-identity\_\-print}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI void eet\_\-identity\_\-print (Eet\_\-Key $\ast$ {\em key}, \/  FILE $\ast$ {\em out})}}
+\label{Eet_8h_846b1e0f0f4a1a9c7ab9a4fc55728534}
+
+
+Display both private and public key of an Eet\_\-Key. 
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
+\hypertarget{Eet_8h_687984e5f508017c01f6d22a203fce16}{
+\index{Eet.h@{Eet.h}!eet\_\-identity\_\-set@{eet\_\-identity\_\-set}}
+\index{eet\_\-identity\_\-set@{eet\_\-identity\_\-set}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-Error eet\_\-identity\_\-set (Eet\_\-File $\ast$ {\em ef}, \/  Eet\_\-Key $\ast$ {\em key})}}
+\label{Eet_8h_687984e5f508017c01f6d22a203fce16}
+
+
+Set a key to sign a file. 
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
+\hypertarget{Eet_8h_6f92a1276ed7e87d5a7ba58b7943df7a}{
+\index{Eet.h@{Eet.h}!eet\_\-identity\_\-x509@{eet\_\-identity\_\-x509}}
+\index{eet\_\-identity\_\-x509@{eet\_\-identity\_\-x509}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI const void$\ast$ eet\_\-identity\_\-x509 (Eet\_\-File $\ast$ {\em ef}, \/  int $\ast$ {\em der\_\-length})}}
+\label{Eet_8h_6f92a1276ed7e87d5a7ba58b7943df7a}
+
+
+Get the x509 der certificate associated with an Eet\_\-File. 
+
+Will return NULL if the file is not signed.
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
 \hypertarget{Eet_8h_9903687bfa20fe9a9e59d4c1d213e89a}{
 \index{Eet.h@{Eet.h}!eet\_\-init@{eet\_\-init}}
 \index{eet\_\-init@{eet\_\-init}!Eet.h@{Eet.h}}
@@ -991,6 +1210,19 @@ Hint: an easy way to list all entries in an eet file is to use a glob value of \
 
 \begin{Desc}
 \item[Since:]1.0.0 \end{Desc}
+\hypertarget{Eet_8h_c514fa1812cfe27f0b7c0ff5fc13af45}{
+\index{Eet.h@{Eet.h}!eet\_\-memopen\_\-read@{eet\_\-memopen\_\-read}}
+\index{eet\_\-memopen\_\-read@{eet\_\-memopen\_\-read}!Eet.h@{Eet.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}EAPI Eet\_\-File$\ast$ eet\_\-memopen\_\-read (const void $\ast$ {\em data}, \/  size\_\-t {\em size})}}
+\label{Eet_8h_c514fa1812cfe27f0b7c0ff5fc13af45}
+
+
+Open an eet file directly from a memory location. 
+
+The data are not copied, so you must keep them around as long as the eet file is open. Their is currently no cache for this kind of Eet\_\-File, so it's reopen every time you do use eet\_\-memopen\_\-read.
+
+\begin{Desc}
+\item[Since:]2.0.0 \end{Desc}
 \hypertarget{Eet_8h_806f64e7ad3463cd40337c5022c7e83c}{
 \index{Eet.h@{Eet.h}!eet\_\-mode\_\-get@{eet\_\-mode\_\-get}}
 \index{eet\_\-mode\_\-get@{eet\_\-mode\_\-get}!Eet.h@{Eet.h}}

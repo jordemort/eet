@@ -141,6 +141,16 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">#define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#d5e348ead4ba0b441c1e020f9bf23365">EET_DATA_DESCRIPTOR_ADD_HASH</a>(edd, struct_type, name, member, subtype)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a hash type to a data descriptor.  <a href="#d5e348ead4ba0b441c1e020f9bf23365"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">#define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#bc903baa4d5dc50a98f5e1a68d66fd2b">EET_DATA_DESCRIPTOR_ADD_ARRAY</a>(edd, struct_type, name, member, subtype)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a fixed size array type to a data descriptor.  <a href="#bc903baa4d5dc50a98f5e1a68d66fd2b"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">#define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#7adad32d2eba76566533353632f00ae4">EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY</a>(edd, struct_type, name, member, subtype)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a variable size array type to a data descriptor.  <a href="#7adad32d2eba76566533353632f00ae4"></a><br></td></tr>
+<tr><td colspan="2"><br><h2>Typedefs</h2></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">typedef int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#874d97b532dbdc0a14bf12aa9a5202d5">Eet_Key_Password_Callback</a> )(char *buffer, int size, int rwflag, void *data)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Callback used to request if needed the password of a private key.  <a href="#874d97b532dbdc0a14bf12aa9a5202d5"></a><br></td></tr>
 <tr><td colspan="2"><br><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#9903687bfa20fe9a9e59d4c1d213e89a">eet_init</a> (void)</td></tr>
 
@@ -154,12 +164,33 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_File *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#5f55956b860aa2c77af9b1a880c4c256">eet_open</a> (const char *file, Eet_File_Mode mode)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open an eet file on disk, and returns a handle to it.  <a href="#5f55956b860aa2c77af9b1a880c4c256"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_File *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#c514fa1812cfe27f0b7c0ff5fc13af45">eet_memopen_read</a> (const void *data, size_t size)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open an eet file directly from a memory location.  <a href="#c514fa1812cfe27f0b7c0ff5fc13af45"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_File_Mode&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#806f64e7ad3463cd40337c5022c7e83c">eet_mode_get</a> (Eet_File *ef)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the mode an Eet_File was opened with.  <a href="#806f64e7ad3463cd40337c5022c7e83c"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_Error&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#1675fef1f6012c1e02ae313d13dc3e03">eet_close</a> (Eet_File *ef)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close an eet file handle and flush and writes pending.  <a href="#1675fef1f6012c1e02ae313d13dc3e03"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_Key *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#e8be5ad35c585cdf5034309bc97f1af8">eet_identity_open</a> (const char *certificate_file, const char *private_key_file, <a class="el" href="Eet_8h.html#874d97b532dbdc0a14bf12aa9a5202d5">Eet_Key_Password_Callback</a> cb)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create an Eet_Key needed for signing an eet file.  <a href="#e8be5ad35c585cdf5034309bc97f1af8"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#a8b2e329d0ecdb55b564e1aa70ba557f">eet_identity_close</a> (Eet_Key *key)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close and release all ressource used by an Eet_Key.  <a href="#a8b2e329d0ecdb55b564e1aa70ba557f"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_Error&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#687984e5f508017c01f6d22a203fce16">eet_identity_set</a> (Eet_File *ef, Eet_Key *key)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set a key to sign a file.  <a href="#687984e5f508017c01f6d22a203fce16"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#846b1e0f0f4a1a9c7ab9a4fc55728534">eet_identity_print</a> (Eet_Key *key, FILE *out)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Display both private and public key of an Eet_Key.  <a href="#846b1e0f0f4a1a9c7ab9a4fc55728534"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI const void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#6f92a1276ed7e87d5a7ba58b7943df7a">eet_identity_x509</a> (Eet_File *ef, int *der_length)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the x509 der certificate associated with an Eet_File.  <a href="#6f92a1276ed7e87d5a7ba58b7943df7a"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#131e4a43a0ae98dc31a9a642ada33357">eet_identity_certificate_print</a> (const unsigned char *certificate, int der_length, FILE *out)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Display the x509 der certificate to out.  <a href="#131e4a43a0ae98dc31a9a642ada33357"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI Eet_Dictionary *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#b45ad39596d2fb54a88fda93e7fa0b0f">eet_dictionary_get</a> (Eet_File *ef)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Return a handle to the shared string dictionary of the Eet file.  <a href="#b45ad39596d2fb54a88fda93e7fa0b0f"></a><br></td></tr>
@@ -190,6 +221,9 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#986872ec682c29f842b2ef6dad810257">eet_data_image_read</a> (Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Read image data from the named key in the eet file.  <a href="#986872ec682c29f842b2ef6dad810257"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#0fb474a90c41d9698406107d984debf9">eet_data_image_read_to_surface</a> (Eet_File *ef, const char *name, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Read image data from the named key in the eet file.  <a href="#0fb474a90c41d9698406107d984debf9"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#b4e8a3419744fac22bca24af533f5051">eet_data_image_write</a> (Eet_File *ef, const char *name, const void *data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Write image data to the named key in an eet file.  <a href="#b4e8a3419744fac22bca24af533f5051"></a><br></td></tr>
@@ -199,6 +233,9 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#30e8d570dc36db3721dfb68ec762b920">eet_data_image_decode</a> (const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Decode Image data into pixel data.  <a href="#30e8d570dc36db3721dfb68ec762b920"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#509bba18e5662365c049f19ec5978577">eet_data_image_decode_to_surface</a> (const void *data, int size, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Decode Image data into pixel data.  <a href="#509bba18e5662365c049f19ec5978577"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">EAPI void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="Eet_8h.html#9c8c63fc1a235751e8a145f06a4a43ad">eet_data_image_encode</a> (const void *data, int *size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Encode image data for storage or transmission.  <a href="#9c8c63fc1a235751e8a145f06a4a43ad"></a><br></td></tr>
@@ -240,6 +277,58 @@
 The file that provides the eet functions. 
 <p>
 This header provides the Eet management functions. <hr><h2>Define Documentation</h2>
+<a class="anchor" name="bc903baa4d5dc50a98f5e1a68d66fd2b"></a><!-- doxytag: member="Eet.h::EET_DATA_DESCRIPTOR_ADD_ARRAY" ref="bc903baa4d5dc50a98f5e1a68d66fd2b" args="(edd, struct_type, name, member, subtype)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define EET_DATA_DESCRIPTOR_ADD_ARRAY          </td>
+          <td>(</td>
+          <td class="paramtype">edd,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct_type,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">name,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">member,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">subtype&nbsp;</td>
+          <td class="paramname">          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+<b>Value:</b><div class="fragment"><pre class="fragment">{ \
+  struct_type ___ett; \
+  \
+  <a class="code" href="Eet_8h.html#450fd478c0c2531a5d2beb4f1af7cd34" title="This function is an internal used by macros.">eet_data_descriptor_element_add</a>(edd, name, <a class="code" href="Eet_8h.html#23f233441eb2d0eccafe51c1641ff5c9" title="Unknown data encoding type.">EET_T_UNKNOW</a>, <a class="code" href="Eet_8h.html#0db274e50f3cc8c9e4844d94d63a4433" title="Fixed size array group type.">EET_G_ARRAY</a>, \
+          (<span class="keywordtype">char</span> *)(&amp;(___ett.member)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), \
+          <span class="comment">/* 0,  */</span><span class="keyword">sizeof</span>(___ett.member)/<span class="keyword">sizeof</span>(___ett.member[0]), NULL, subtype); \
+     }
+</pre></div>Add a fixed size array type to a data descriptor. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>edd</em>&nbsp;</td><td>The data descriptor to add the type to. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>struct_type</em>&nbsp;</td><td>The type of the struct. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>The string name to use to encode/decode this member (must be a constant global and never change). </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>member</em>&nbsp;</td><td>The struct member itself to be encoded. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>subtype</em>&nbsp;</td><td>The type of hash member to add.</td></tr>
+  </table>
+</dl>
+This macro lets you easily add a fixed size array of other data types. All the parameters are the same as for <a class="el" href="Eet_8h.html#c38ce778d7eba37cfca8a19efb7a9b3a" title="Add a basic data element to a data descriptor.">EET_DATA_DESCRIPTOR_ADD_BASIC()</a>, with the <code>subtype</code> being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.2 </dd></dl>
+
+</div>
+</div><p>
 <a class="anchor" name="c38ce778d7eba37cfca8a19efb7a9b3a"></a><!-- doxytag: member="Eet.h::EET_DATA_DESCRIPTOR_ADD_BASIC" ref="c38ce778d7eba37cfca8a19efb7a9b3a" args="(edd, struct_type, name, member, type)" -->
 <div class="memitem">
 <div class="memproto">
@@ -274,7 +363,7 @@ This header provides the Eet management functions. <hr><h2>Define Documentation<
   \
   <a class="code" href="Eet_8h.html#450fd478c0c2531a5d2beb4f1af7cd34" title="This function is an internal used by macros.">eet_data_descriptor_element_add</a>(edd, name, type, <a class="code" href="Eet_8h.html#e97a13f08f6f48335a60e2a910aec41f" title="Unknown group data encoding type.">EET_G_UNKNOWN</a>, \
           (<span class="keywordtype">char</span> *)(&amp;(___ett.member)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), \
-          0, NULL, NULL); \
+          0, <span class="comment">/* 0,  */</span>NULL, NULL); \
      }
 </pre></div>Add a basic data element to a data descriptor. 
 <p>
@@ -326,7 +415,7 @@ This macro is a convenience macro provided to add a member to the data descripto
   \
   <a class="code" href="Eet_8h.html#450fd478c0c2531a5d2beb4f1af7cd34" title="This function is an internal used by macros.">eet_data_descriptor_element_add</a>(edd, name, <a class="code" href="Eet_8h.html#23f233441eb2d0eccafe51c1641ff5c9" title="Unknown data encoding type.">EET_T_UNKNOW</a>, <a class="code" href="Eet_8h.html#b4cb1f8b97b17e36694fbe2f0ced86ce" title="Hash table group type.">EET_G_HASH</a>, \
           (<span class="keywordtype">char</span> *)(&amp;(___ett.member)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), \
-          0, NULL, subtype); \
+          0, <span class="comment">/* 0,  */</span>NULL, subtype); \
      }
 </pre></div>Add a hash type to a data descriptor. 
 <p>
@@ -378,7 +467,7 @@ This macro lets you easily add a hash of other data types. All the parameters ar
   \
   <a class="code" href="Eet_8h.html#450fd478c0c2531a5d2beb4f1af7cd34" title="This function is an internal used by macros.">eet_data_descriptor_element_add</a>(edd, name, <a class="code" href="Eet_8h.html#23f233441eb2d0eccafe51c1641ff5c9" title="Unknown data encoding type.">EET_T_UNKNOW</a>, <a class="code" href="Eet_8h.html#dcfddbc1928d1068eba93326201c6232" title="Linked list group type.">EET_G_LIST</a>, \
           (<span class="keywordtype">char</span> *)(&amp;(___ett.member)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), \
-          0, NULL, subtype); \
+          0, <span class="comment">/* 0,  */</span>NULL, subtype); \
      }
 </pre></div>Add a linked list type to a data descriptor. 
 <p>
@@ -430,7 +519,7 @@ This macro lets you easily add a linked list of other data types. All the parame
   \
   <a class="code" href="Eet_8h.html#450fd478c0c2531a5d2beb4f1af7cd34" title="This function is an internal used by macros.">eet_data_descriptor_element_add</a>(edd, name, <a class="code" href="Eet_8h.html#23f233441eb2d0eccafe51c1641ff5c9" title="Unknown data encoding type.">EET_T_UNKNOW</a>, <a class="code" href="Eet_8h.html#e97a13f08f6f48335a60e2a910aec41f" title="Unknown group data encoding type.">EET_G_UNKNOWN</a>, \
           (<span class="keywordtype">char</span> *)(&amp;(___ett.member)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), \
-          0, NULL, subtype); \
+          0, <span class="comment">/* 0,  */</span>NULL, subtype); \
      }
 </pre></div>Add a sub-element type to a data descriptor. 
 <p>
@@ -445,6 +534,77 @@ This macro lets you easily add a linked list of other data types. All the parame
 </dl>
 This macro lets you easily add a sub-type (a struct that's pointed to by this one). All the parameters are the same as for <a class="el" href="Eet_8h.html#c38ce778d7eba37cfca8a19efb7a9b3a" title="Add a basic data element to a data descriptor.">EET_DATA_DESCRIPTOR_ADD_BASIC()</a>, with the <code>subtype</code> being the exception. This must be the data descriptor of the struct that is pointed to by this element.<p>
 <dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="7adad32d2eba76566533353632f00ae4"></a><!-- doxytag: member="Eet.h::EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY" ref="7adad32d2eba76566533353632f00ae4" args="(edd, struct_type, name, member, subtype)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY          </td>
+          <td>(</td>
+          <td class="paramtype">edd,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct_type,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">name,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">member,         <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">subtype&nbsp;</td>
+          <td class="paramname">          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+<b>Value:</b><div class="fragment"><pre class="fragment">{ \
+  struct_type ___ett; \
+  \
+  <a class="code" href="Eet_8h.html#450fd478c0c2531a5d2beb4f1af7cd34" title="This function is an internal used by macros.">eet_data_descriptor_element_add</a>(edd, name, <a class="code" href="Eet_8h.html#23f233441eb2d0eccafe51c1641ff5c9" title="Unknown data encoding type.">EET_T_UNKNOW</a>, <a class="code" href="Eet_8h.html#a1ca41d2def763d6f5ce4d94eaf2581d" title="Variable size array group type.">EET_G_VAR_ARRAY</a>, \
+          (<span class="keywordtype">char</span> *)(&amp;(___ett.member)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), \
+          (<span class="keywordtype">char</span> *)(&amp;(___ett.member ## _count)) - (<span class="keywordtype">char</span> *)(&amp;(___ett)), <span class="comment">/* 0,  */</span>NULL, subtype); \
+     }
+</pre></div>Add a variable size array type to a data descriptor. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>edd</em>&nbsp;</td><td>The data descriptor to add the type to. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>struct_type</em>&nbsp;</td><td>The type of the struct. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>The string name to use to encode/decode this member (must be a constant global and never change). </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>member</em>&nbsp;</td><td>The struct member itself to be encoded. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>subtype</em>&nbsp;</td><td>The type of hash member to add.</td></tr>
+  </table>
+</dl>
+This macro lets you easily add a fixed size array of other data types. All the parameters are the same as for <a class="el" href="Eet_8h.html#c38ce778d7eba37cfca8a19efb7a9b3a" title="Add a basic data element to a data descriptor.">EET_DATA_DESCRIPTOR_ADD_BASIC()</a>, with the <code>subtype</code> being the exception. This must be the data descriptor of the element that is in each member of the hash to be stored.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.2 </dd></dl>
+
+</div>
+</div><p>
+<hr><h2>Typedef Documentation</h2>
+<a class="anchor" name="874d97b532dbdc0a14bf12aa9a5202d5"></a><!-- doxytag: member="Eet.h::Eet_Key_Password_Callback" ref="874d97b532dbdc0a14bf12aa9a5202d5" args=")(char *buffer, int size, int rwflag, void *data)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* <a class="el" href="Eet_8h.html#874d97b532dbdc0a14bf12aa9a5202d5">Eet_Key_Password_Callback</a>)(char *buffer, int size, int rwflag, void *data)          </td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Callback used to request if needed the password of a private key. 
+<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
 
 </div>
 </div><p>
@@ -1064,6 +1224,118 @@ On success the function returns a pointer to the image data decoded. The calling
 
 </div>
 </div><p>
+<a class="anchor" name="509bba18e5662365c049f19ec5978577"></a><!-- doxytag: member="Eet.h::eet_data_image_decode_to_surface" ref="509bba18e5662365c049f19ec5978577" args="(const void *data, int size, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI int eet_data_image_decode_to_surface           </td>
+          <td>(</td>
+          <td class="paramtype">const void *&nbsp;</td>
+          <td class="paramname"> <em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&nbsp;</td>
+          <td class="paramname"> <em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>src_x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>src_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int *&nbsp;</td>
+          <td class="paramname"> <em>d</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>w</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>h</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>row_stride</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>alpha</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>compress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>quality</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>lossy</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Decode Image data into pixel data. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>data</em>&nbsp;</td><td>The encoded pixel data. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>size</em>&nbsp;</td><td>The size, in bytes, of the encoded pixel data. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>src_x</em>&nbsp;</td><td>The starting x coordinate from where to dump the stream. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>src_y</em>&nbsp;</td><td>The starting y coordinate from where to dump the stream. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>d</em>&nbsp;</td><td>A pointer to the pixel surface. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>w</em>&nbsp;</td><td>The expected width in pixels of the pixel surface to decode. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>h</em>&nbsp;</td><td>The expected height in pixels of the pixel surface to decode. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>row_stride</em>&nbsp;</td><td>The length of a pixels line in the destination surface. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>alpha</em>&nbsp;</td><td>A pointer to the int to hold the alpha flag. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>compress</em>&nbsp;</td><td>A pointer to the int to hold the compression amount. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>quality</em>&nbsp;</td><td>A pointer to the int to hold the quality amount. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>lossy</em>&nbsp;</td><td>A pointer to the int to hold the lossiness flag. </td></tr>
+  </table>
+</dl>
+<dl class="return" compact><dt><b>Returns:</b></dt><dd>1 on success, 0 otherwise.</dd></dl>
+This function takes encoded pixel data and decodes it into raw RGBA pixels on success.<p>
+The other parameters of the image (alpha, compress etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pixel is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.<p>
+On success the function returns 1, and 0 on failure. On failure the parameter values may not contain any sensible data.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.2 </dd></dl>
+
+</div>
+</div><p>
 <a class="anchor" name="9c8c63fc1a235751e8a145f06a4a43ad"></a><!-- doxytag: member="Eet.h::eet_data_image_encode" ref="9c8c63fc1a235751e8a145f06a4a43ad" args="(const void *data, int *size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1397,6 +1669,118 @@ This function reads an image from an eet file stored under the named key in the 
 The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pile is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.<p>
 On success the function returns a pointer to the image data decoded. The calling application is responsible for calling free() on the image data when it is done with it. On failure NULL is returned and the parameter values may not contain any sensible data.<p>
 <dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="0fb474a90c41d9698406107d984debf9"></a><!-- doxytag: member="Eet.h::eet_data_image_read_to_surface" ref="0fb474a90c41d9698406107d984debf9" args="(Eet_File *ef, const char *name, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI int eet_data_image_read_to_surface           </td>
+          <td>(</td>
+          <td class="paramtype">Eet_File *&nbsp;</td>
+          <td class="paramname"> <em>ef</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>src_x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>src_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int *&nbsp;</td>
+          <td class="paramname"> <em>d</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>w</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>h</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&nbsp;</td>
+          <td class="paramname"> <em>row_stride</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>alpha</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>compress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>quality</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>lossy</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Read image data from the named key in the eet file. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>ef</em>&nbsp;</td><td>A valid eet file handle opened for reading. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>Name of the entry. eg: "/base/file_i_want". </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>src_x</em>&nbsp;</td><td>The starting x coordinate from where to dump the stream. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>src_y</em>&nbsp;</td><td>The starting y coordinate from where to dump the stream. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>d</em>&nbsp;</td><td>A pointer to the pixel surface. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>w</em>&nbsp;</td><td>The expected width in pixels of the pixel surface to decode. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>h</em>&nbsp;</td><td>The expected height in pixels of the pixel surface to decode. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>row_stride</em>&nbsp;</td><td>The length of a pixels line in the destination surface. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>alpha</em>&nbsp;</td><td>A pointer to the int to hold the alpha flag. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>compress</em>&nbsp;</td><td>A pointer to the int to hold the compression amount. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>quality</em>&nbsp;</td><td>A pointer to the int to hold the quality amount. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>lossy</em>&nbsp;</td><td>A pointer to the int to hold the lossiness flag. </td></tr>
+  </table>
+</dl>
+<dl class="return" compact><dt><b>Returns:</b></dt><dd>1 on success, 0 otherwise.</dd></dl>
+This function reads an image from an eet file stored under the named key in the eet file and return a pointer to the decompressed pixel data.<p>
+The other parameters of the image (width, height etc.) are placed into the values pointed to (they must be supplied). The pixel data is a linear array of pixels starting from the top-left of the image scanning row by row from left to right. Each pile is a 32bit value, with the high byte being the alpha channel, the next being red, then green, and the low byte being blue. The width and height are measured in pixels and will be greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes that the alpha channel is not used. 1 denotes that it is significant. Compress is filled with the compression value/amount the image was stored with. The quality value is filled with the quality encoding of the image file (0 - 100). The lossy flags is either 0 or 1 as to if the image was encoded lossily or not.<p>
+On success the function returns 1, and 0 on failure. On failure the parameter values may not contain any sensible data.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.2 </dd></dl>
 
 </div>
 </div><p>
@@ -1897,6 +2281,204 @@ This checks the given dictionary to see if the given string is actually inside t
 
 </div>
 </div><p>
+<a class="anchor" name="131e4a43a0ae98dc31a9a642ada33357"></a><!-- doxytag: member="Eet.h::eet_identity_certificate_print" ref="131e4a43a0ae98dc31a9a642ada33357" args="(const unsigned char *certificate, int der_length, FILE *out)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI void eet_identity_certificate_print           </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&nbsp;</td>
+          <td class="paramname"> <em>certificate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&nbsp;</td>
+          <td class="paramname"> <em>der_length</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">FILE *&nbsp;</td>
+          <td class="paramname"> <em>out</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Display the x509 der certificate to out. 
+<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="a8b2e329d0ecdb55b564e1aa70ba557f"></a><!-- doxytag: member="Eet.h::eet_identity_close" ref="a8b2e329d0ecdb55b564e1aa70ba557f" args="(Eet_Key *key)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI void eet_identity_close           </td>
+          <td>(</td>
+          <td class="paramtype">Eet_Key *&nbsp;</td>
+          <td class="paramname"> <em>key</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Close and release all ressource used by an Eet_Key. 
+<p>
+An reference counter prevent it from being freed until all file using it are also closed.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="e8be5ad35c585cdf5034309bc97f1af8"></a><!-- doxytag: member="Eet.h::eet_identity_open" ref="e8be5ad35c585cdf5034309bc97f1af8" args="(const char *certificate_file, const char *private_key_file, Eet_Key_Password_Callback cb)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI Eet_Key* eet_identity_open           </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>certificate_file</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>private_key_file</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="Eet_8h.html#874d97b532dbdc0a14bf12aa9a5202d5">Eet_Key_Password_Callback</a>&nbsp;</td>
+          <td class="paramname"> <em>cb</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Create an Eet_Key needed for signing an eet file. 
+<p>
+The certificate should provide the public that match the private key. No verification is done to ensure that.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="846b1e0f0f4a1a9c7ab9a4fc55728534"></a><!-- doxytag: member="Eet.h::eet_identity_print" ref="846b1e0f0f4a1a9c7ab9a4fc55728534" args="(Eet_Key *key, FILE *out)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI void eet_identity_print           </td>
+          <td>(</td>
+          <td class="paramtype">Eet_Key *&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">FILE *&nbsp;</td>
+          <td class="paramname"> <em>out</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Display both private and public key of an Eet_Key. 
+<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="687984e5f508017c01f6d22a203fce16"></a><!-- doxytag: member="Eet.h::eet_identity_set" ref="687984e5f508017c01f6d22a203fce16" args="(Eet_File *ef, Eet_Key *key)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI Eet_Error eet_identity_set           </td>
+          <td>(</td>
+          <td class="paramtype">Eet_File *&nbsp;</td>
+          <td class="paramname"> <em>ef</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Eet_Key *&nbsp;</td>
+          <td class="paramname"> <em>key</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Set a key to sign a file. 
+<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="6f92a1276ed7e87d5a7ba58b7943df7a"></a><!-- doxytag: member="Eet.h::eet_identity_x509" ref="6f92a1276ed7e87d5a7ba58b7943df7a" args="(Eet_File *ef, int *der_length)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI const void* eet_identity_x509           </td>
+          <td>(</td>
+          <td class="paramtype">Eet_File *&nbsp;</td>
+          <td class="paramname"> <em>ef</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&nbsp;</td>
+          <td class="paramname"> <em>der_length</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Get the x509 der certificate associated with an Eet_File. 
+<p>
+Will return NULL if the file is not signed.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
+
+</div>
+</div><p>
 <a class="anchor" name="9903687bfa20fe9a9e59d4c1d213e89a"></a><!-- doxytag: member="Eet.h::eet_init" ref="9903687bfa20fe9a9e59d4c1d213e89a" args="(void)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1969,6 +2551,39 @@ The calling program must call free() on the array returned, but NOT on the strin
 On success the array returned will have a list of string pointers that are the names of the entries that matched, and count_ret will have the number of entries in this array placed in it.<p>
 Hint: an easy way to list all entries in an eet file is to use a glob value of "*".<p>
 <dl class="since" compact><dt><b>Since:</b></dt><dd>1.0.0 </dd></dl>
+
+</div>
+</div><p>
+<a class="anchor" name="c514fa1812cfe27f0b7c0ff5fc13af45"></a><!-- doxytag: member="Eet.h::eet_memopen_read" ref="c514fa1812cfe27f0b7c0ff5fc13af45" args="(const void *data, size_t size)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EAPI Eet_File* eet_memopen_read           </td>
+          <td>(</td>
+          <td class="paramtype">const void *&nbsp;</td>
+          <td class="paramname"> <em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>size</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Open an eet file directly from a memory location. 
+<p>
+The data are not copied, so you must keep them around as long as the eet file is open. Their is currently no cache for this kind of Eet_File, so it's reopen every time you do use eet_memopen_read.<p>
+<dl class="since" compact><dt><b>Since:</b></dt><dd>2.0.0 </dd></dl>
 
 </div>
 </div><p>
@@ -2298,6 +2913,6 @@ The data will be copied (and optionally compressed) in ram, pending a flush to d
   </div>
   <hr />
   <p class="tiny">Copyright &copy; Enlightenment.org</p>
-  <p class="tiny">Eet Documentation Generated: Mon May 19 09:39:34 2008</p>
+  <p class="tiny">Eet Documentation Generated: Thu Sep 25 12:23:12 2008</p>
  </body>
 </html>

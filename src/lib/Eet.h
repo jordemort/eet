@@ -2,6 +2,7 @@
 #define _EET_H
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef EAPI
 # undef EAPI
@@ -86,12 +87,19 @@ extern "C" {
 	EET_ERROR_WRITE_ERROR_FILE_TOO_BIG,
 	EET_ERROR_WRITE_ERROR_IO_ERROR,
 	EET_ERROR_WRITE_ERROR_OUT_OF_SPACE,
-	EET_ERROR_WRITE_ERROR_FILE_CLOSED
+	EET_ERROR_WRITE_ERROR_FILE_CLOSED,
+	EET_ERROR_MMAP_FAILED,
+	EET_ERROR_X509_ENCODING_FAILED,
+	EET_ERROR_SIGNATURE_FAILED,
+	EET_ERROR_INVALID_SIGNATURE,
+	EET_ERROR_NOT_SIGNED,
+	EET_ERROR_NOT_IMPLEMENTED
      } Eet_Error;
 
    typedef struct _Eet_File                  Eet_File;
    typedef struct _Eet_Dictionary            Eet_Dictionary;
    typedef struct _Eet_Data_Descriptor       Eet_Data_Descriptor;
+   typedef struct _Eet_Key                   Eet_Key;
 
    typedef struct _Eet_Data_Descriptor_Class Eet_Data_Descriptor_Class;
 
@@ -215,6 +223,16 @@ extern "C" {
    EAPI Eet_File *eet_open(const char *file, Eet_File_Mode mode);
 
    /**
+    * Open an eet file directly from a memory location. The data are not copied,
+    * so you must keep them around as long as the eet file is open. Their is
+    * currently no cache for this kind of Eet_File, so it's reopen every time
+    * you do use eet_memopen_read.
+    *
+    * @since 2.0.0
+    */
+   EAPI Eet_File *eet_memopen_read(const void *data, size_t size);
+
+   /**
     * Get the mode an Eet_File was opened with.
     * @param ef A valid eet file handle.
     * @return The mode ef was opened with.
@@ -237,6 +255,60 @@ extern "C" {
     */
    EAPI Eet_Error eet_close(Eet_File *ef);
 
+  /**
+   * Callback used to request if needed the password of a private key.
+   *
+   * @since 2.0.0
+   */
+   typedef int (*Eet_Key_Password_Callback)(char *buffer, int size, int rwflag, void *data);
+
+   /**
+    * Create an Eet_Key needed for signing an eet file.
+    *
+    * The certificate should provide the public that match the private key.
+    * No verification is done to ensure that.
+    *
+    * @since 2.0.0
+    */
+   EAPI Eet_Key* eet_identity_open(const char *certificate_file, const char *private_key_file, Eet_Key_Password_Callback cb);
+
+    /**
+     * Close and release all ressource used by an Eet_Key.
+     * An reference counter prevent it from being freed until all file using it are
+     * also closed.
+     *
+     * @since 2.0.0
+     */
+   EAPI void eet_identity_close(Eet_Key *key);
+
+    /**
+     * Set a key to sign a file
+     *
+     * @since 2.0.0
+     */
+   EAPI Eet_Error eet_identity_set(Eet_File *ef, Eet_Key *key);
+
+    /**
+     * Display both private and public key of an Eet_Key.
+     *
+     * @since 2.0.0
+     */
+   EAPI void eet_identity_print(Eet_Key *key, FILE *out);
+
+    /**
+     * Get the x509 der certificate associated with an Eet_File. Will return NULL
+     * if the file is not signed.
+     *
+     * @since 2.0.0
+     */
+   EAPI const void *eet_identity_x509(Eet_File *ef, int *der_length);
+
+   /**
+    * Display the x509 der certificate to out.
+    *
+    * @since 2.0.0
+    */
+   EAPI void eet_identity_certificate_print(const unsigned char *certificate, int der_length, FILE *out);
 
    /**
     * Return a handle to the shared string dictionary of the Eet file
@@ -470,6 +542,45 @@ extern "C" {
    EAPI void *eet_data_image_read(Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
+    * Read image data from the named key in the eet file.
+    * @param ef A valid eet file handle opened for reading.
+    * @param name Name of the entry. eg: "/base/file_i_want".
+    * @param src_x The starting x coordinate from where to dump the stream.
+    * @param src_y The starting y coordinate from where to dump the stream.
+    * @param d A pointer to the pixel surface.
+    * @param w The expected width in pixels of the pixel surface to decode.
+    * @param h The expected height in pixels of the pixel surface to decode.
+    * @param row_stride The length of a pixels line in the destination surface.
+    * @param alpha A pointer to the int to hold the alpha flag.
+    * @param compress A pointer to the int to hold the compression amount.
+    * @param quality A pointer to the int to hold the quality amount.
+    * @param lossy A pointer to the int to hold the lossiness flag.
+    * @return 1 on success, 0 otherwise.
+    *
+    * This function reads an image from an eet file stored under the named
+    * key in the eet file and return a pointer to the decompressed pixel data.
+    *
+    * The other parameters of the image (width, height etc.) are placed into
+    * the values pointed to (they must be supplied). The pixel data is a linear
+    * array of pixels starting from the top-left of the image scanning row by
+    * row from left to right. Each pile is a 32bit value, with the high byte
+    * being the alpha channel, the next being red, then green, and the low byte
+    * being blue. The width and height are measured in pixels and will be
+    * greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes
+    * that the alpha channel is not used. 1 denotes that it is significant.
+    * Compress is filled with the compression value/amount the image was
+    * stored with. The quality value is filled with the quality encoding of
+    * the image file (0 - 100). The lossy flags is either 0 or 1 as to if
+    * the image was encoded lossily or not.
+    *
+    * On success the function returns 1, and 0 on failure. On failure the
+    * parameter values may not contain any sensible data.
+    *
+    * @since 1.0.2
+    */
+  EAPI int eet_data_image_read_to_surface(Eet_File *ef, const char *name, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
+
+   /**
     * Write image data to the named key in an eet file.
     * @param ef A valid eet file handle opened for writing.
     * @param name Name of the entry. eg: "/base/file_i_want".
@@ -574,6 +685,45 @@ extern "C" {
     * @since 1.0.0
     */
    EAPI void *eet_data_image_decode(const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
+
+   /**
+    * Decode Image data into pixel data.
+    * @param data The encoded pixel data.
+    * @param size The size, in bytes, of the encoded pixel data.
+    * @param src_x The starting x coordinate from where to dump the stream.
+    * @param src_y The starting y coordinate from where to dump the stream.
+    * @param d A pointer to the pixel surface.
+    * @param w The expected width in pixels of the pixel surface to decode.
+    * @param h The expected height in pixels of the pixel surface to decode.
+    * @param row_stride The length of a pixels line in the destination surface.
+    * @param alpha A pointer to the int to hold the alpha flag.
+    * @param compress A pointer to the int to hold the compression amount.
+    * @param quality A pointer to the int to hold the quality amount.
+    * @param lossy A pointer to the int to hold the lossiness flag.
+    * @return 1 on success, 0 otherwise.
+    *
+    * This function takes encoded pixel data and decodes it into raw RGBA
+    * pixels on success.
+    *
+    * The other parameters of the image (alpha, compress etc.) are placed into
+    * the values pointed to (they must be supplied). The pixel data is a linear
+    * array of pixels starting from the top-left of the image scanning row by
+    * row from left to right. Each pixel is a 32bit value, with the high byte
+    * being the alpha channel, the next being red, then green, and the low byte
+    * being blue. The width and height are measured in pixels and will be
+    * greater than 0 when returned. The alpha flag is either 0 or 1. 0 denotes
+    * that the alpha channel is not used. 1 denotes that it is significant.
+    * Compress is filled with the compression value/amount the image was
+    * stored with. The quality value is filled with the quality encoding of
+    * the image file (0 - 100). The lossy flags is either 0 or 1 as to if
+    * the image was encoded lossily or not.
+    *
+    * On success the function returns 1, and 0 on failure. On failure the
+    * parameter values may not contain any sensible data.
+    *
+    * @since 1.0.2
+    */
+   EAPI int eet_data_image_decode_to_surface(const void *data, int size, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
     * Encode image data for storage or transmission.
@@ -811,7 +961,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
-   EAPI void eet_data_descriptor_element_add(Eet_Data_Descriptor *edd, const char *name, int type, int group_type, int offset, int count, const char *counter_name, Eet_Data_Descriptor *subtype);
+   EAPI void eet_data_descriptor_element_add(Eet_Data_Descriptor *edd, const char *name, int type, int group_type, int offset, /* int count_offset,  */int count, const char *counter_name, Eet_Data_Descriptor *subtype);
 
    /**
     * Read a data structure from an eet file and decodes it.
@@ -1036,7 +1186,7 @@ eet_dictionary_string_check    * example: values), and @p type is the basic data
 	\
 	eet_data_descriptor_element_add(edd, name, type, EET_G_UNKNOWN, \
 					(char *)(&(___ett.member)) - (char *)(&(___ett)), \
-					0, NULL, NULL); \
+					0, /* 0,  */NULL, NULL); \
      }
 
    /**
@@ -1061,7 +1211,7 @@ eet_dictionary_string_check    * example: values), and @p type is the basic data
 	\
 	eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_UNKNOWN, \
 					(char *)(&(___ett.member)) - (char *)(&(___ett)), \
-					0, NULL, subtype); \
+					0, /* 0,  */NULL, subtype); \
      }
 
    /**
@@ -1085,7 +1235,7 @@ eet_dictionary_string_check    * example: values), and @p type is the basic data
 	\
 	eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_LIST, \
 					(char *)(&(___ett.member)) - (char *)(&(___ett)), \
-					0, NULL, subtype); \
+					0, /* 0,  */NULL, subtype); \
      }
 
    /**
@@ -1109,7 +1259,55 @@ eet_dictionary_string_check    * example: values), and @p type is the basic data
 	\
 	eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_HASH, \
 					(char *)(&(___ett.member)) - (char *)(&(___ett)), \
-					0, NULL, subtype); \
+					0, /* 0,  */NULL, subtype); \
+     }
+
+   /**
+    * Add a fixed size array type to a data descriptor
+    * @param edd The data descriptor to add the type to.
+    * @param struct_type The type of the struct.
+    * @param name The string name to use to encode/decode this member (must be a constant global and never change).
+    * @param member The struct member itself to be encoded.
+    * @param subtype The type of hash member to add.
+    *
+    * This macro lets you easily add a fixed size array of other data types. All the
+    * parameters are the same as for EET_DATA_DESCRIPTOR_ADD_BASIC(), with the
+    * @p subtype being the exception. This must be the data descriptor of the
+    * element that is in each member of the hash to be stored.
+    *
+    * @since 1.0.2
+    */
+#define EET_DATA_DESCRIPTOR_ADD_ARRAY(edd, struct_type, name, member, subtype) \
+     { \
+	struct_type ___ett; \
+	\
+	eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_ARRAY, \
+					(char *)(&(___ett.member)) - (char *)(&(___ett)), \
+					/* 0,  */sizeof(___ett.member)/sizeof(___ett.member[0]), NULL, subtype); \
+     }
+
+   /**
+    * Add a variable size array type to a data descriptor
+    * @param edd The data descriptor to add the type to.
+    * @param struct_type The type of the struct.
+    * @param name The string name to use to encode/decode this member (must be a constant global and never change).
+    * @param member The struct member itself to be encoded.
+    * @param subtype The type of hash member to add.
+    *
+    * This macro lets you easily add a fixed size array of other data types. All the
+    * parameters are the same as for EET_DATA_DESCRIPTOR_ADD_BASIC(), with the
+    * @p subtype being the exception. This must be the data descriptor of the
+    * element that is in each member of the hash to be stored.
+    *
+    * @since 1.0.2
+    */
+#define EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY(edd, struct_type, name, member, subtype) \
+     { \
+	struct_type ___ett; \
+	\
+	eet_data_descriptor_element_add(edd, name, EET_T_UNKNOW, EET_G_VAR_ARRAY, \
+					(char *)(&(___ett.member)) - (char *)(&(___ett)), \
+					(char *)(&(___ett.member ## _count)) - (char *)(&(___ett)), /* 0,  */NULL, subtype); \
      }
 
 /***************************************************************************/

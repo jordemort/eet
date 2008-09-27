@@ -69,14 +69,17 @@ struct _Eet_File
    FILE                 *fp;
    FILE			*readfp;
    Eet_File_Header      *header;
-   const unsigned char  *data;
    Eet_Dictionary       *ed;
+   Eet_Key		*key;
+   const unsigned char  *data;
+   const void           *x509_der;
 
    int                   magic;
    int                   references;
 
    Eet_File_Mode         mode;
    int                   data_size;
+   int                   x509_length;
    time_t                mtime;
 
    unsigned char         writes_pending : 1;
@@ -158,6 +161,11 @@ struct
 } dictionary[num_dictionary_entries];
 /* now start the string stream. */
 /* and right after them the data stream. */
+int magic_sign; /* Optional, only if the eet file is signed. */
+int signature_length; /* Signature length. */
+int x509_length; /* Public certificate that signed the file. */
+char signature[signature_length]; /* The signature. */
+char x509[x509_length]; /* The public certificate. */
 #endif
 
 #define EET_FILE2_HEADER_COUNT                  3
@@ -318,7 +326,7 @@ eet_cache_del(Eet_File *ef, Eet_File ***cache, int *cache_num, int *cache_alloc)
    for (j = i; j < new_cache_num; j++)
      new_cache[j] = new_cache[j + 1];
 
-   if (new_cache_num < (new_cache_alloc - 16))
+   if (new_cache_num <= (new_cache_alloc - 16))
      {
 	new_cache_alloc -= 16;
 	if (new_cache_num > 0)
@@ -377,6 +385,16 @@ eet_flush2(Eet_File *ef)
      return EET_ERROR_NOT_WRITABLE;
    if (!ef->writes_pending)
      return EET_ERROR_NONE;
+   if (ef->mode == EET_FILE_MODE_READ_WRITE && ef->fp == NULL)
+     {
+	int fd;
+
+	unlink(ef->path);
+	fd = open(ef->path, O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+	ef->fp = fdopen(fd, "wb");
+	if (!ef->fp) return EET_ERROR_NOT_WRITABLE;
+	fcntl(fileno(ef->fp), F_SETFD, FD_CLOEXEC);
+     }
 
    /* calculate string base offset and data base offset */
    num = (1 << ef->header->directory->size);
@@ -509,6 +527,17 @@ eet_flush2(Eet_File *ef)
           }
      }
 
+   /* flush all write to the file. */
+   fflush(ef->fp);
+
+   /* append signature if required */
+   if (ef->key)
+     {
+	error = eet_identity_sign(ef->fp, ef->key);
+	if (error != EET_ERROR_NONE)
+	  goto sign_error;
+     }
+
    /* no more writes pending */
    ef->writes_pending = 0;
 
@@ -523,7 +552,8 @@ eet_flush2(Eet_File *ef)
       case EPIPE: error = EET_ERROR_WRITE_ERROR_FILE_CLOSED; break;
       default: error = EET_ERROR_WRITE_ERROR; break;
      }
-   fclose(ef->fp);
+   sign_error:
+   if (ef->fp) fclose(ef->fp);
    ef->fp = NULL;
    return error;
 }
@@ -644,6 +674,7 @@ eet_flush(Eet_File *ef)
 	ef->fp = NULL;
 	return EET_ERROR_WRITE_ERROR;
      }
+   sign_error:
    fclose(ef->fp);
    ef->fp = NULL;
    return EET_ERROR_WRITE_ERROR;
@@ -653,17 +684,28 @@ eet_flush(Eet_File *ef)
 EAPI int
 eet_init(void)
 {
-   return ++eet_initcount;
+   eet_initcount++;
+
+   if (eet_initcount > 1) return eet_initcount;
+
+#ifdef HAVE_OPENSSL
+   ERR_load_crypto_strings();
+#endif
+
+   return eet_initcount;
 }
 
 EAPI int
 eet_shutdown(void)
 {
-   if (--eet_initcount == 0)
-     {
-	eet_clearcache();
-	_eet_memfile_shutdown();
-     }
+   eet_initcount--;
+
+   if (eet_initcount > 0) return eet_initcount;
+
+   eet_clearcache();
+#ifdef HAVE_OPENSSL
+   ERR_free_strings();
+#endif
 
    return eet_initcount;
 }
@@ -732,6 +774,7 @@ eet_internal_read2(Eet_File *ef)
    int           bytes_directory_entries;
    int           num_dictionary_entries;
    int           bytes_dictionary_entries;
+   int           signature_base_offset;
    int           i;
 
    index += sizeof(int);
@@ -780,6 +823,8 @@ eet_internal_read2(Eet_File *ef)
    ef->header->directory->nodes = calloc(1, sizeof(Eet_File_Node *) * (1 << ef->header->directory->size));
    if (eet_test_close(!ef->header->directory->nodes, ef))
      return NULL;
+
+   signature_base_offset = 0;
 
    /* actually read the directory block - all of it, into ram */
    for (i = 0; i < num_directory_entries; ++i)
@@ -844,6 +889,10 @@ eet_internal_read2(Eet_File *ef)
              if (efn->data)
                memcpy(efn->data, ef->data + efn->offset, efn->size);
           }
+
+	/* compute the possible position of a signature */
+	if (signature_base_offset < efn->offset + efn->size)
+	  signature_base_offset = efn->offset + efn->size;
      }
 
    ef->ed = NULL;
@@ -853,7 +902,7 @@ eet_internal_read2(Eet_File *ef)
         const int       *dico = (const int*) ef->data + EET_FILE2_DIRECTORY_ENTRY_COUNT * num_directory_entries + EET_FILE2_HEADER_COUNT;
         int              j;
 
-        if (eet_test_close((num_directory_entries * EET_FILE2_DICTIONARY_ENTRY_SIZE + index) > (bytes_dictionary_entries + bytes_directory_entries), ef))
+        if (eet_test_close((num_dictionary_entries * EET_FILE2_DICTIONARY_ENTRY_SIZE + index) > (bytes_dictionary_entries + bytes_directory_entries), ef))
             return NULL;
 
         ef->ed = calloc(1, sizeof (Eet_Dictionary));
@@ -897,14 +946,37 @@ eet_internal_read2(Eet_File *ef)
              /* Check '\0' at the end of the string */
              if (eet_test_close(ef->ed->all[j].mmap[ef->ed->all[j].len - 1] != '\0', ef)) return NULL;
 
+	     ef->ed->all[j].hash = hash;
              if (ef->ed->all[j].prev == -1)
                ef->ed->hash[hash] = j;
+
+	     /* compute the possible position of a signature */
+	     if (signature_base_offset < offset + ef->ed->all[j].len)
+	       signature_base_offset = offset + ef->ed->all[j].len;
           }
+     }
+
+   /* Check if the file is signed */
+   ef->x509_der = NULL;
+   ef->x509_length = 0;
+   if (signature_base_offset < ef->data_size)
+     {
+#ifdef HAVE_SIGNATURE
+	const unsigned char *buffer = ((const unsigned char*) ef->data) + signature_base_offset;
+	ef->x509_der = eet_identity_check(ef->data, signature_base_offset,
+					  buffer, ef->data_size - signature_base_offset,
+					  &ef->x509_length);
+
+	if (eet_test_close(ef->x509_der == NULL, ef)) return NULL;
+#else
+	fprintf(stderr, "This file could be signed but you didn't compile the necessary code to check the signature.\n");
+#endif
      }
 
    return ef;
 }
 
+#if EET_OLD_EET_FILE_FORMAT
 static Eet_File *
 eet_internal_read1(Eet_File *ef)
 {
@@ -914,6 +986,8 @@ eet_internal_read1(Eet_File *ef)
    int			 num_entries;
    int			 byte_entries;
    int			 i;
+
+   fprintf(stderr, "EET file format of '%s' is deprecated. You should just open it one time with mode == EET_FILE_MODE_READ_WRITE to solve this issue.\n", ef->path);
 
    /* build header table if read mode */
    /* geat header */
@@ -1066,6 +1140,7 @@ eet_internal_read1(Eet_File *ef)
      }
    return ef;
 }
+#endif
 
 static Eet_File *
 eet_internal_read(Eet_File *ef)
@@ -1080,8 +1155,10 @@ eet_internal_read(Eet_File *ef)
 
    switch (ntohl(*data))
      {
+#if EET_OLD_EET_FILE_FORMAT
       case EET_MAGIC_FILE:
 	return eet_internal_read1(ef);
+#endif
       case EET_MAGIC_FILE2:
 	return eet_internal_read2(ef);
       default:
@@ -1093,7 +1170,6 @@ eet_internal_read(Eet_File *ef)
    return NULL;
 }
 
-#if 0 /* No prototype */
 EAPI Eet_File *
 eet_memopen_read(const void *data, size_t size)
 {
@@ -1108,6 +1184,7 @@ eet_memopen_read(const void *data, size_t size)
 
    ef->ed = NULL;
    ef->path = NULL;
+   ef->key = NULL;
    ef->magic = EET_MAGIC_FILE;
    ef->references = 1;
    ef->mode = EET_FILE_MODE_READ;
@@ -1115,18 +1192,19 @@ eet_memopen_read(const void *data, size_t size)
    ef->mtime = 0;
    ef->delete_me_now = 1;
    ef->fp = NULL;
+   ef->readfp = NULL;
    ef->data = data;
    ef->data_size = size;
 
    return eet_internal_read(ef);
 }
-#endif
 
 EAPI Eet_File *
 eet_open(const char *file, Eet_File_Mode mode)
 {
    FILE         *fp;
    Eet_File	*ef;
+   int		 file_len;
    struct stat	 file_stat;
 
    if (!file)
@@ -1183,11 +1261,15 @@ eet_open(const char *file, Eet_File_Mode mode)
      }
    else
      {
+	int fd;
+
 	if (mode != EET_FILE_MODE_WRITE) return NULL;
 	memset(&file_stat, 0, sizeof(file_stat));
 	/* opening for write - delete old copy of file right away */
 	unlink(file);
-	fp = fopen(file, "wb");
+	fd = open(file, O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+	fp = fdopen(fd, "wb");
+	if (!fp) return NULL;
      }
 
    /* We found one */
@@ -1207,21 +1289,25 @@ eet_open(const char *file, Eet_File_Mode mode)
 	return ef;
      }
 
+   file_len = strlen(file) + 1;
+
    /* Allocate struct for eet file and have it zero'd out */
-   ef = malloc(sizeof(Eet_File) + strlen(file) + 1);
+   ef = malloc(sizeof(Eet_File) + file_len);
    if (!ef)
      return NULL;
 
    /* fill some of the members */
    ef->fp = fp;
+   ef->key = NULL;
    ef->readfp = NULL;
    ef->path = ((char *)ef) + sizeof(Eet_File);
-   strcpy(ef->path, file);
+   memcpy(ef->path, file, file_len);
    ef->magic = EET_MAGIC_FILE;
    ef->references = 1;
    ef->mode = mode;
    ef->header = NULL;
    ef->mtime = file_stat.st_mtime;
+   ef->writes_pending = 0;
    ef->delete_me_now = 0;
    ef->data = NULL;
    ef->data_size = 0;
@@ -1243,7 +1329,8 @@ eet_open(const char *file, Eet_File_Mode mode)
 	ef->data_size = file_stat.st_size;
 	ef->data = mmap(NULL, ef->data_size, PROT_READ,
 			MAP_SHARED, fileno(ef->fp), 0);
-
+	if (eet_test_close((ef->data == MAP_FAILED), ef))
+	  return NULL;
 	ef = eet_internal_read(ef);
 	if (!ef)
 	  return NULL;
@@ -1254,9 +1341,7 @@ eet_open(const char *file, Eet_File_Mode mode)
    if (ef->mode == EET_FILE_MODE_READ_WRITE)
      {
 	ef->readfp = ef->fp;
-	unlink(ef->path);
-	ef->fp = fopen(ef->path, "wb");
-	fcntl(fileno(ef->fp), F_SETFD, FD_CLOEXEC);
+	ef->fp = NULL;
      }
 
    /* add to cache */
@@ -1282,6 +1367,32 @@ eet_mode_get(Eet_File *ef)
      return ef->mode;
 }
 
+EAPI const void *
+eet_identity_x509(Eet_File *ef, int *der_length)
+{
+   if (!ef->x509_der) return NULL;
+
+   if (der_length) *der_length = ef->x509_length;
+   return ef->x509_der;
+}
+
+EAPI Eet_Error
+eet_identity_set(Eet_File *ef, Eet_Key *key)
+{
+   Eet_Key *tmp = ef->key;
+
+   if (!ef) return EET_ERROR_BAD_OBJECT;
+
+   ef->key = key;
+   eet_identity_ref(ef->key);
+   eet_identity_unref(tmp);
+
+   /* flags that writes are pending */
+   ef->writes_pending = 1;
+
+   return EET_ERROR_NONE;
+}
+
 EAPI Eet_Error
 eet_close(Eet_File *ef)
 {
@@ -1296,6 +1407,9 @@ eet_close(Eet_File *ef)
    if (ef->references > 0) return EET_ERROR_NONE;
    /* flush any writes */
    err = eet_flush2(ef);
+
+   eet_identity_unref(ef->key);
+   ef->key = NULL;
 
    /* if not urgent to delete it - dont free it - leave it in cache */
    if ((!ef->delete_me_now) && (ef->mode == EET_FILE_MODE_READ))
