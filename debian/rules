@@ -3,6 +3,8 @@
 include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 
+CFLAGS += -fvisibility=hidden
+
 #Build the unit tests binary and run it. Needs 'check' and 'pkg-config' as additionnal build-depends
 #build:
 #	make check
