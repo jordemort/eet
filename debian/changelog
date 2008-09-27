@@ -8,6 +8,9 @@ eet (1.1.0-1) UNRELEASED; urgency=low
     - Stop removing doc/man/man3/todo.3, this is now shipped in the upstream
       tarball. Explicitely list the manpages we want in DEB_INSTALL_MANPAGES
       instead.
+  * debian/control:
+    - Bump Standards-Version to 3.8.0
+    - Drop Build-Dependency on doxygen as docs are now in the upstream tarball.
 
  -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 27 Sep 2008 13:47:11 +0200
 
