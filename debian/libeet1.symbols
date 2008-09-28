@@ -1,7 +1,6 @@
 libeet.so.1 libeet1 #MINVER#
  eet_clearcache@Base 1.0.0
  eet_close@Base 1.0.0
- eet_cypher@Base 1.1.0
  eet_data_descriptor2_new@Base 1.0.0
  eet_data_descriptor3_new@Base 1.0.0
  eet_data_descriptor_decode@Base 1.0.0
@@ -23,20 +22,14 @@ libeet.so.1 libeet1 #MINVER#
  eet_data_text_undump@Base 1.0.0
  eet_data_undump@Base 1.0.0
  eet_data_write@Base 1.0.0
- eet_decypher@Base 1.1.0
  eet_delete@Base 1.0.0
  eet_dictionary_get@Base 1.0.0
  eet_dictionary_string_check@Base 1.0.0
- eet_dictionary_string_get_hash@Base 1.1.0
  eet_identity_certificate_print@Base 1.1.0
- eet_identity_check@Base 1.1.0
  eet_identity_close@Base 1.1.0
  eet_identity_open@Base 1.1.0
  eet_identity_print@Base 1.1.0
- eet_identity_ref@Base 1.1.0
  eet_identity_set@Base 1.1.0
- eet_identity_sign@Base 1.1.0
- eet_identity_unref@Base 1.1.0
  eet_identity_x509@Base 1.1.0
  eet_init@Base 1.0.0
  eet_list@Base 1.0.0
