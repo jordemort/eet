@@ -1,3 +1,17 @@
+eet (1.2.0-1) experimental; urgency=low
+
+  * Bump Standards-Version to 3.8.1, no change required
+  * Build-depend on doxygen and use the "make doc" target to build the
+    doc
+  * Add build-depend on libeina-dev, this is now required
+  * [lintian] Add ${misc:Depends} to packages dependencies
+  * Move libevas-dbg to the debug section
+  * Update debian/watch to point to the releases, not the SVN snaspshots
+  * Add new symbols to libeet1.symbols
+  * Improve descriptions wording a little bit
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Fri, 08 May 2009 18:28:11 +0200
+
 eet (1.1.0-1) unstable; urgency=low
 
   * New upstream release
