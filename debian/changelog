@@ -1,4 +1,4 @@
-eet (1.1.0-1) UNRELEASED; urgency=low
+eet (1.1.0-1) unstable; urgency=low
 
   * New upstream release
   * debian/rules:
