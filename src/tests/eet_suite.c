@@ -5,12 +5,15 @@
 #include <strings.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include <check.h>
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
+#include <Eina.h>
 
 #include "eet_suite.h"
 
@@ -69,7 +72,7 @@ struct _Eet_Test_Image
 {
    unsigned int w;
    unsigned int h;
-   unsigned int alpha;
+   int alpha;
    unsigned int color[];
 };
 
@@ -154,7 +157,7 @@ _eet_test_basic_check(Eet_Test_Basic_Type *result, int i)
    fail_if(result->c != EET_TEST_CHAR);
    fail_if(result->s != EET_TEST_SHORT);
    fail_if(result->i != EET_TEST_INT + i);
-   fail_if(result->l != EET_TEST_LONG_LONG);
+   fail_if(result->l != (long long) EET_TEST_LONG_LONG);
    fail_if(strcmp(result->str, EET_TEST_STRING) != 0);
    fail_if(strcmp(result->istr, EET_TEST_STRING) != 0);
    fail_if(result->uc != EET_TEST_CHAR);
@@ -185,7 +188,7 @@ _eet_test_basic_check(Eet_Test_Basic_Type *result, int i)
 	fail_if(tmp->c != EET_TEST_CHAR);
 	fail_if(tmp->s != EET_TEST_SHORT);
 	fail_if(tmp->i != EET_TEST_INT + i + 1);
-	fail_if(tmp->l != EET_TEST_LONG_LONG);
+	fail_if(tmp->l != (long long) EET_TEST_LONG_LONG);
 	fail_if(strcmp(tmp->str, EET_TEST_STRING) != 0);
 	fail_if(strcmp(tmp->istr, EET_TEST_STRING) != 0);
 	fail_if(tmp->uc != EET_TEST_CHAR);
@@ -274,10 +277,12 @@ struct _Eet_Test_Ex_Type
    double d2;
    double d3;
    double d4;
-   Eet_List *list;
-   Eet_Hash *hash;
-   Eet_List *ilist;
-   Eet_Hash *ihash;
+   Eina_List *list;
+   Eina_Hash *hash;
+   Eina_List *ilist;
+   Eina_List *slist;
+   Eina_Hash *ihash;
+   Eina_Hash *shash;
    Eet_Test_Basic_Type sarray1[10];
    unsigned int sarray2[5];
    unsigned int varray1_count;
@@ -288,6 +293,7 @@ struct _Eet_Test_Ex_Type
    unsigned short us;
    unsigned int ui;
    unsigned long long ul;
+   char *charray[10];
 };
 
 static int i42 = 42;
@@ -335,6 +341,9 @@ _eet_build_ex_descriptor(Eet_Data_Descriptor *edd)
    eet_data_descriptor_element_add(edd, "sarray2", EET_T_INT, EET_G_ARRAY,
 				   (char *)(&(etbt.sarray2)) - (char *)(&(etbt)),
 				   /* 0,  */sizeof(etbt.sarray2)/sizeof(etbt.sarray2[0]), NULL, NULL);
+   eet_data_descriptor_element_add(edd, "charray", EET_T_STRING, EET_G_ARRAY,
+				   (char *)(&(etbt.charray)) - (char *)(&(etbt)),
+				   /* 0,  */sizeof(etbt.charray)/sizeof(etbt.charray[0]), NULL, NULL);
    EET_DATA_DESCRIPTOR_ADD_LIST(edd, Eet_Test_Ex_Type, "list", list, edd);
    EET_DATA_DESCRIPTOR_ADD_HASH(edd, Eet_Test_Ex_Type, "hash", hash, edd);
    eet_data_descriptor_element_add(edd, "ilist", EET_T_INT, EET_G_LIST,
@@ -342,6 +351,12 @@ _eet_build_ex_descriptor(Eet_Data_Descriptor *edd)
 				   0, /* 0,  */NULL, NULL);
    eet_data_descriptor_element_add(edd, "ihash", EET_T_INT, EET_G_HASH,
 				   (char *)(&(etbt.ihash)) - (char *)(&(etbt)),
+				   0, /* 0,  */NULL, NULL);
+   eet_data_descriptor_element_add(edd, "slist", EET_T_STRING, EET_G_LIST,
+				   (char *)(&(etbt.slist)) - (char *)(&(etbt)),
+				   0, /* 0,  */NULL, NULL);
+   eet_data_descriptor_element_add(edd, "shash", EET_T_STRING, EET_G_HASH,
+				   (char *)(&(etbt.shash)) - (char *)(&(etbt)),
 				   0, /* 0,  */NULL, NULL);
 }
 
@@ -371,6 +386,10 @@ _eet_test_ex_set(Eet_Test_Ex_Type *res, int offset)
    res->hash = NULL;
    res->ilist = NULL;
    res->ihash = NULL;
+   res->slist = NULL;
+   res->shash = NULL;
+   for (i = 0; i < sizeof(res->charray)/sizeof(res->charray[0]); ++i)
+     res->charray[i] = NULL;
 
    res->varray2 = malloc(sizeof (Eet_Test_Basic_Type) * 10);
    res->varray1 = malloc(sizeof (int) * 5);
@@ -400,7 +419,7 @@ static int
 _eet_test_ex_check(Eet_Test_Ex_Type *stuff, int offset)
 {
    double tmp;
-   int i;
+   unsigned int i;
 
    if (!stuff) return 1;
 
@@ -430,7 +449,7 @@ _eet_test_ex_check(Eet_Test_Ex_Type *stuff, int offset)
 
    if (stuff->uc != EET_TEST_CHAR + offset) return 1;
    if (stuff->us != EET_TEST_SHORT + offset) return 1;
-   if (stuff->ui != EET_TEST_INT + offset) return 1;
+   if (stuff->ui != (unsigned int) EET_TEST_INT + offset) return 1;
    if (stuff->ul != EET_TEST_LONG_LONG + offset) return 1;
 
    for (i = 0; i < 5; ++i)
@@ -443,8 +462,8 @@ _eet_test_ex_check(Eet_Test_Ex_Type *stuff, int offset)
    return 0;
 }
 
-static int
-func(const Eet_Hash *hash, const char *key, void *data, void *fdata)
+static Eina_Bool
+func(__UNUSED__ const Eina_Hash *hash, const void *key, void *data, void *fdata)
 {
    int *res = fdata;
 
@@ -452,11 +471,11 @@ func(const Eet_Hash *hash, const char *key, void *data, void *fdata)
        && strcmp(key, EET_TEST_KEY2) != 0) *res = 1;
    if (_eet_test_ex_check(data, 2)) *res = 1;
 
-   return 1;
+   return EINA_TRUE;
 }
 
-static int
-func7(const Eet_Hash *hash, const char *key, void *data, void *fdata)
+static Eina_Bool
+func7(__UNUSED__ const Eina_Hash *hash, __UNUSED__ const void *key, void *data, void *fdata)
 {
    int *res = fdata;
    int *val;
@@ -465,14 +484,13 @@ func7(const Eet_Hash *hash, const char *key, void *data, void *fdata)
    if (!val) *res = 1;
    if (*val != 7) *res = 1;
 
-   return 1;
+   return EINA_TRUE;
 }
 
 START_TEST(eet_test_data_type_encoding_decoding)
 {
    Eet_Data_Descriptor *edd;
    Eet_Test_Ex_Type *result;
-   Eet_Test_Ex_Type *tmp;
    void *transfert;
    Eet_Data_Descriptor_Class eddc;
    Eet_Test_Ex_Type etbt;
@@ -482,10 +500,18 @@ START_TEST(eet_test_data_type_encoding_decoding)
    eet_init();
 
    _eet_test_ex_set(&etbt, 0);
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.hash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ihash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
+   etbt.slist = eina_list_prepend(NULL, "test");
+   etbt.shash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.shash, EET_TEST_KEY1, "test");
+   memset(&etbt.charray, 0, sizeof(etbt.charray));
+   etbt.charray[0] = "test";
+   etbt.charray[5] = "plouf";
 
    eet_test_setup_eddc(&eddc);
    eddc.name = "Eet_Test_Ex_Type";
@@ -503,14 +529,20 @@ START_TEST(eet_test_data_type_encoding_decoding)
    fail_if(!result);
 
    fail_if(_eet_test_ex_check(result, 0) != 0);
-   fail_if(_eet_test_ex_check(eet_list_data(result->list), 1) != 0);
-   fail_if(eet_list_data(result->ilist) == NULL);
-   fail_if(*((int*)eet_list_data(result->ilist)) != 42);
+   fail_if(_eet_test_ex_check(eina_list_data_get(result->list), 1) != 0);
+   fail_if(eina_list_data_get(result->ilist) == NULL);
+   fail_if(*((int*)eina_list_data_get(result->ilist)) != 42);
+   fail_if(eina_list_data_get(result->slist) == NULL);
+   fail_if(strcmp(eina_list_data_get(result->slist), "test") != 0);
+   fail_if(eina_hash_find(result->shash, EET_TEST_KEY1) == NULL);
+   fail_if(strcmp(eina_hash_find(result->shash, EET_TEST_KEY1), "test") != 0);
+   fail_if(strcmp(result->charray[0], "test") != 0);
+   fail_if(strcmp(result->charray[5], "plouf") != 0);
 
    test = 0;
-   eet_hash_foreach(result->hash, func, &test);
+   eina_hash_foreach(result->hash, func, &test);
    fail_if(test != 0);
-   eet_hash_foreach(result->ihash, func7, &test);
+   eina_hash_foreach(result->ihash, func7, &test);
    fail_if(test != 0);
 
    eet_shutdown();
@@ -535,7 +567,6 @@ START_TEST(eet_test_data_type_dump_undump)
 {
    Eet_Data_Descriptor *edd;
    Eet_Test_Ex_Type *result;
-   Eet_Test_Ex_Type *tmp;
    Eet_Data_Descriptor_Class eddc;
    Eet_Test_Ex_Type etbt;
    char *transfert1;
@@ -546,19 +577,26 @@ START_TEST(eet_test_data_type_dump_undump)
    int size2;
    int test;
 
-   int i;
-
    eet_init();
 
    _eet_test_ex_set(&etbt, 0);
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY2, _eet_test_ex_set(NULL, 2));
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY2, &i7);
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.hash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
+   etbt.hash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.hash, EET_TEST_KEY2, _eet_test_ex_set(NULL, 2));
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ihash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
+   etbt.ihash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY2, &i7);
+   etbt.slist = eina_list_prepend(NULL, "test");
+   etbt.shash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.shash, EET_TEST_KEY1, "test");
+   memset(&etbt.charray, 0, sizeof(etbt.charray));
+   etbt.charray[0] = "test";
 
    eet_test_setup_eddc(&eddc);
    eddc.name = "Eet_Test_Ex_Type";
@@ -590,14 +628,19 @@ START_TEST(eet_test_data_type_dump_undump)
    fail_if(!result);
 
    fail_if(_eet_test_ex_check(result, 0) != 0);
-   fail_if(_eet_test_ex_check(eet_list_data(result->list), 1) != 0);
-   fail_if(eet_list_data(result->ilist) == NULL);
-   fail_if(*((int*)eet_list_data(result->ilist)) != 42);
+   fail_if(_eet_test_ex_check(eina_list_data_get(result->list), 1) != 0);
+   fail_if(eina_list_data_get(result->ilist) == NULL);
+   fail_if(*((int*)eina_list_data_get(result->ilist)) != 42);
+   fail_if(eina_list_data_get(result->slist) == NULL);
+   fail_if(strcmp(eina_list_data_get(result->slist), "test") != 0);
+   fail_if(eina_hash_find(result->shash, EET_TEST_KEY1) == NULL);
+   fail_if(strcmp(eina_hash_find(result->shash, EET_TEST_KEY1), "test") != 0);
+   fail_if(strcmp(result->charray[0], "test") != 0);
 
    test = 0;
-   eet_hash_foreach(result->hash, func, &test);
+   eina_hash_foreach(result->hash, func, &test);
    fail_if(test != 0);
-   eet_hash_foreach(result->ihash, func7, &test);
+   eina_hash_foreach(result->ihash, func7, &test);
    fail_if(test != 0);
 
    eet_shutdown();
@@ -636,7 +679,7 @@ START_TEST(eet_file_simple_write)
 
    test = eet_read(ef, "keys/tests", &size);
    fail_if(!test);
-   fail_if(size != strlen(buffer) + 1);
+   fail_if(size != (int) strlen(buffer) + 1);
 
    fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
 
@@ -651,7 +694,7 @@ START_TEST(eet_file_simple_write)
 
    test = eet_read(ef, "keys/tests", &size);
    fail_if(!test);
-   fail_if(size != strlen(buffer) + 1);
+   fail_if(size != (int) strlen(buffer) + 1);
 
    fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
 
@@ -665,38 +708,37 @@ END_TEST
 
 START_TEST(eet_file_data_test)
 {
-   const char *buffer = "Here is a string of data to save !";
    Eet_Data_Descriptor *edd;
    Eet_Test_Ex_Type *result;
-   Eet_Test_Ex_Type *tmp;
    Eet_Dictionary *ed;
    Eet_File *ef;
    char **list;
-   char *transfert1;
-   char *transfert2;
-   char *string1;
-   char *string2;
    char *file = strdup("/tmp/eet_suite_testXXXXXX");
    Eet_Data_Descriptor_Class eddc;
    Eet_Test_Ex_Type etbt;
    int size;
-   int size1;
-   int size2;
    int test;
-
-   int i;
 
    eet_init();
 
    _eet_test_ex_set(&etbt, 0);
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY2, _eet_test_ex_set(NULL, 2));
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY2, &i7);
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.hash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
+   etbt.hash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.hash, EET_TEST_KEY2, _eet_test_ex_set(NULL, 2));
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ihash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
+   etbt.ihash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY2, &i7);
+   etbt.slist = eina_list_prepend(NULL, "test");
+   etbt.shash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.shash, EET_TEST_KEY1, "test");
+   memset(&etbt.charray, 0, sizeof(etbt.charray));
+   etbt.charray[0] = "test";
 
    eet_test_setup_eddc(&eddc);
    eddc.name = "Eet_Test_Ex_Type";
@@ -745,7 +787,7 @@ START_TEST(eet_file_data_test)
    ef = eet_open(file, EET_FILE_MODE_READ_WRITE);
    fail_if(!ef);
 
-   fail_if(!eet_data_write(ef, edd, EET_TEST_FILE_KEY2, &etbt, 1));
+   fail_if(!eet_data_write(ef, edd, EET_TEST_FILE_KEY2, &etbt, 0));
 
    result = eet_data_read(ef, edd, EET_TEST_FILE_KEY1);
    fail_if(!result);
@@ -759,14 +801,19 @@ START_TEST(eet_file_data_test)
 
    /* Test the resulting data. */
    fail_if(_eet_test_ex_check(result, 0) != 0);
-   fail_if(_eet_test_ex_check(eet_list_data(result->list), 1) != 0);
-   fail_if(eet_list_data(result->ilist) == NULL);
-   fail_if(*((int*)eet_list_data(result->ilist)) != 42);
+   fail_if(_eet_test_ex_check(eina_list_data_get(result->list), 1) != 0);
+   fail_if(eina_list_data_get(result->ilist) == NULL);
+   fail_if(*((int*)eina_list_data_get(result->ilist)) != 42);
+   fail_if(eina_list_data_get(result->slist) == NULL);
+   fail_if(strcmp(eina_list_data_get(result->slist), "test") != 0);
+   fail_if(eina_hash_find(result->shash, EET_TEST_KEY1) == NULL);
+   fail_if(strcmp(eina_hash_find(result->shash, EET_TEST_KEY1), "test") != 0);
+   fail_if(strcmp(result->charray[0], "test") != 0);
 
    test = 0;
-   eet_hash_foreach(result->hash, func, &test);
+   eina_hash_foreach(result->hash, func, &test);
    fail_if(test != 0);
-   eet_hash_foreach(result->ihash, func7, &test);
+   eina_hash_foreach(result->ihash, func7, &test);
    fail_if(test != 0);
 
    list = eet_list(ef, "keys/*", &size);
@@ -803,36 +850,33 @@ END_TEST
 
 START_TEST(eet_file_data_dump_test)
 {
-   const char *buffer = "Here is a string of data to save !";
    Eet_Data_Descriptor *edd;
    Eet_Test_Ex_Type *result;
-   Eet_Test_Ex_Type *tmp;
    Eet_Data_Descriptor_Class eddc;
    Eet_Test_Ex_Type etbt;
    Eet_File *ef;
-   char *transfert1;
-   char *transfert2;
    char *string1;
-   char *string2;
    char *file = strdup("/tmp/eet_suite_testXXXXXX");
-   int size;
-   int size1;
-   int size2;
    int test;
-
-   int i;
 
    eet_init();
 
    _eet_test_ex_set(&etbt, 0);
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.list = eet_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
-   etbt.hash = eet_hash_add(etbt.hash, EET_TEST_KEY2, _eet_test_ex_set(NULL, 2));
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ilist = eet_list_prepend(etbt.ilist, &i42);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
-   etbt.ihash = eet_hash_add(etbt.ihash, EET_TEST_KEY2, &i7);
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.list = eina_list_prepend(etbt.list, _eet_test_ex_set(NULL, 1));
+   etbt.hash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.hash, EET_TEST_KEY1, _eet_test_ex_set(NULL, 2));
+   eina_hash_add(etbt.hash, EET_TEST_KEY2, _eet_test_ex_set(NULL, 2));
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ilist = eina_list_prepend(etbt.ilist, &i42);
+   etbt.ihash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY1, &i7);
+   eina_hash_add(etbt.ihash, EET_TEST_KEY2, &i7);
+   etbt.slist = eina_list_prepend(NULL, "test");
+   etbt.shash = eina_hash_string_superfast_new(NULL);
+   eina_hash_add(etbt.shash, EET_TEST_KEY1, "test");
+   memset(&etbt.charray, 0, sizeof(etbt.charray));
+   etbt.charray[0] = "test";
 
    eet_test_setup_eddc(&eddc);
    eddc.name = "Eet_Test_Ex_Type";
@@ -849,7 +893,7 @@ START_TEST(eet_file_data_dump_test)
    ef = eet_open(file, EET_FILE_MODE_WRITE);
    fail_if(!ef);
 
-   fail_if(!eet_data_write(ef, edd, EET_TEST_FILE_KEY1, &etbt, 1));
+   fail_if(!eet_data_write(ef, edd, EET_TEST_FILE_KEY1, &etbt, 0));
 
    eet_close(ef);
 
@@ -869,20 +913,25 @@ START_TEST(eet_file_data_dump_test)
    fail_if(!ef);
 
    result = eet_data_read(ef, edd, EET_TEST_FILE_KEY1);
-   fail_if(!transfert1);
+   fail_if(!result);
 
    eet_close(ef);
 
    /* Test the resulting data. */
    fail_if(_eet_test_ex_check(result, 0) != 0);
-   fail_if(_eet_test_ex_check(eet_list_data(result->list), 1) != 0);
-   fail_if(eet_list_data(result->ilist) == NULL);
-   fail_if(*((int*)eet_list_data(result->ilist)) != 42);
+   fail_if(_eet_test_ex_check(eina_list_data_get(result->list), 1) != 0);
+   fail_if(eina_list_data_get(result->ilist) == NULL);
+   fail_if(*((int*)eina_list_data_get(result->ilist)) != 42);
+   fail_if(eina_list_data_get(result->slist) == NULL);
+   fail_if(strcmp(eina_list_data_get(result->slist), "test") != 0);
+   fail_if(eina_hash_find(result->shash, EET_TEST_KEY1) == NULL);
+   fail_if(strcmp(eina_hash_find(result->shash, EET_TEST_KEY1), "test") != 0);
+   fail_if(strcmp(result->charray[0], "test") != 0);
 
    test = 0;
-   eet_hash_foreach(result->hash, func, &test);
+   eina_hash_foreach(result->hash, func, &test);
    fail_if(test != 0);
-   eet_hash_foreach(result->ihash, func7, &test);
+   eina_hash_foreach(result->ihash, func7, &test);
    fail_if(test != 0);
 
    fail_if(unlink(file) != 0);
@@ -895,14 +944,14 @@ START_TEST(eet_image)
 {
    Eet_File *ef;
    char *file = strdup("/tmp/eet_suite_testXXXXXX");
-   int *data;
+   unsigned int *data;
    int compress;
    int quality;
    int result;
    int lossy;
    int alpha;
-   int w;
-   int h;
+   unsigned int w;
+   unsigned int h;
 
    mktemp(file);
 
@@ -1109,8 +1158,8 @@ START_TEST(eet_small_image)
    unsigned int image[4];
    unsigned int *data;
    Eet_File *ef;
-   int w;
-   int h;
+   unsigned int w;
+   unsigned int h;
    int alpha;
    int compression;
    int quality;
@@ -1188,7 +1237,7 @@ START_TEST(eet_identity_simple)
 
    test = eet_read(ef, "keys/tests", &size);
    fail_if(!test);
-   fail_if(size != strlen(buffer) + 1);
+   fail_if(size != (int) strlen(buffer) + 1);
 
    fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
 
@@ -1224,6 +1273,141 @@ START_TEST(eet_identity_simple)
 }
 END_TEST
 
+START_TEST(eet_identity_open_simple)
+{
+   Eet_Key *k = NULL;
+
+   eet_init();
+
+   chdir("src/tests");
+
+   k = eet_identity_open("cert.pem", "key.pem", NULL);
+   fail_if(!k);
+
+   if (k) eet_identity_close(k);
+
+   eet_shutdown();
+}
+END_TEST
+
+START_TEST(eet_identity_open_pkcs8)
+{
+   Eet_Key *k = NULL;
+
+   eet_init();
+
+   chdir("src/tests");
+
+   k = eet_identity_open("cert.pem", "key_enc_none.pem", NULL);
+   fail_if(!k);
+
+   if (k) eet_identity_close(k);
+
+   eet_shutdown();
+}
+END_TEST
+
+static int pass_get(char *pass, int size, __UNUSED__ int rwflags, __UNUSED__ void *u)
+{
+   memset(pass, 0, size);
+
+   if (strlen("password") > size)
+     return 0;
+   snprintf(pass, size, "%s", "password");
+   return strlen(pass);
+}
+
+static int badpass_get(char *pass, int size, __UNUSED__ int rwflags, __UNUSED__ void *u)
+{
+   memset(pass, 0, size);
+
+   if (strlen("bad password") > size)
+     return 0;
+   snprintf(pass, size, "%s", "bad password");
+   return strlen(pass);
+}
+
+
+START_TEST(eet_identity_open_pkcs8_enc)
+{
+   Eet_Key *k = NULL;
+
+   eet_init();
+
+   chdir("src/tests");
+
+   k = eet_identity_open("cert.pem", "key_enc.pem", NULL);
+   fail_if(k);
+
+   if (k) eet_identity_close(k);
+
+   k = eet_identity_open("cert.pem", "key_enc.pem", &badpass_get);
+   fail_if(k);
+
+   if (k) eet_identity_close(k);
+
+   k = eet_identity_open("cert.pem", "key_enc.pem", &pass_get);
+   fail_if(!k);
+
+   if (k) eet_identity_close(k);
+
+   eet_shutdown();
+}
+END_TEST
+
+START_TEST(eet_cipher_decipher_simple)
+{
+   const char *buffer = "Here is a string of data to save !";
+   const char *key = "This is a crypto key";
+   const char *key_bad = "This is another crypto key";
+   Eet_File *ef;
+   char *test;
+   char *file = strdup("/tmp/eet_suite_testXXXXXX");
+   int size;
+
+   eet_init();
+
+   mktemp(file);
+   chdir("src/tests");
+
+   /* Crypt an eet file. */
+   ef = eet_open(file, EET_FILE_MODE_WRITE);
+   fail_if(!ef);
+
+   fail_if(!eet_write_cipher(ef, "keys/tests", buffer, strlen(buffer) + 1, 0, key));
+
+   eet_close(ef);
+
+   /* Decrypt an eet file. */
+   ef = eet_open(file, EET_FILE_MODE_READ);
+   fail_if(!ef);
+
+   test = eet_read_cipher(ef, "keys/tests", &size, key);
+   fail_if(!test);
+   fail_if(size != (int) strlen(buffer) + 1);
+
+   fail_if(memcmp(test, buffer, strlen(buffer) + 1) != 0);
+
+   eet_close(ef);
+
+   /* Decrypt an eet file. */
+   ef = eet_open(file, EET_FILE_MODE_READ);
+   fail_if(!ef);
+
+   test = eet_read_cipher(ef, "keys/tests", &size, key_bad);
+
+   if (size == (int) strlen(buffer) + 1)
+     fail_if(memcmp(test, buffer, strlen(buffer) + 1) == 0);
+
+   eet_close(ef);
+
+   fail_if(unlink(file) != 0);
+
+   eet_shutdown();
+}
+END_TEST
+
+
 Suite *
 eet_suite(void)
 {
@@ -1256,6 +1440,15 @@ eet_suite(void)
 #ifdef HAVE_SIGNATURE
    tc = tcase_create("Eet Identity");
    tcase_add_test(tc, eet_identity_simple);
+   tcase_add_test(tc, eet_identity_open_simple);
+   tcase_add_test(tc, eet_identity_open_pkcs8);
+   tcase_add_test(tc, eet_identity_open_pkcs8_enc);
+   suite_add_tcase(s, tc);
+#endif
+
+#ifdef HAVE_CIPHER
+   tc = tcase_create("Eet Cipher");
+   tcase_add_test(tc, eet_cipher_decipher_simple);
    suite_add_tcase(s, tc);
 #endif
 

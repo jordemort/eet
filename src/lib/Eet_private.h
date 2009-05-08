@@ -5,19 +5,8 @@
 #ifndef _EET_PRIVATE_H
 #define _EET_PRIVATE_H
 
-#ifdef __GNUC__
-# if __GNUC__ >= 4
-// BROKEN in gcc 4 on amd64
-//#  pragma GCC visibility push(hidden)
-# endif
-#endif
-
-#include "config.h"
-
-#ifdef HAVE_OPENSSL
-#include <openssl/evp.h>
-#include <openssl/x509.h>
-#include <openssl/pem.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
 typedef struct _Eet_String              Eet_String;
@@ -61,13 +50,28 @@ struct _Eet_Dictionary
   const char   *end;
 };
 
-struct _Eet_Key
+struct _Eet_Node
 {
-   int          references;
-#ifdef HAVE_SIGNATURE
-   X509	       *certificate;
-   EVP_PKEY    *private_key;
-#endif
+   int         type;
+   int         count;
+   const char *name;
+   const char *key;
+   Eet_Node   *values;
+   Eet_Node   *next;
+   Eet_Node   *parent;
+   union {
+      char                c;
+      short               s;
+      int                 i;
+      long long           l;
+      float               f;
+      double              d;
+      unsigned char       uc;
+      unsigned short      us;
+      unsigned int        ui;
+      unsigned long long  ul;
+      const char         *str;
+   } data;
 };
 
 Eet_Dictionary  *eet_dictionary_add(void);
@@ -80,14 +84,16 @@ int              eet_dictionary_string_get_double(const Eet_Dictionary *ed, int 
 int              eet_dictionary_string_get_hash(const Eet_Dictionary *ed, int index);
 
 int   _eet_hash_gen(const char *key, int hash_size);
-int   _eet_string_to_double_convert(const char *src, long long *m, long *e);
-void  _eet_double_to_string_convert(char des[128], double d);
 
 const void* eet_identity_check(const void *data_base, unsigned int data_length,
+			       void **sha1, int *sha1_length,
 			       const void *signature_base, unsigned int signature_length,
+			       const void **raw_signature_base, unsigned int *raw_signature_length,
 			       int *x509_length);
-Eet_Error eet_cypher(void *data, unsigned int size, const char *key, unsigned int length);
-Eet_Error eet_decypher(void *data, unsigned int size, const char *key, unsigned int length);
+void *eet_identity_compute_sha1(const void *data_base, unsigned int data_length,
+				int *sha1_length);
+Eet_Error eet_cipher(const void *data, unsigned int size, const char *key, unsigned int length, void **result, unsigned int *result_length);
+Eet_Error eet_decipher(const void *data, unsigned int size, const char *key, unsigned int length, void **result, unsigned int *result_length);
 Eet_Error eet_identity_sign(FILE *fp, Eet_Key *key);
 void eet_identity_unref(Eet_Key *key);
 void eet_identity_ref(Eet_Key *key);

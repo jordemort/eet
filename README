@@ -1,4 +1,4 @@
-Eet 1.1.0
+Eet 1.2.0
 
 Requirements:
 -------------
@@ -38,7 +38,7 @@ BUILDING PACKAGES:
 
 RPM: To build rpm packages:
 
-  sudo rpm -ta eet-1.1.0.tar.gz
+  sudo rpm -ta eet-1.2.0.tar.gz
 
 You will find rpm packages in your system /usr/src/redhat/* dirs (note you may
 not need to use sudo or root if you have your own ~/.rpmrc. see rpm documents
