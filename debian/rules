@@ -10,6 +10,9 @@ CFLAGS += -fvisibility=hidden
 #	make check
 #	make check-local
 
+build/libeet-doc::
+	$(MAKE) doc
+
 install/libeet-doc::
 	cp -R $(DEB_SRCDIR)/doc/html debian/libeet-doc/usr/share/doc/libeet-doc/
 
