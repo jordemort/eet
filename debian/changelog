@@ -2,6 +2,7 @@ eet (1.1.0-2) unstable; urgency=low
 
   * Explicitely disable openssl support
   * Bump Standards-Version to 3.8.1, no change required
+  * [lintian] Add ${misc:Depends} to packages dependencies
 
  -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 30 May 2009 22:56:48 +0200
 
