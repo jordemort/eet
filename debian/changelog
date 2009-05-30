@@ -1,3 +1,11 @@
+eet (1.2.0-2) experimental; urgency=low
+
+  * Enable gnutls support:
+    - Build-Depend on libgnutls-dev and add it as dependency to libeet-dev
+    - Add --enable-gnutls to debian/rules
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 30 May 2009 22:52:02 +0200
+
 eet (1.2.0-1) experimental; urgency=low
 
   * Bump Standards-Version to 3.8.1, no change required
