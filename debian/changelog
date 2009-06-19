@@ -1,3 +1,25 @@
+eet (1.2.0-2) experimental; urgency=low
+
+  * Enable gnutls support:
+    - Build-Depend on libgnutls-dev and add it as dependency to libeet-dev
+    - Add --enable-gnutls to debian/rules
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 30 May 2009 22:52:02 +0200
+
+eet (1.2.0-1) experimental; urgency=low
+
+  * Bump Standards-Version to 3.8.1, no change required
+  * Build-depend on doxygen and use the "make doc" target to build the
+    doc
+  * Add build-depend on libeina-dev, this is now required
+  * [lintian] Add ${misc:Depends} to packages dependencies
+  * Move libevas-dbg to the debug section
+  * Update debian/watch to point to the releases, not the SVN snaspshots
+  * Add new symbols to libeet1.symbols
+  * Improve descriptions wording a little bit
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Fri, 08 May 2009 18:28:11 +0200
+
 eet (1.1.0-2) unstable; urgency=low
 
   * Explicitely disable openssl support
@@ -50,3 +72,4 @@ eet (0.9.10.042-1) experimental; urgency=low
   * Initial release (Closes: #461950)
 
  -- Albin Tonnerre <albin.tonnerre@gmail.com>  Fri, 25 Jan 2008 12:21:30 +0100
+

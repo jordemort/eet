@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <Eina.h>
 
 #ifdef EAPI
 # undef EAPI
@@ -57,7 +58,8 @@ extern "C" {
 #define EET_T_ULONG_LONG        10 /**< Data type: unsigned long long */
 #define EET_T_STRING            11 /**< Data type: char * */
 #define EET_T_INLINED_STRING    12 /**< Data type: char * (but compressed inside the resulting eet) */
-#define EET_T_LAST              13 /**< Last data type */
+#define EET_T_NULL              13 /**< Data type: (void *) (only use it if you know why) */
+#define EET_T_LAST              14 /**< Last data type */
 
 #define EET_G_UNKNOWN    100 /**< Unknown group data encoding type */
 #define EET_G_ARRAY      101 /**< Fixed size array group type */
@@ -93,13 +95,17 @@ extern "C" {
 	EET_ERROR_SIGNATURE_FAILED,
 	EET_ERROR_INVALID_SIGNATURE,
 	EET_ERROR_NOT_SIGNED,
-	EET_ERROR_NOT_IMPLEMENTED
+	EET_ERROR_NOT_IMPLEMENTED,
+	EET_ERROR_PRNG_NOT_SEEDED,
+	EET_ERROR_ENCRYPT_FAILED,
+	EET_ERROR_DECRYPT_FAILED
      } Eet_Error;
 
    typedef struct _Eet_File                  Eet_File;
    typedef struct _Eet_Dictionary            Eet_Dictionary;
    typedef struct _Eet_Data_Descriptor       Eet_Data_Descriptor;
    typedef struct _Eet_Key                   Eet_Key;
+   typedef struct _Eet_Node                  Eet_Node;
 
    typedef struct _Eet_Data_Descriptor_Class Eet_Data_Descriptor_Class;
 
@@ -303,6 +309,20 @@ extern "C" {
      */
    EAPI const void *eet_identity_x509(Eet_File *ef, int *der_length);
 
+    /**
+     * Get the raw signature associated with an Eet_File. Will return NULL
+     * if the file is not signed.
+     */
+   EAPI const void *eet_identity_signature(Eet_File *ef, int *signature_length);
+
+    /**
+     * Get the SHA1 associated with a file. Could be the one used to sign the data
+     * or if the data where not signed, it will be the SHA1 of the file.
+     *
+     * @since 2.0.0
+     */
+   EAPI const void *eet_identity_sha1(Eet_File *ef, int *sha1_length);
+
    /**
     * Display the x509 der certificate to out.
     *
@@ -357,6 +377,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_read_cipher(Eet_File *ef, const char *name, int *size_ret, const char *cipher_key);
    EAPI void *eet_read(Eet_File *ef, const char *name, int *size_ret);
 
    /**
@@ -405,6 +426,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_write_cipher(Eet_File *ef, const char *name, const void *data, int size, int compress, const char *cipher_key);
    EAPI int eet_write(Eet_File *ef, const char *name, const void *data, int size, int compress);
 
    /**
@@ -502,6 +524,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_image_header_read_cipher(Eet_File *ef, const char *name, const char *key, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
    EAPI int eet_data_image_header_read(Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
@@ -539,6 +562,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_image_read_cipher(Eet_File *ef, const char *name, const char *key, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
    EAPI void *eet_data_image_read(Eet_File *ef, const char *name, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
@@ -578,7 +602,8 @@ extern "C" {
     *
     * @since 1.0.2
     */
-  EAPI int eet_data_image_read_to_surface(Eet_File *ef, const char *name, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
+   EAPI int eet_data_image_read_to_surface_cipher(Eet_File *ef, const char *name, const char *key, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
+   EAPI int eet_data_image_read_to_surface(Eet_File *ef, const char *name, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
     * Write image data to the named key in an eet file.
@@ -612,6 +637,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_image_write_cipher(Eet_File *ef, const char *name, const char *key, const void *data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy);
    EAPI int eet_data_image_write(Eet_File *ef, const char *name, const void *data, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy);
 
    /**
@@ -647,6 +673,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_image_header_decode_cipher(const void *data, const char *key, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
    EAPI int eet_data_image_header_decode(const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
@@ -684,6 +711,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_image_decode_cipher(const void *data, const char *key, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
    EAPI void *eet_data_image_decode(const void *data, int size, unsigned int *w, unsigned int *h, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
@@ -723,6 +751,7 @@ extern "C" {
     *
     * @since 1.0.2
     */
+   EAPI int eet_data_image_decode_to_surface_cipher(const void *data, const char *key, int size, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
    EAPI int eet_data_image_decode_to_surface(const void *data, int size, unsigned int src_x, unsigned int src_y, unsigned int *d, unsigned int w, unsigned int h, unsigned int row_stride, int *alpha, int *compress, int *quality, int *lossy);
 
    /**
@@ -756,6 +785,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_image_encode_cipher(const void *data, const char *key, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy, int *size_ret);
    EAPI void *eet_data_image_encode(const void *data, int *size_ret, unsigned int w, unsigned int h, int alpha, int compress, int quality, int lossy);
 
 /***************************************************************************/
@@ -818,9 +848,19 @@ extern "C" {
     *    double floating_lots;
     *    char *string;
     *    Blah2 *blah2;
-    *    Evas_List *blah3;
+    *    Eina_List *blah3;
     * }
     * Blah;
+    *
+    * Eina_Hash*
+    * eet_eina_hash_add(Eina_Hash *hash, const char *key, const void *data)
+    * {
+    *    if (!hash) hash = eina_hash_string_superfast_new(NULL);
+    *    if (!hash) return NULL;
+    *
+    *    eina_hash_add(hash, key, data);
+    *    return hash;
+    * }
     *
     * int
     * main(int argc, char **argv)
@@ -835,33 +875,33 @@ extern "C" {
     *    Blah *blah_in;
     *
     *    edd3 = eet_data_descriptor_new("blah3", sizeof(Blah3),
-    *                                   evas_list_next,
-    *                                   evas_list_append,
-    *                                   evas_list_data,
-    *                                   evas_list_free,
-    *                                   evas_hash_foreach,
-    *                                   evas_hash_add,
-    *                                   evas_hash_free);
+    *                                   eina_list_next,
+    *                                   eina_list_append,
+    *                                   eina_list_data_get,
+    *                                   eina_list_free,
+    *                                   eina_hash_foreach,
+    *                                   eet_eina_hash_add,
+    *                                   eina_hash_free);
     *    EET_DATA_DESCRIPTOR_ADD_BASIC(edd3, Blah3, "string3", string, EET_T_STRING);
     *
     *    edd2 = eet_data_descriptor_new("blah2", sizeof(Blah2),
-    *                                   evas_list_next,
-    *                                   evas_list_append,
-    *                                   evas_list_data,
-    *                                   evas_list_free,
-    *                                   evas_hash_foreach,
-    *                                   evas_hash_add,
-    *                                   evas_hash_free);
+    *                                   eina_list_next,
+    *                                   eina_list_append,
+    *                                   eina_list_data_get,
+    *                                   eina_list_free,
+    *                                   eina_hash_foreach,
+    *                                   eet_eina_hash_add,
+    *                                   eina_hash_free);
     *    EET_DATA_DESCRIPTOR_ADD_BASIC(edd2, Blah2, "string2", string, EET_T_STRING);
     *
     *    edd = eet_data_descriptor_new("blah", sizeof(Blah),
-    *                                   evas_list_next,
-    *                                   evas_list_append,
-    *                                   evas_list_data,
-    *                                   evas_list_free,
-    *                                   evas_hash_foreach,
-    *                                   evas_hash_add,
-    *                                   evas_hash_free);
+    *                                   eina_list_next,
+    *                                   eina_list_append,
+    *                                   eina_list_data_get,
+    *                                   eina_list_free,
+    *                                   eina_hash_foreach,
+    *                                   eet_eina_hash_add,
+    *                                   eina_hash_free);
     *    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, "character", character, EET_T_CHAR);
     *    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, "sixteen", sixteen, EET_T_SHORT);
     *    EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Blah, "integer", integer, EET_T_INT);
@@ -884,13 +924,13 @@ extern "C" {
     *    blah.floating_lots=0.777777777777777;
     *    blah.string="bite me like a turnip";
     *    blah.blah2 = &blah2;
-    *    blah.blah3 = evas_list_append(NULL, &blah3);
-    *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
-    *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
-    *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
-    *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
-    *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
-    *    blah.blah3 = evas_list_append(blah.blah3, &blah3);
+    *    blah.blah3 = eina_list_append(NULL, &blah3);
+    *    blah.blah3 = eina_list_append(blah.blah3, &blah3);
+    *    blah.blah3 = eina_list_append(blah.blah3, &blah3);
+    *    blah.blah3 = eina_list_append(blah.blah3, &blah3);
+    *    blah.blah3 = eina_list_append(blah.blah3, &blah3);
+    *    blah.blah3 = eina_list_append(blah.blah3, &blah3);
+    *    blah.blah3 = eina_list_append(blah.blah3, &blah3);
     *
     *    data = eet_data_descriptor_encode(edd, &blah, &size);
     *    printf("-----DECODING\n");
@@ -907,13 +947,11 @@ extern "C" {
     *    printf("%p\n", blah_in->blah2);
     *    printf("  %s\n", blah_in->blah2->string);
     *      {
-    *         Evas_List *l;
+    *         Eina_List *l;
+    *         Blah3 *blah3_in;
     *
-    *         for (l = blah_in->blah3; l; l = l->next)
+    *         EINA_LIST_FOREACH(blah_in->blah3, l, blah3_in)
     *           {
-    *              Blah3 *blah3_in;
-    *
-    *              blah3_in = l->data;
     *              printf("%p\n", blah3_in);
     *              printf("  %s\n", blah3_in->string);
     *           }
@@ -987,6 +1025,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_read_cipher(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name, const char *key);
    EAPI void *eet_data_read(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name);
 
    /**
@@ -1003,6 +1042,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_write_cipher(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name, const char *key, const void *data, int compress);
    EAPI int eet_data_write(Eet_File *ef, Eet_Data_Descriptor *edd, const char *name, const void *data, int compress);
 
    /**
@@ -1048,6 +1088,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_text_dump_cipher(const void *data_in, const char *key, int size_in, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
    EAPI int eet_data_text_dump(const void *data_in, int size_in, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
 
    /**
@@ -1064,6 +1105,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_text_undump_cipher(const char *text, const char *key, int textlen, int *size_ret);
    EAPI void *eet_data_text_undump(const char *text, int textlen, int *size_ret);
 
    /**
@@ -1083,6 +1125,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_dump_cipher(Eet_File *ef, const char *name, const char *key, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
    EAPI int eet_data_dump(Eet_File *ef, const char *name, void (*dumpfunc) (void *data, const char *str), void *dumpdata);
 
    /**
@@ -1103,6 +1146,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI int eet_data_undump_cipher(Eet_File *ef, const char *name, const char *key, const char *text, int textlen, int compress);
    EAPI int eet_data_undump(Eet_File *ef, const char *name, const char *text, int textlen, int compress);
 
    /**
@@ -1129,6 +1173,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_descriptor_decode_cipher(Eet_Data_Descriptor *edd, const void *data_in, const char *key, int size_in);
    EAPI void *eet_data_descriptor_decode(Eet_Data_Descriptor *edd, const void *data_in, int size_in);
 
    /**
@@ -1157,6 +1202,7 @@ extern "C" {
     *
     * @since 1.0.0
     */
+   EAPI void *eet_data_descriptor_encode_cipher(Eet_Data_Descriptor *edd, const void *data_in, const char *key, int *size_ret);
    EAPI void *eet_data_descriptor_encode(Eet_Data_Descriptor *edd, const void *data_in, int *size_ret);
 
    /**
@@ -1311,6 +1357,31 @@ eet_dictionary_string_check    * example: values), and @p type is the basic data
      }
 
 /***************************************************************************/
+
+   EAPI Eet_Node *eet_node_char_new(const char *name, char c);
+   EAPI Eet_Node *eet_node_short_new(const char *name, short s);
+   EAPI Eet_Node *eet_node_int_new(const char *name, int i);
+   EAPI Eet_Node *eet_node_long_long_new(const char *name, long long l);
+   EAPI Eet_Node *eet_node_float_new(const char *name, float f);
+   EAPI Eet_Node *eet_node_double_new(const char *name, double d);
+   EAPI Eet_Node *eet_node_unsigned_char_new(const char *name, unsigned char uc);
+   EAPI Eet_Node *eet_node_unsigned_short_new(const char *name, unsigned short us);
+   EAPI Eet_Node *eet_node_unsigned_int_new(const char *name, unsigned int ui);
+   EAPI Eet_Node *eet_node_string_new(const char *name, const char *str);
+   EAPI Eet_Node *eet_node_inlined_string_new(const char *name, const char *str);
+   EAPI Eet_Node *eet_node_null_new(const char *name);
+   EAPI Eet_Node *eet_node_list_new(const char *name, Eina_List *nodes);
+   EAPI Eet_Node *eet_node_array_new(const char *name, int count, Eina_List *nodes);
+   EAPI Eet_Node *eet_node_var_array_new(const char *name, int count, Eina_List *nodes);
+   EAPI Eet_Node *eet_node_hash_new(const char *name, const char *key, Eina_List *nodes);
+   EAPI Eet_Node *eet_node_struct_new(const char *name, Eina_List *nodes);
+   EAPI void eet_node_del(Eet_Node *n);
+
+   EAPI void *eet_data_node_encode_cipher(Eet_Node *node, const char *key, int *size_ret);
+   EAPI int eet_data_node_write_cipher(Eet_File *ef, const char *name, const char *key, Eet_Node *node, int compress);
+
+/***************************************************************************/
+
 #ifdef __cplusplus
 }
 #endif

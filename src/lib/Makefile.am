@@ -4,12 +4,17 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = \
 -I. \
 -I$(top_srcdir)/src/lib \
+-I$(top_builddir)/src/lib \
 -DPACKAGE_BIN_DIR=\"$(bindir)\" \
 -DPACKAGE_LIB_DIR=\"$(libdir)\" \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
 @EVIL_CFLAGS@ \
-@COVERAGE_CFLAGS@ \
-@OPENSSL_CFLAGS@
+@EINA_CFLAGS@ \
+@EET_CPPFLAGS@ \
+@EFL_EET_BUILD@ \
+@EFL_COVERAGE_CFLAGS@ \
+@OPENSSL_CFLAGS@ \
+@GNUTLS_CFLAGS@
 
 include_HEADERS = Eet.h
 
@@ -19,14 +24,14 @@ libeet_la_SOURCES  = \
 eet_lib.c \
 eet_data.c \
 eet_image.c \
-eet_cypher.c \
+eet_cipher.c \
 eet_dictionary.c \
+eet_node.c \
 eet_utils.c
 
-libeet_la_CFLAGS = @WIN32_CFLAGS@
-libeet_la_LIBADD = @OPENSSL_LIBS@ @COVERAGE_LIBS@ @EVIL_LIBS@ @WIN32_LIBS@ -lz -ljpeg @fnmatch_libs@ -lm
-libeet_la_LDFLAGS = @lt_no_undefined@ @lt_enable_auto_import@ -version-info @version_info@
-libeet_la_DEPENDENCIES = $(top_builddir)/config.h
+libeet_la_CFLAGS = @EET_CFLAGS@ @DEBUG_CFLAGS@
+libeet_la_LIBADD = @GNUTLS_LIBS@ @OPENSSL_LIBS@ @EFL_COVERAGE_LIBS@ @EET_LIBS@ @EINA_LIBS@ @EVIL_LIBS@ -lz -ljpeg -lm
+libeet_la_LDFLAGS = -no-undefined @lt_enable_auto_import@ -version-info @version_info@ @release_info@
 
 EXTRA_DIST = Eet_private.h
 
