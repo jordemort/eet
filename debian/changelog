@@ -1,3 +1,11 @@
+eet (1.2.1-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * Update libeet-dbg description to fit in 80 characters
+  * Update symbols file with new symbols
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Fri, 19 Jun 2009 12:06:03 +0200
+
 eet (1.2.0-2) experimental; urgency=low
 
   * Enable gnutls support:

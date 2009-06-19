@@ -69,7 +69,7 @@ Architecture: any
 Section: debug
 Priority: extra
 Depends: ${misc:Depends}, libeet1 (= ${binary:Version})
-Description: Enlightenment DR17 file chunk reading/writing library - debug symbols
+Description: E17 file chunk reading/writing library - debug symbols
  Eet is a tiny library designed to write an arbitary set of chunks of data to a
  file and optionally compress each chunk (very much like a zip file) and allows
  fast random-access reading of the file later on. It does not do zip as zip

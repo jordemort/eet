@@ -63,6 +63,7 @@ libeet.so.1 libeet1 #MINVER#
  eet_node_hash_new@Base 1.2.0
  eet_node_inlined_string_new@Base 1.2.0
  eet_node_int_new@Base 1.2.0
+ eet_node_unsigned_long_long_new@Base 1.2.1
  eet_node_list_new@Base 1.2.0
  eet_node_long_long_new@Base 1.2.0
  eet_node_null_new@Base 1.2.0
