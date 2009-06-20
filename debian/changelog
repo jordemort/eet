@@ -1,11 +1,12 @@
-eet (1.2.1-1) UNRELEASED; urgency=low
+eet (1.2.1-1) unstable; urgency=low
 
   * New upstream release
   * Update libeet-dbg description to fit in 80 characters
   * Update symbols file with new symbol
   * Update Standards-Version to 3.8.2, no change required
+  * Upload eet 1.2 to unstable
 
- -- Albin Tonnerre <albin.tonnerre@gmail.com>  Fri, 19 Jun 2009 12:06:03 +0200
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sat, 20 Jun 2009 17:23:03 +0200
 
 eet (1.2.0-2) experimental; urgency=low
 
