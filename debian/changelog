@@ -2,7 +2,8 @@ eet (1.2.1-1) UNRELEASED; urgency=low
 
   * New upstream release
   * Update libeet-dbg description to fit in 80 characters
-  * Update symbols file with new symbols
+  * Update symbols file with new symbol
+  * Update Standards-Version to 3.8.2, no change required
 
  -- Albin Tonnerre <albin.tonnerre@gmail.com>  Fri, 19 Jun 2009 12:06:03 +0200
 
