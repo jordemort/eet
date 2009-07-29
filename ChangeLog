@@ -186,3 +186,18 @@
 
 	* Release eet 1.2.1
 
+2009-07-08  Cedric BAIL
+
+	* Reorder gcry init to be used during gnutls init.
+
+2009-07-11  Hanspeter Portner
+
+	* Improve docs/examples in Eet.h
+
+2009-07-23  Cedric BAIL
+
+	* Fix init on system without SECMEM.
+
+2009-07-29  Carsten Haitzler (The Rasterman)
+
+        * Release eet 1.2.2
