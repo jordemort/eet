@@ -1,3 +1,10 @@
+eet (1.2.2-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * Update libeet1.symbols with a new symbol: eet_node_struct_child_new
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Sun, 02 Aug 2009 17:13:48 +0200
+
 eet (1.2.1-1) unstable; urgency=low
 
   * New upstream release
