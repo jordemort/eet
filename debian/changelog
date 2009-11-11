@@ -1,3 +1,10 @@
+eet (1.2.2-2) unstable; urgency=low
+
+  * Force build against eina >= 0.0.2.062
+  * Bump Standards-Version to 3.8.3
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Thu, 27 Aug 2009 21:47:46 +0200
+
 eet (1.2.2-1) unstable; urgency=low
 
   * New upstream release
