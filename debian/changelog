@@ -1,3 +1,12 @@
+eet (1.2.3-1) unstable; urgency=low
+
+  * New upstream snapshot
+    - No longer FTBFS with binutils-gold (Closes: #554317)
+  * Update libeet1.symbols with new symbols from 1.2.3
+  * Tighten build-dependency on eina
+
+ -- Albin Tonnerre <albin.tonnerre@gmail.com>  Thu, 03 Dec 2009 16:09:20 +0100
+
 eet (1.2.2-2) unstable; urgency=low
 
   * Force build against eina >= 0.0.2.062
