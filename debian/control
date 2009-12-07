@@ -2,7 +2,7 @@ Source: eet
 Section: libs
 Priority: optional
 Maintainer: Debian Pkg-e Team <pkg-e-devel@lists.alioth.debian.org>
-Uploaders: Albin Tonnerre <albin.tonnerre@gmail.com>, Niv Sardi <xaiki@debian.org>,
+Uploaders: Albin Tonnerre <lutin@debian.org>, Niv Sardi <xaiki@debian.org>,
  Jan Lübbe <jluebbe@debian.org>
 Build-Depends: dpkg-dev (>= 1.14.8), debhelper (>= 6), cdbs, zlib1g-dev, libjpeg62-dev, doxygen, libeina-dev (>= 0.9.9.063), libgnutls-dev
 Standards-Version: 3.8.3
