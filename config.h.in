@@ -11,8 +11,14 @@
 /* support old eet file format */
 #undef EET_OLD_EET_FILE_FORMAT
 
-/* don't use gnutls_x509_crt_verify_hash */
+/* use gnutls_x509_crt_verify_hash */
 #undef EET_USE_NEW_GNUTLS_API
+
+/* Define to mention that POSIX threads are supported */
+#undef EFL_HAVE_PTHREAD
+
+/* Define to mention that POSIX threads spinlocks are supported */
+#undef EFL_HAVE_PTHREAD_SPINLOCK
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -32,9 +38,6 @@
 
 /* Define to 1 if you have the `fmemopen' function. */
 #undef HAVE_FMEMOPEN
-
-/* Define to 1 if you have the `fnmatch' function. */
-#undef HAVE_FNMATCH
 
 /* Have Gnutls support */
 #undef HAVE_GNUTLS
@@ -106,6 +109,9 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -122,6 +128,18 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Major version */
+#undef VMAJ
+
+/* Micro version */
+#undef VMIC
+
+/* Minor version */
+#undef VMIN
+
+/* Revison */
+#undef VREV
 
 /* Enable GNU extensions */
 #undef _GNU_SOURCE
