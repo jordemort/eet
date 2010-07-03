@@ -1,3 +1,9 @@
+eet (1.3.2-1) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Albin Tonnerre <lutin@debian.org>  Sat, 03 Jul 2010 10:37:27 +0200
+
 eet (1.2.3-1) unstable; urgency=low
 
   * New upstream snapshot
