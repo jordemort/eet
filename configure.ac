@@ -1,8 +1,8 @@
-##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
+y##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [1])
-m4_define([v_min], [3])
-m4_define([v_mic], [2])
+m4_define([v_min], [4])
+m4_define([v_mic], [0])
 m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
 ##--   When released, remove the dnl on the below line
@@ -18,7 +18,7 @@ m4_define([lt_age], v_min)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
-AC_INIT([eet], [v_ver], [enlightenment-devel@lists.sourceforge.net])
+AC_INIT([eet], [v_ver.beta], [enlightenment-devel@lists.sourceforge.net])
 AC_PREREQ([2.52])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
@@ -49,7 +49,8 @@ AC_SUBST(version_info)
 AC_SUBST(release_info)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
-
+VMAJ=v_maj
+AC_SUBST(VMAJ)
 
 ### Default options with respect to host
 
@@ -252,8 +253,8 @@ AC_SUBST(EET_LIBS)
 
 # Eina library
 
-PKG_CHECK_MODULES(EINA, [eina-0])
-requirement_eet="eina-0 ${requirement_eet}"
+PKG_CHECK_MODULES(EINA, [eina >= 1.0.0])
+requirement_eet="eina >= 1.0.0 ${requirement_eet}"
 
 # Gnutls library
 have_gnutls="no"
@@ -321,7 +322,18 @@ AC_MSG_RESULT(${have_signature})
 
 # pthread library
 
-EFL_CHECK_PTHREAD(["no"], [have_pthread="yes"], [have_pthread="no"])
+EFL_CHECK_THREADS(["no"],
+   [
+    if test "x${_efl_have_posix_threads}" = "xyes" ; then
+       have_threads="POSIX"
+    else
+       if test "x${_efl_have_win32_threads}" = "xyes" ; then
+          have_threads="Win32"
+       else
+          have_threads="no"
+       fi
+    fi],
+   [have_threads="no"])
 
 
 ### Checks for header files
@@ -460,7 +472,7 @@ if test "x${have_gnutls}" = "xyes" || test "x${have_openssl}" = "xyes" ; then
    echo "    Cipher support.....: ${have_cipher}"
    echo "    Signature..........: ${have_signature}"
 fi
-echo "  Thread Support.......: ${have_pthread}"
+echo "  Thread Support.......: ${have_threads}"
 echo
 echo "  Old eet file format..: ${old_eet_file_format}"
 echo

@@ -15,10 +15,16 @@
 #undef EET_USE_NEW_GNUTLS_API
 
 /* Define to mention that POSIX threads are supported */
-#undef EFL_HAVE_PTHREAD
+#undef EFL_HAVE_POSIX_THREADS
 
 /* Define to mention that POSIX threads spinlocks are supported */
-#undef EFL_HAVE_PTHREAD_SPINLOCK
+#undef EFL_HAVE_POSIX_THREADS_SPINLOCK
+
+/* Define to mention that POSIX or Win32 threads are supported */
+#undef EFL_HAVE_THREADS
+
+/* Define to mention that Win32 threads are supported */
+#undef EFL_HAVE_WIN32_THREADS
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
