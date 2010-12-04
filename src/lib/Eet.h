@@ -268,10 +268,10 @@ eet_open(const char   *file,
          Eet_File_Mode mode);
 
 /**
- * Open an eet file directly from a memory location. The data are not copied,
- * so you must keep them around as long as the eet file is open. Their is
- * currently no cache for this kind of Eet_File, so it's reopen every time
- * you do use eet_memopen_read.
+ * Open an eet file directly from a memory location. The data is not copied,
+ * so you must keep it around as long as the eet file is open. There is
+ * currently no cache for this kind of Eet_File, so it's reopened every time
+ * you use eet_memopen_read.
  *
  * @since 1.1.0
  * @ingroup Eet_File_Group
@@ -2525,6 +2525,35 @@ eet_data_descriptor_encode(Eet_Data_Descriptor *edd,
                                       (char *)(& (___ett)), \
                                       /* 0,  */ NULL, \
                                       subtype); \
+   } while (0)
+
+/**
+ * Add a variable size array type to a data descriptor
+ * @param edd The data descriptor to add the type to.
+ * @param struct_type The type of the struct.
+ * @param name The string name to use to encode/decode this member
+ *        (must be a constant global and never change).
+ * @param member The struct member itself to be encoded.
+ *
+ * This macro lets you easily add a fixed size array of string. All
+ * the parameters are the same as for EET_DATA_DESCRIPTOR_ADD_BASIC().
+ *
+ * @since 1.4.0
+ * @ingroup Eet_Data_Group
+ */
+#define EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY_STRING(edd, struct_type, name, member) \
+   do { \
+      struct_type ___ett; \
+      eet_data_descriptor_element_add(edd, \
+                                      name, \
+                                      EET_T_STRING, \
+                                      EET_G_VAR_ARRAY, \
+                                      (char *)(& (___ett.member)) - \
+                                      (char *)(& (___ett)), \
+                                      (char *)(& (___ett.member ## _count)) - \
+                                      (char *)(& (___ett)), \
+                                      /* 0,  */ NULL, \
+                                      NULL); \
    } while (0)
 
 /**
