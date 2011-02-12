@@ -177,12 +177,11 @@ struct _Eet_Data_Encode_Hash_Info
    Eet_Dictionary   *ed;
 };
 
+#define EET_FREE_COUNT 256
 struct _Eet_Free
 {
    int    ref;
-   int    len[256];
-   int    num[256];
-   void **list[256];
+   Eina_Array list[EET_FREE_COUNT];
 };
 
 struct _Eet_Free_Context
@@ -197,13 +196,16 @@ struct _Eet_Free_Context
 
 struct _Eet_Variant_Unknow
 {
-        EINA_MAGIC;
+   EINA_MAGIC
 
    int  size;
    char data[1];
 };
 
 /*---*/
+
+static void     eet_free_context_init(Eet_Free_Context *context);
+static void     eet_free_context_shutdown(Eet_Free_Context *context);
 
 static int             eet_data_get_char(const Eet_Dictionary *ed,
                                          const void           *src,
@@ -1787,13 +1789,13 @@ _eet_data_descriptor_new(const Eet_Data_Descriptor_Class *eddc,
 EAPI Eet_Data_Descriptor *
 eet_data_descriptor_new(const char *name,
                         int size,
-                        void *(*func_list_next)(void *l),
-                        void *(*func_list_append)(void *l, void *d),
-                        void *(*func_list_data)(void *l),
-                        void *(*func_list_free)(void *l),
-                        void (*func_hash_foreach)(void *h, int (*func)(void *h, const char *k, void *dt, void *fdt), void *fdt),
-                        void *(*func_hash_add)(void *h, const char *k, void *d),
-                        void (*func_hash_free)(void *h))
+                        Eet_Descriptor_List_Next_Callback func_list_next,
+                        Eet_Descriptor_List_Append_Callback func_list_append,
+                        Eet_Descriptor_List_Data_Callback func_list_data,
+                        Eet_Descriptor_List_Free_Callback func_list_free,
+                        Eet_Descriptor_Hash_Foreach_Callback func_hash_foreach,
+                        Eet_Descriptor_Hash_Add_Callback func_hash_add,
+                        Eet_Descriptor_Hash_Free_Callback func_hash_free)
 {
    Eet_Data_Descriptor_Class eddc;
 
@@ -1977,8 +1979,10 @@ eet_data_read_cipher(Eet_File            *ef,
            return NULL;
      }
 
-   memset(&context, 0, sizeof (context));
+   eet_free_context_init(&context);
    data_dec = _eet_data_descriptor_decode(&context, ed, edd, data, size);
+   eet_free_context_shutdown(&context);
+
    if (required_free)
       free((void *)data);
 
@@ -2010,8 +2014,10 @@ eet_data_node_read_cipher(Eet_File   *ef,
            return NULL;
      }
 
-   memset(&context, 0, sizeof (context));
+   eet_free_context_init(&context);
    result = _eet_data_descriptor_decode(&context, ed, NULL, data, size);
+   eet_free_context_shutdown(&context);
+
    if (required_free)
       free((void *)data);
 
@@ -2060,6 +2066,51 @@ eet_data_write(Eet_File            *ef,
    return eet_data_write_cipher(ef, edd, name, NULL, data, compress);
 } /* eet_data_write */
 
+static void
+eet_free_context_init(Eet_Free_Context *context)
+{
+   unsigned int i = 0;
+
+   memset(context, 0, sizeof (Eet_Free_Context));
+   for (i = 0; i < EET_FREE_COUNT; ++i)
+     {
+        eina_array_step_set(&context->freelist.list[i],
+                            sizeof (context->freelist.list[i]),
+                            32);
+        eina_array_step_set(&context->freelist_array.list[i],
+                            sizeof (context->freelist.list[i]),
+                            32);
+        eina_array_step_set(&context->freelist_list.list[i],
+                            sizeof (context->freelist.list[i]),
+                            32);
+        eina_array_step_set(&context->freelist_hash.list[i],
+                            sizeof (context->freelist.list[i]),
+                            32);
+        eina_array_step_set(&context->freelist_str.list[i],
+                            sizeof (context->freelist.list[i]),
+                            32);
+        eina_array_step_set(&context->freelist_direct_str.list[i],
+                            sizeof (context->freelist.list[i]),
+                            32);
+     }
+}
+
+static void
+eet_free_context_shutdown(Eet_Free_Context *context)
+{
+   unsigned int i = 0;
+
+   for (i = 0; i < EET_FREE_COUNT; ++i)
+     {
+        eina_array_flush(&context->freelist.list[i]);
+        eina_array_flush(&context->freelist_array.list[i]);
+        eina_array_flush(&context->freelist_list.list[i]);
+        eina_array_flush(&context->freelist_hash.list[i]);
+        eina_array_flush(&context->freelist_str.list[i]);
+        eina_array_flush(&context->freelist_direct_str.list[i]);
+     }
+}
+
 static int
 _eet_free_hash(void *data)
 {
@@ -2089,65 +2140,49 @@ static void
 _eet_free_add(Eet_Free *ef,
               void     *data)
 {
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int i;
    int hash;
-   int i;
 
    hash = _eet_free_hash(data);
 
-   for (i = 0; i < ef->num[hash]; ++i)
-      if (ef->list[hash][i] == data)
-         return;
+   EINA_ARRAY_ITER_NEXT(&ef->list[hash], i, track, it)
+     if (track == data)
+       return;
 
-   ef->num[hash]++;
-   if (ef->num[hash] > ef->len[hash])
-     {
-        void **tmp;
-
-        tmp = realloc(ef->list[hash], (ef->len[hash] + 16) * sizeof(void *));
-        if (!tmp)
-           return;
-
-        ef->len[hash] += 16;
-        ef->list[hash] = tmp;
-     }
-
-   ef->list[hash][ef->num[hash] - 1] = data;
+   eina_array_push(&ef->list[hash], data);
 } /* _eet_free_add */
 
 static void
 _eet_free_del(Eet_Free *ef,
               void     *data)
 {
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int i;
    int hash;
-   int i;
 
    hash = _eet_free_hash(data);
 
-   for (i = 0; i < ef->num[hash]; ++i)
-      if (ef->list[hash][i] == data)
-	{
-	   ef->list[hash][i] = NULL;
-	   return;
-	}
+   EINA_ARRAY_ITER_NEXT(&ef->list[hash], i, track, it)
+     if (track == data)
+       {
+          eina_array_data_set(&ef->list[hash], i, NULL);
+          return;
+       }
 }
 
 static void
 _eet_free_reset(Eet_Free *ef)
 {
-   int i;
+   unsigned int i;
 
    if (ef->ref > 0)
       return;
 
-   for (i = 0; i < 256; ++i)
-     {
-        ef->len[i] = 0;
-        ef->num[i] = 0;
-        if (ef->list[i])
-           free(ef->list[i]);
-
-        ef->list[i] = NULL;
-     }
+   for (i = 0; i < EET_FREE_COUNT; ++i)
+     eina_array_clean(&ef->list[i]);
 } /* _eet_free_reset */
 
 static void
@@ -2172,21 +2207,23 @@ static void
 _eet_freelist_free(Eet_Free_Context    *context,
                    Eet_Data_Descriptor *edd)
 {
-   int j;
-   int i;
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int j;
+   unsigned int i;
 
    if (context->freelist.ref > 0)
       return;
 
-   for (j = 0; j < 256; ++j)
-      for (i = 0; i < context->freelist.num[j]; ++i)
-	if (context->freelist.list[j][i])
-	  {
-	     if (edd)
-	       edd->func.mem_free(context->freelist.list[j][i]);
-	     else
-	       free(context->freelist.list[j][i]);
-	  }
+   for (j = 0; j < EET_FREE_COUNT; ++j)
+     EINA_ARRAY_ITER_NEXT(&context->freelist.list[j], i, track, it)
+       if (track)
+         {
+            if (edd)
+              edd->func.mem_free(track);
+            else
+              free(track);
+         }
    _eet_free_reset(&context->freelist);
 } /* _eet_freelist_free */
 
@@ -2200,26 +2237,28 @@ static void
 _eet_freelist_array_free(Eet_Free_Context    *context,
 			 Eet_Data_Descriptor *edd)
 {
-   int j;
-   int i;
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int j;
+   unsigned int i;
 
    if (context->freelist_array.ref > 0)
       return;
 
-   for (j = 0; j < 256; ++j)
-      for (i = 0; i < context->freelist_array.num[j]; ++i)
-	if (context->freelist_array.list[j][i])
-	  {
-	     if (edd)
-	       {
-		  if (edd->func.array_free)
-		    edd->func.array_free(context->freelist_array.list[j][i]);
-		  else
-		    edd->func.mem_free(context->freelist_array.list[j][i]);
-	       }
-	     else
-	       free(context->freelist_array.list[j][i]);
-	  }
+   for (j = 0; j < EET_FREE_COUNT; ++j)
+     EINA_ARRAY_ITER_NEXT(&context->freelist_array.list[j], i, track, it)
+       if (track)
+         {
+            if (edd)
+              {
+                 if (edd->func.array_free)
+                   edd->func.array_free(track);
+                 else
+                   edd->func.mem_free(track);
+              }
+            else
+              free(track);
+         }
    _eet_free_reset(&context->freelist_array);
 } /* _eet_freelist_array_free */
 
@@ -2233,19 +2272,21 @@ static void
 _eet_freelist_list_free(Eet_Free_Context    *context,
                         Eet_Data_Descriptor *edd)
 {
-   int j;
-   int i;
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int j;
+   unsigned int i;
 
    if (context->freelist_list.ref > 0)
       return;
 
-   for (j = 0; j < 256; ++j)
-      for (i = 0; i < context->freelist_list.num[j]; ++i)
-	if (context->freelist_list.list[j][i])
-	  {
-	     if (edd)
-	       edd->func.list_free(*((void **)(context->freelist_list.list[j][i])));
-	  }
+   for (j = 0; j < EET_FREE_COUNT; ++j)
+     EINA_ARRAY_ITER_NEXT(&context->freelist_list.list[j], i, track, it)
+       if (track)
+         {
+            if (edd)
+              edd->func.list_free(*((void **)(track)));
+         }
    _eet_free_reset(&context->freelist_list);
 } /* _eet_freelist_list_free */
 
@@ -2258,21 +2299,23 @@ _eet_freelist_list_free(Eet_Free_Context    *context,
 static void
 _eet_freelist_str_free(Eet_Free_Context *context, Eet_Data_Descriptor *edd)
 {
-   int j;
-   int i;
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int j;
+   unsigned int i;
 
    if (context->freelist_str.ref > 0)
       return;
 
-   for (j = 0; j < 256; ++j)
-      for (i = 0; i < context->freelist_str.num[j]; ++i)
-	if (context->freelist_str.list[j][i])
-	  {
-	     if (edd)
-	       edd->func.str_free(context->freelist_str.list[j][i]);
-	     else
-	       free(context->freelist_str.list[j][i]);
-	  }
+   for (j = 0; j < EET_FREE_COUNT; ++j)
+     EINA_ARRAY_ITER_NEXT(&context->freelist_str.list[j], i, track, it)
+       if (track)
+         {
+            if (edd)
+              edd->func.str_free(track);
+            else
+              free(track);
+         }
    _eet_free_reset(&context->freelist_str);
 } /* _eet_freelist_str_free */
 
@@ -2286,20 +2329,22 @@ static void
 _eet_freelist_direct_str_free(Eet_Free_Context    *context,
                               Eet_Data_Descriptor *edd)
 {
-   int j;
-   int i;
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int j;
+   unsigned int i;
 
    if (context->freelist_direct_str.ref > 0)
       return;
 
-   for (j = 0; j < 256; ++j)
-      for (i = 0; i < context->freelist_direct_str.num[j]; ++i)
-	if (context->freelist_direct_str.list[j][i])
-	  {
-	     if (edd)
-	       edd->func.str_direct_free(context->freelist_direct_str.list[j][i]);
-	     else
-	       free(context->freelist_direct_str.list[j][i]);
+   for (j = 0; j < EET_FREE_COUNT; ++j)
+     EINA_ARRAY_ITER_NEXT(&context->freelist_str.list[j], i, track, it)
+       if (track)
+         {
+            if (edd)
+              edd->func.str_direct_free(track);
+            else
+              free(track);
 	  }
    _eet_free_reset(&context->freelist_direct_str);
 } /* _eet_freelist_direct_str_free */
@@ -2314,21 +2359,23 @@ static void
 _eet_freelist_hash_free(Eet_Free_Context    *context,
                         Eet_Data_Descriptor *edd)
 {
-   int j;
-   int i;
+   void *track;
+   Eina_Array_Iterator it;
+   unsigned int j;
+   unsigned int i;
 
    if (context->freelist_hash.ref > 0)
       return;
 
-   for (j = 0; j < 256; ++j)
-      for (i = 0; i < context->freelist_hash.num[j]; ++i)
-	if (context->freelist_hash.list[j][i])
-	  {
-	     if (edd)
-	       edd->func.hash_free(context->freelist_hash.list[j][i]);
-	     else
-	       free(context->freelist_hash.list[j][i]);
-	  }
+   for (j = 0; j < EET_FREE_COUNT; ++j)
+     EINA_ARRAY_ITER_NEXT(&context->freelist_hash.list[j], i, track, it)
+       if (track)
+         {
+            if (edd)
+              edd->func.hash_free(track);
+            else
+              free(track);
+         }
    _eet_free_reset(&context->freelist_hash);
 } /* _eet_freelist_hash_free */
 
@@ -3613,7 +3660,10 @@ eet_data_get_array(Eet_Free_Context     *context,
              if (dst)
                {
                   memcpy(dst, data_ret, subsize);
-		  if (edd) edd->func.mem_free(data_ret);
+		  if ((ede) && (ede->subtype))
+                     ede->subtype->func.mem_free(data_ret);
+                  else if (edd)
+                     edd->func.mem_free(data_ret);
 		  else free(data_ret);
 		  _eet_freelist_del(context, data_ret);
                }
@@ -4390,7 +4440,7 @@ EAPI int
 eet_data_dump_cipher(Eet_File *ef,
                      const char *name,
                      const char *cipher_key,
-                     void (*dumpfunc)(void *data, const char *str),
+                     Eet_Dump_Callback dumpfunc,
                      void *dumpdata)
 {
    const Eet_Dictionary *ed = NULL;
@@ -4413,8 +4463,9 @@ eet_data_dump_cipher(Eet_File *ef,
            return 0;
      }
 
-   memset(&context, 0, sizeof (context));
+   eet_free_context_init(&context);
    result = _eet_data_descriptor_decode(&context, ed, NULL, data, size);
+   eet_free_context_shutdown(&context);
 
    eet_node_dump(result, 0, dumpfunc, dumpdata);
 
@@ -4429,7 +4480,7 @@ eet_data_dump_cipher(Eet_File *ef,
 EAPI int
 eet_data_dump(Eet_File *ef,
               const char *name,
-              void (*dumpfunc)(void *data, const char *str),
+              Eet_Dump_Callback dumpfunc,
               void *dumpdata)
 {
    return eet_data_dump_cipher(ef, name, NULL, dumpfunc, dumpdata);
@@ -4439,7 +4490,7 @@ EAPI int
 eet_data_text_dump_cipher(const void *data_in,
                           const char *cipher_key,
                           int size_in,
-                          void (*dumpfunc)(void *data, const char *str),
+                          Eet_Dump_Callback dumpfunc,
                           void *dumpdata)
 {
    void *ret = NULL;
@@ -4467,8 +4518,9 @@ eet_data_text_dump_cipher(const void *data_in,
         ret_len = size_in;
      }
 
-   memset(&context, 0, sizeof (context));
+   eet_free_context_init(&context);
    result = _eet_data_descriptor_decode(&context, NULL, NULL, ret, ret_len);
+   eet_free_context_shutdown(&context);
 
    eet_node_dump(result, 0, dumpfunc, dumpdata);
 
@@ -4482,7 +4534,7 @@ eet_data_text_dump_cipher(const void *data_in,
 EAPI int
 eet_data_text_dump(const void *data_in,
                    int size_in,
-                   void (*dumpfunc)(void *data, const char *str),
+                   Eet_Dump_Callback dumpfunc,
                    void *dumpdata)
 {
    return eet_data_text_dump_cipher(data_in, NULL, size_in, dumpfunc, dumpdata);
@@ -4584,12 +4636,13 @@ eet_data_descriptor_decode_cipher(Eet_Data_Descriptor *edd,
            return NULL;
         }
 
-   memset(&context, 0, sizeof (context));
+   eet_free_context_init(&context);
    ret = _eet_data_descriptor_decode(&context,
                                      NULL,
                                      edd,
                                      deciphered,
                                      deciphered_len);
+   eet_free_context_shutdown(&context);
 
    if (data_in != deciphered)
       free(deciphered);
@@ -4625,12 +4678,13 @@ eet_data_node_decode_cipher(const void *data_in,
            return NULL;
         }
 
-   memset(&context, 0, sizeof (context));
+   eet_free_context_init(&context);
    ret = _eet_data_descriptor_decode(&context,
                                      NULL,
                                      NULL,
                                      deciphered,
                                      deciphered_len);
+   eet_free_context_shutdown(&context);
 
    if (data_in != deciphered)
       free(deciphered);

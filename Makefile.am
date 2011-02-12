@@ -7,13 +7,14 @@ Makefile.in \
 aclocal.m4 \
 compile \
 config.guess \
-config.h.in  \
-config.sub  \
-configure  \
+config.h.in \
+config.h.in~ \
+config.sub \
+configure \
 depcomp \
 install-sh \
-ltmain.sh  \
-missing  \
+ltmain.sh \
+missing \
 $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz \
 $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.bz2 \
 $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)-doc.tar.bz2 \
@@ -38,6 +39,7 @@ m4/efl_doxygen.m4 \
 m4/efl_fnmatch.m4 \
 m4/efl_tests.m4 \
 m4/efl_threads.m4 \
+m4/efl_path_max.m4 \
 README.in \
 README
 
@@ -77,7 +79,7 @@ lcov-reset:
 lcov-report:
 	@mkdir coverage
 	@lcov --compat-libtool --directory . --capture --output-file coverage/coverage.info
-	@lcov -l coverage/coverage.info | grep -v "`cd $(top_srcdir) && pwd`" | cut -d: -f1 > coverage/remove
+	@lcov -l coverage/coverage.info |grep "\\.h"  |cut -d " " -f 2 > coverage/remove
 	@lcov -r coverage/coverage.info `cat coverage/remove` > coverage/coverage.cleaned.info
 	@rm coverage/remove
 	@mv coverage/coverage.cleaned.info coverage/coverage.info
