@@ -5,6 +5,15 @@ eet (1.4.0~beta+1.3.2-1) unstable; urgency=low
 
  -- Albin Tonnerre <lutin@debian.org>  Sun, 17 Oct 2010 15:30:11 +0200
 
+eet (1.4.0~beta+1.4.0-1) experimental; urgency=low
+
+  * New upstream release
+  * Bump Standards-Version, no change required
+  * Update symbols file
+  * Update debian/copyright to reflect the actual text from COPYING
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 03 Oct 2010 17:04:34 +0200
+
 eet (1.3.2-1) unstable; urgency=low
 
   * New upstream release
