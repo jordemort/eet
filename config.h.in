@@ -1,5 +1,10 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+
+#ifndef EFL_CONFIG_H__
+#define EFL_CONFIG_H__
+
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -121,6 +126,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* default value since PATH_MAX is not defined */
+#undef PATH_MAX
+
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at runtime.
@@ -161,3 +169,7 @@
 #ifndef __cplusplus
 #undef inline
 #endif
+
+
+#endif /* EFL_CONFIG_H__ */
+

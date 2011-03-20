@@ -440,3 +440,45 @@
 2010-09-02  Cedric BAIL
 
 	* Fix bug of ever growing dictionnary and improve strcmp comparison.
+
+2010-11-12  Cedric BAIL
+
+	* Don't try to read broken file when open in READ_WRITE mode.
+
+2010-11-14  Cedric BAIL
+
+	* Fix bug with cypher and compression used together.
+
+2010-11-21  Carsten Haitzler (The Rasterman)
+
+	* Fix another bug related to cipher and compression (leak and
+        bad free)
+
+2010-11-25  Cedric BAIL
+
+	* Add EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY_STRING.
+
+2010-11-26  Cedric BAIL
+
+	* Reduce memory used by Eet dictionary.
+
+2010-11-29  Cedric BAIL
+
+	* Improve speed of Eet_String users. It does impact all string
+	encoding/decoding, but even faster for stringshare encoding.
+
+	* Improve speed when decoding mostly array with eet_data_read.
+
+2010-12-03  Cedric BAIL
+
+	* Improve portability.
+
+2010-12-07  Carsten Haitzler (The Rasterman)
+
+	* Move raw function pointer defs to typedefs in public API for
+        readability improvements.
+
+2011-01-29  Carsten Haitzler (The Rasterman)
+
+	1.4.0 release
+
