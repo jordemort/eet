@@ -1,3 +1,11 @@
+eet (1.4.0-2) unstable; urgency=low
+
+  * Actually upload eet 1.4.0, not 1.4.0 beta
+    - eet 1.4.0-1 was mistakenly uploaded with the contents of eet 1.4.0-beta,
+      so let's upload the actual 1.4.0 release
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 20 Mar 2011 15:08:29 +0100
+
 eet (1.4.0-1) unstable; urgency=low
 
   * Upstream release 1.4.0
