@@ -22,6 +22,7 @@ includesdir = $(includedir)/eet-@VMAJ@
 lib_LTLIBRARIES = libeet.la
 
 base_sources = \
+eet_alloc.c \
 eet_lib.c \
 eet_data.c \
 eet_image.c \
@@ -65,7 +66,9 @@ eet_amalgamation.c: $(base_sources) Makefile
 	@echo "#include <limits.h>" >> eet_amalgamation.c
 	@echo "#include <sys/types.h>" >> eet_amalgamation.c
 	@echo "#include <sys/stat.h>" >> eet_amalgamation.c
-	@echo "#include <sys/mman.h>" >> eet_amalgamation.c
+	@echo "#ifdef HAVE_SIGNATURE" >> eet_amalgamation.c
+	@echo "# include <sys/mman.h>" >> eet_amalgamation.c
+	@echo "#endif" >> eet_amalgamation.c
 	@echo "#include <setjmp.h>" >> eet_amalgamation.c
 	@echo "#include <errno.h>" >> eet_amalgamation.c
 	@echo "#include <time.h>" >> eet_amalgamation.c
@@ -150,9 +153,9 @@ else
 libeet_la_SOURCES = $(base_sources)
 endif
 
-libeet_la_CFLAGS = @EET_CFLAGS@ @DEBUG_CFLAGS@ @EFL_PTHREAD_CFLAGS@
+libeet_la_CFLAGS = @EET_CFLAGS@ @DEBUG_CFLAGS@
 libeet_la_LIBADD = @GNUTLS_LIBS@ @OPENSSL_LIBS@ @EFL_COVERAGE_LIBS@ @EET_LIBS@ @EINA_LIBS@ @EVIL_LIBS@ -lz -ljpeg -lm
-libeet_la_LDFLAGS = -no-undefined @lt_enable_auto_import@ -version-info @version_info@ @release_info@ @EFL_PTHREAD_LIBS@
+libeet_la_LDFLAGS = -no-undefined @lt_enable_auto_import@ -version-info @version_info@ @release_info@
 
 EXTRA_DIST = Eet_private.h
 

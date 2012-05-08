@@ -36,10 +36,10 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/README.in \
-	$(srcdir)/config.h.in $(srcdir)/eet.pc.in \
-	$(srcdir)/eet.spec.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS compile config.guess config.sub depcomp \
+	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
+	$(srcdir)/eet.pc.in $(srcdir)/eet.spec.in \
+	$(top_srcdir)/configure ABOUT-NLS AUTHORS COPYING ChangeLog \
+	INSTALL NEWS compile config.guess config.sub depcomp \
 	install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_attribute.m4 \
@@ -50,17 +50,16 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ac_attribute.m4 \
 	$(top_srcdir)/m4/efl_doxygen.m4 \
 	$(top_srcdir)/m4/efl_fnmatch.m4 \
 	$(top_srcdir)/m4/efl_path_max.m4 $(top_srcdir)/m4/efl_tests.m4 \
-	$(top_srcdir)/m4/efl_threads.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = eet.pc README eet.spec
+CONFIG_CLEAN_FILES = eet.pc eet.spec
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
@@ -179,14 +178,14 @@ EFL_COVERAGE_CFLAGS = @EFL_COVERAGE_CFLAGS@
 EFL_COVERAGE_LIBS = @EFL_COVERAGE_LIBS@
 EFL_EET_BUILD = @EFL_EET_BUILD@
 EFL_FNMATCH_LIBS = @EFL_FNMATCH_LIBS@
-EFL_PTHREAD_CFLAGS = @EFL_PTHREAD_CFLAGS@
-EFL_PTHREAD_LIBS = @EFL_PTHREAD_LIBS@
 EGREP = @EGREP@
 EINA_CFLAGS = @EINA_CFLAGS@
 EINA_LIBS = @EINA_LIBS@
 EVIL_CFLAGS = @EVIL_CFLAGS@
 EVIL_LIBS = @EVIL_LIBS@
 EXEEXT = @EXEEXT@
+EXOTIC_CFLAGS = @EXOTIC_CFLAGS@
+EXOTIC_LIBS = @EXOTIC_LIBS@
 FGREP = @FGREP@
 GNUTLS_CFLAGS = @GNUTLS_CFLAGS@
 GNUTLS_LIBS = @GNUTLS_LIBS@
@@ -226,6 +225,8 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -331,10 +332,7 @@ m4/efl_coverage.m4 \
 m4/efl_doxygen.m4 \
 m4/efl_fnmatch.m4 \
 m4/efl_tests.m4 \
-m4/efl_threads.m4 \
-m4/efl_path_max.m4 \
-README.in \
-README
+m4/efl_path_max.m4
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = eet.pc
@@ -394,8 +392,6 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 distclean-hdr:
 	-rm -f config.h stamp-h1
 eet.pc: $(top_builddir)/config.status $(srcdir)/eet.pc.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-README: $(top_builddir)/config.status $(srcdir)/README.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 eet.spec: $(top_builddir)/config.status $(srcdir)/eet.spec.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -873,7 +869,7 @@ uninstall-am: uninstall-pkgconfigDATA
 
 doc:
 	@echo "entering doc/"
-	make -C doc doc
+	$(MAKE) -C doc doc
 
 # Unit tests
 
@@ -886,23 +882,21 @@ doc:
 # Coverage report
 
 @EFL_ENABLE_COVERAGE_TRUE@lcov-reset:
-@EFL_ENABLE_COVERAGE_TRUE@	@rm -rf coverage
-@EFL_ENABLE_COVERAGE_TRUE@	@find . -name "*.gcda" -exec rm {} \;
-@EFL_ENABLE_COVERAGE_TRUE@	@lcov --directory . --zerocounters
+@EFL_ENABLE_COVERAGE_TRUE@	@rm -rf $(top_builddir)/coverage
+@EFL_ENABLE_COVERAGE_TRUE@	@find $(top_builddir) -name "*.gcda" -delete
+@EFL_ENABLE_COVERAGE_TRUE@	@lcov --zerocounters --directory $(top_builddir)
 
 @EFL_ENABLE_COVERAGE_TRUE@lcov-report:
-@EFL_ENABLE_COVERAGE_TRUE@	@mkdir coverage
-@EFL_ENABLE_COVERAGE_TRUE@	@lcov --compat-libtool --directory . --capture --output-file coverage/coverage.info
-@EFL_ENABLE_COVERAGE_TRUE@	@lcov -l coverage/coverage.info |grep "\\.h"  |cut -d " " -f 2 > coverage/remove
-@EFL_ENABLE_COVERAGE_TRUE@	@lcov -r coverage/coverage.info `cat coverage/remove` > coverage/coverage.cleaned.info
-@EFL_ENABLE_COVERAGE_TRUE@	@rm coverage/remove
-@EFL_ENABLE_COVERAGE_TRUE@	@mv coverage/coverage.cleaned.info coverage/coverage.info
-@EFL_ENABLE_COVERAGE_TRUE@	@genhtml -t "$(PACKAGE_STRING)" -o coverage coverage/coverage.info
+@EFL_ENABLE_COVERAGE_TRUE@	@mkdir $(top_builddir)/coverage
+@EFL_ENABLE_COVERAGE_TRUE@	lcov --capture --compat-libtool --output-file $(top_builddir)/coverage/coverage.info --directory $(top_builddir)
+@EFL_ENABLE_COVERAGE_TRUE@	lcov --remove $(top_builddir)/coverage/coverage.info '*.h' --output-file $(top_builddir)/coverage/coverage.cleaned.info
+@EFL_ENABLE_COVERAGE_TRUE@	genhtml -t "$(PACKAGE_STRING)" -o $(top_builddir)/coverage/html $(top_builddir)/coverage/coverage.cleaned.info
+@EFL_ENABLE_COVERAGE_TRUE@	@echo "Coverage Report at $(top_builddir)/coverage/html"
 
 @EFL_ENABLE_COVERAGE_TRUE@coverage:
-@EFL_ENABLE_COVERAGE_TRUE@	@make lcov-reset
-@EFL_ENABLE_COVERAGE_TRUE@	@make check
-@EFL_ENABLE_COVERAGE_TRUE@	@make lcov-report
+@EFL_ENABLE_COVERAGE_TRUE@	@$(MAKE) lcov-reset
+@EFL_ENABLE_COVERAGE_TRUE@	@$(MAKE) check
+@EFL_ENABLE_COVERAGE_TRUE@	@$(MAKE) lcov-report
 
 @EFL_ENABLE_COVERAGE_TRUE@clean-local:
 @EFL_ENABLE_COVERAGE_TRUE@	@rm -rf coverage
