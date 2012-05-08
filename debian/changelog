@@ -1,3 +1,10 @@
+eet (1.4.0-2.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Use libjpeg-dev instead of libjpeg62-dev (closes: #629961).
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 25 Jul 2011 22:43:50 +0200
+
 eet (1.4.0-2) unstable; urgency=low
 
   * Actually upload eet 1.4.0, not 1.4.0 beta
