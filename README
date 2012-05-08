@@ -1,4 +1,4 @@
-Eet 1.4.0 BETA
+Eet 1.6.0
 
 ******************************************************************************
 
@@ -11,10 +11,9 @@ Requirements:
 -------------
 Must have:
   libc
-  libm
   zlib
   libjpeg
-  eina (1.0.0 or better) 
+  eina (1.1.0 or better) 
   (For windows you also need: evil)
 
 Optional requirements:

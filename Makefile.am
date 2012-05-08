@@ -38,10 +38,7 @@ m4/efl_coverage.m4 \
 m4/efl_doxygen.m4 \
 m4/efl_fnmatch.m4 \
 m4/efl_tests.m4 \
-m4/efl_threads.m4 \
-m4/efl_path_max.m4 \
-README.in \
-README
+m4/efl_path_max.m4
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = eet.pc
@@ -52,7 +49,7 @@ pkgconfig_DATA = eet.pc
 
 doc:
 	@echo "entering doc/"
-	make -C doc doc
+	$(MAKE) -C doc doc
 
 # Unit tests
 
@@ -72,23 +69,21 @@ endif
 
 if EFL_ENABLE_COVERAGE
 lcov-reset:
-	@rm -rf coverage
-	@find . -name "*.gcda" -exec rm {} \;
-	@lcov --directory . --zerocounters
+	@rm -rf $(top_builddir)/coverage
+	@find $(top_builddir) -name "*.gcda" -delete
+	@lcov --zerocounters --directory $(top_builddir)
 
 lcov-report:
-	@mkdir coverage
-	@lcov --compat-libtool --directory . --capture --output-file coverage/coverage.info
-	@lcov -l coverage/coverage.info |grep "\\.h"  |cut -d " " -f 2 > coverage/remove
-	@lcov -r coverage/coverage.info `cat coverage/remove` > coverage/coverage.cleaned.info
-	@rm coverage/remove
-	@mv coverage/coverage.cleaned.info coverage/coverage.info
-	@genhtml -t "$(PACKAGE_STRING)" -o coverage coverage/coverage.info
+	@mkdir $(top_builddir)/coverage
+	lcov --capture --compat-libtool --output-file $(top_builddir)/coverage/coverage.info --directory $(top_builddir)
+	lcov --remove $(top_builddir)/coverage/coverage.info '*.h' --output-file $(top_builddir)/coverage/coverage.cleaned.info
+	genhtml -t "$(PACKAGE_STRING)" -o $(top_builddir)/coverage/html $(top_builddir)/coverage/coverage.cleaned.info
+	@echo "Coverage Report at $(top_builddir)/coverage/html"
 
 coverage:
-	@make lcov-reset
-	@make check
-	@make lcov-report
+	@$(MAKE) lcov-reset
+	@$(MAKE) check
+	@$(MAKE) lcov-report
 
 clean-local:
 	@rm -rf coverage

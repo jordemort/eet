@@ -480,5 +480,102 @@
 
 2011-01-29  Carsten Haitzler (The Rasterman)
 
-	1.4.0 release
+	 * 1.4.0 release
+
+2011-01-29  Vincent Torri
+
+	* Use eina_stringshare_add() instead of strdup() on mmaped file names
+	on Windows. This fix eet shut down on Windows.
+
+2011-02-14  Cedric BAIL
+
+	* Improve Eet_Data to make decoding of EET_G_UNION and EET_G_*ARRAY
+	faster and less memory heavy.
+
+2011-05-14  Cedric BAIL
+
+	* Use Eina_Lock.
+	* Sync GNUTLS initialisation with Eina.
+
+2011-05-17  Cedric BAIL
+
+	* Use Eina_File.
+	* Fix test forgetting to initialize eet.
+
+2011-05-23  Vincent Torri
+
+	* Fix compilation with libjpeg 8 on Windows.
+
+2011-06-10  Cedric BAIL
+
+	* Add EET_DATA_DESCRIPTOR_ADD_LIST_STRING helper to define List of char *.
+
+2011-07-04  Mike Blumenkrantz
+
+        * Add functions to manipulate nodes:
+            eet_node_children_get, eet_node_next_get, eet_node_parent_get,
+            eet_node_type_get, eet_node_value_get, eet_node_name_get
+        * Fix segmentation faults in several eet_node functions
+
+2011-07-16  Vincent Torri
+
+	* On Windows, open() in text mode followed by fdopen() in
+	binary mode does not create a stream in binary mode.
+	So add O_BINARY to open().
+
+2011-07-29  Mike Blumenkrantz
+
+        * Add eet_alias_get to return the destination name of an alias
+
+2011-09-15  Cedric Bail
+
+	* Add eet_data_xattr_cipher_get and eet_data_xattr_cipher_set.
+
+2011-10-04  Carsten Haitzler (The Rasterman)
+
+	* Fix issue where an empty eet file (no keys) is not openable
+        for read/write anymore. Allow it.
+
+2011-10-28  David Seikel (onefang)
+
+	* Added a new macro for adding arrays of basic types.
+	   EET_DATA_DESCRIPTOR_ADD_BASIC_ARRAY
+
+2011-11-16  Carsten Haitzler (The Rasterman)
+
+	* JPEG encode and decode in eet now uses ISLOW (not IFAST) due to
+        noticable quality losses in the chase for speed. It will use
+        IFAST for quality less than 60 when encoding
+
+2011-12-02  Carsten Haitzler (The Rasterman)
+
+        1.5.0 release
+
+2011-12-02  Mike Blumenkrantz
+
+        * added eet_file_get to return the filename of an Eet_File
+        * Eet_File filenames are now stringshared
+        * added mempool allocators
+
+2011-12-29  Carsten Haitzler (The Rasterman)
+
+        * increase eet_connection packet size to 1Mb - more reasonable.
+
+2012-01-07  Boris Faure (billiob)
+
+        * make eet tool write to standard output if no output file given.
+
+2012-02-09  Cedric Bail
+
+	* add support for GNUTLS 3.x.
+
+2012-02-10  Cedric Bail
+
+	* add eet_dictionary_count.
+	* add "eet -t FILE.EET".
+
+2012-03-29  David Seikel (onefang)
+
+	* Added a new macro for adding variable arrays of basic types.
+	   EET_DATA_DESCRIPTOR_ADD_BASIC_VAR_ARRAY
 

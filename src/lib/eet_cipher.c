@@ -16,24 +16,24 @@
 # ifdef  __cplusplus
 extern "C"
 # endif /* ifdef  __cplusplus */
-void *    alloca (size_t);
+void *alloca(size_t);
 #endif /* ifdef HAVE_ALLOCA_H */
 
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 
-#ifndef _MSC_VER
+#ifdef HAVE_UNISTD_H
 # include <unistd.h>
-#endif /* ifndef _MSC_VER */
+#endif /* ifdef HAVE_UNISTD_H */
 
 #ifdef HAVE_NETINET_IN_H
 # include <netinet/in.h>
 #endif /* ifdef HAVE_NETINET_IN_H */
 
 #ifdef HAVE_SIGNATURE
+# include <sys/mman.h>
 # ifdef HAVE_GNUTLS
 #  include <gnutls/gnutls.h>
 #  include <gnutls/x509.h>
@@ -56,6 +56,9 @@ void *    alloca (size_t);
 
 #ifdef HAVE_CIPHER
 # ifdef HAVE_GNUTLS
+#  if defined EET_USE_NEW_PUBKEY_VERIFY_HASH || defined EET_USE_NEW_PRIVKEY_SIGN_DATA
+#   include <gnutls/abstract.h>
+#  endif
 #  include <gnutls/x509.h>
 #  include <gcrypt.h>
 # else /* ifdef HAVE_GNUTLS */
@@ -80,19 +83,21 @@ void *    alloca (size_t);
 
 #ifdef HAVE_CIPHER
 # ifdef HAVE_GNUTLS
-static Eet_Error      eet_hmac_sha1(const void    *key,
-                                    size_t         key_len,
-                                    const void    *data,
-                                    size_t         data_len,
-                                    unsigned char *res);
+static Eet_Error
+eet_hmac_sha1(const void    *key,
+              size_t         key_len,
+              const void    *data,
+              size_t         data_len,
+              unsigned char *res);
 # endif /* ifdef HAVE_GNUTLS */
-static Eet_Error      eet_pbkdf2_sha1(const char          *key,
-                                      int                  key_len,
-                                      const unsigned char *salt,
-                                      unsigned int         salt_len,
-                                      int                  iter,
-                                      unsigned char       *res,
-                                      int                  res_len);
+static Eet_Error
+eet_pbkdf2_sha1(const char          *key,
+                int                  key_len,
+                const unsigned char *salt,
+                unsigned int         salt_len,
+                int                  iter,
+                unsigned char       *res,
+                int                  res_len);
 #endif /* ifdef HAVE_CIPHER */
 
 struct _Eet_Key
@@ -117,153 +122,141 @@ eet_identity_open(const char               *certificate_file,
 #ifdef HAVE_SIGNATURE
    /* Signature declarations */
    Eet_Key *key = NULL;
-   FILE *fp = NULL;
 # ifdef HAVE_GNUTLS
    /* Gnutls private declarations */
-   int fd = -1;
-   struct stat st;
+   Eina_File *f = NULL;
    void *data = NULL;
    gnutls_datum_t load_file = { NULL, 0 };
    char pass[1024];
 
    /* Init */
    if (!(key = malloc(sizeof(Eet_Key))))
-      goto on_error;
+     goto on_error;
 
    key->references = 1;
 
    if (gnutls_x509_crt_init(&(key->certificate)))
-      goto on_error;
+     goto on_error;
 
    if (gnutls_x509_privkey_init(&(key->private_key)))
-      goto on_error;
+     goto on_error;
 
    /* Mmap certificate_file */
-   if (!(fp = fopen(certificate_file, "r")))
-      goto on_error;
+   f = eina_file_open(certificate_file, 0);
+   if (!f)
+     goto on_error;
 
-   if ((fd = fileno(fp)) == -1)
-      goto on_error;
+   /* let's make mmap safe and just get 0 pages for IO erro */
+   eina_mmap_safety_enabled_set(EINA_TRUE);
 
-   if (fstat(fd, &st))
-      goto on_error;
-
-   if ((data =
-           mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
-      goto on_error;
+   data = eina_file_map_all(f, EINA_FILE_SEQUENTIAL);
+   if (!data) goto on_error;
 
    /* Import the certificate in Eet_Key structure */
    load_file.data = data;
-   load_file.size = st.st_size;
+   load_file.size = eina_file_size_get(f);
    if (gnutls_x509_crt_import(key->certificate, &load_file,
                               GNUTLS_X509_FMT_PEM) < 0)
-      goto on_error;
+     goto on_error;
 
-   if (munmap(data, st.st_size))
-      goto on_error;
+   eina_file_map_free(f, data);
 
    /* Reset values */
-   fclose(fp);
-   fp = NULL;
+   eina_file_close(f);
+   f = NULL;
    data = NULL;
    load_file.data = NULL;
    load_file.size = 0;
 
    /* Mmap private_key_file */
-   if (!(fp = fopen(private_key_file, "r")))
-      goto on_error;
+   f = eina_file_open(private_key_file, 0);
+   if (!f)
+     goto on_error;
 
-   if ((fd = fileno(fp)) == -1)
-      goto on_error;
+   /* let's make mmap safe and just get 0 pages for IO erro */
+   eina_mmap_safety_enabled_set(EINA_TRUE);
 
-   if (fstat(fd, &st))
-      goto on_error;
-
-   if ((data =
-           mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
-      goto on_error;
+   data = eina_file_map_all(f, EINA_FILE_SEQUENTIAL);
+   if (!data)
+     goto on_error;
 
    /* Import the private key in Eet_Key structure */
    load_file.data = data;
-   load_file.size = st.st_size;
+   load_file.size = eina_file_size_get(f);
    /* Try to directly import the PEM encoded private key */
    if (gnutls_x509_privkey_import(key->private_key, &load_file,
                                   GNUTLS_X509_FMT_PEM) < 0)
      {
         /* Else ask for the private key pass */
-        if (cb && cb(pass, 1024, 0, NULL))
-          {
-             /* If pass then try to decode the pkcs 8 private key */
-             if (gnutls_x509_privkey_import_pkcs8(key->private_key, &load_file,
-                                                  GNUTLS_X509_FMT_PEM, pass, 0))
-                goto on_error;
-          }
-        else
-        /* Else try to import the pkcs 8 private key without pass */
-        if (gnutls_x509_privkey_import_pkcs8(key->private_key, &load_file,
-                                             GNUTLS_X509_FMT_PEM, NULL, 1))
+         if (cb && cb(pass, 1024, 0, NULL))
+           {
+     /* If pass then try to decode the pkcs 8 private key */
+               if (gnutls_x509_privkey_import_pkcs8(key->private_key, &load_file,
+                                                    GNUTLS_X509_FMT_PEM, pass, 0))
+                 goto on_error;
+           }
+         else
+         /* Else try to import the pkcs 8 private key without pass */
+         if (gnutls_x509_privkey_import_pkcs8(key->private_key, &load_file,
+                                              GNUTLS_X509_FMT_PEM, NULL, 1))
            goto on_error;
      }
 
-   if (munmap(data, st.st_size))
-      goto on_error;
-
-   fclose(fp);
+   eina_file_map_free(f, data);
+   eina_file_close(f);
 
    return key;
 
 on_error:
-   if (fp)
-      fclose(fp);
+   if (data) eina_file_map_free(f, data);
+   if (f) eina_file_close(f);
 
    if (key)
      {
         if (key->certificate)
-           gnutls_x509_crt_deinit(key->certificate);
+          gnutls_x509_crt_deinit(key->certificate);
 
         if (key->private_key)
-           gnutls_x509_privkey_deinit(key->private_key);
+          gnutls_x509_privkey_deinit(key->private_key);
 
         free(key);
      }
 
-   if (data)
-      munmap(data, st.st_size);
-
 # else /* ifdef HAVE_GNUTLS */
    /* Openssl private declarations */
+   FILE *fp;
    EVP_PKEY *pkey = NULL;
    X509 *cert = NULL;
 
    /* Load the X509 certificate in memory. */
    fp = fopen(certificate_file, "r");
    if (!fp)
-      return NULL;
+     return NULL;
 
    cert = PEM_read_X509(fp, NULL, NULL, NULL);
    fclose(fp);
    if (!cert)
-      goto on_error;
+     goto on_error;
 
    /* Check the presence of the public key. Just in case. */
    pkey = X509_get_pubkey(cert);
    if (!pkey)
-      goto on_error;
+     goto on_error;
 
    /* Load the private key in memory. */
    fp = fopen(private_key_file, "r");
    if (!fp)
-      goto on_error;
+     goto on_error;
 
    pkey = PEM_read_PrivateKey(fp, NULL, cb, NULL);
    fclose(fp);
    if (!pkey)
-      goto on_error;
+     goto on_error;
 
    /* Load the certificate and the private key in Eet_Key structure */
    key = malloc(sizeof(Eet_Key));
    if (!key)
-      goto on_error;
+     goto on_error;
 
    key->references = 1;
    key->certificate = cert;
@@ -273,10 +266,10 @@ on_error:
 
 on_error:
    if (cert)
-      X509_free(cert);
+     X509_free(cert);
 
    if (pkey)
-      EVP_PKEY_free(pkey);
+     EVP_PKEY_free(pkey);
 
 # endif /* ifdef HAVE_GNUTLS */
 #else
@@ -285,14 +278,14 @@ on_error:
    cb = NULL;
 #endif /* ifdef HAVE_SIGNATURE */
    return NULL;
-} /* eet_identity_open */
+}
 
 EAPI void
 eet_identity_close(Eet_Key *key)
 {
 #ifdef HAVE_SIGNATURE
    if (!key || (key->references > 0))
-      return;
+     return;
 
 # ifdef HAVE_GNUTLS
    gnutls_x509_crt_deinit(key->certificate);
@@ -305,7 +298,7 @@ eet_identity_close(Eet_Key *key)
 #else
    key = NULL;
 #endif /* ifdef HAVE_SIGNATURE */
-} /* eet_identity_close */
+}
 
 EAPI void
 eet_identity_print(Eet_Key *key,
@@ -330,7 +323,7 @@ eet_identity_print(Eet_Key *key,
    unsigned int i, j;
 
    if (!key)
-      return;
+     return;
 
    if (key->private_key)
      {
@@ -341,10 +334,10 @@ eet_identity_print(Eet_Key *key,
                                                rsa_raw + 3, /* First prime */
                                                rsa_raw + 4, /* Second prime */
                                                rsa_raw + 5)) /* Coefficient */
-           goto on_error;
+          goto on_error;
 
         if (!(res = malloc(size)))
-           goto on_error;
+          goto on_error;
 
         fprintf(out, "Private Key:\n");
         buf[32] = '\0';
@@ -356,10 +349,10 @@ eet_identity_print(Eet_Key *key,
                {
                   size += 128;
                   if (!(res = realloc(res, size)))
-                     goto on_error;
+                    goto on_error;
                }
              if (err)
-                goto on_error;
+               goto on_error;
 
              fprintf(out, "\t%s:\n", names[i]);
              for (j = 0; strlen(res) > j; j += 32)
@@ -377,7 +370,7 @@ eet_identity_print(Eet_Key *key,
         fprintf(out, "Public certificate:\n");
         if (gnutls_x509_crt_print(key->certificate, GNUTLS_X509_CRT_FULL,
                                   &data))
-           goto on_error;
+          goto on_error;
 
         fprintf(out, "%s\n", data.data);
         gnutls_free(data.data);
@@ -386,10 +379,10 @@ eet_identity_print(Eet_Key *key,
 
 on_error:
    if (res)
-      free(res);
+     free(res);
 
    if (data.data)
-      gnutls_free(data.data);
+     gnutls_free(data.data);
 
    return;
 # else /* ifdef HAVE_GNUTLS */
@@ -398,7 +391,7 @@ on_error:
    DH *dh;
 
    if (!key)
-      return;
+     return;
 
    rsa = EVP_PKEY_get1_RSA(key->private_key);
    if (rsa)
@@ -429,26 +422,26 @@ on_error:
    out = NULL;
    ERR("You need to compile signature support in EET.");
 #endif /* ifdef HAVE_SIGNATURE */
-} /* eet_identity_print */
+}
 
 void
 eet_identity_ref(Eet_Key *key)
 {
    if (!key)
-      return;
+     return;
 
    key->references++;
-} /* eet_identity_ref */
+}
 
 void
 eet_identity_unref(Eet_Key *key)
 {
    if (!key)
-      return;
+     return;
 
    key->references--;
    eet_identity_close(key);
-} /* eet_identity_unref */
+}
 
 void *
 eet_identity_compute_sha1(const void  *data_base,
@@ -461,21 +454,21 @@ eet_identity_compute_sha1(const void  *data_base,
 # ifdef HAVE_GNUTLS
    result = malloc(gcry_md_get_algo_dlen(GCRY_MD_SHA1));
    if (!result)
-      return NULL;
+     return NULL;
 
    gcry_md_hash_buffer(GCRY_MD_SHA1, result, data_base, data_length);
    if (sha1_length)
-      *sha1_length = gcry_md_get_algo_dlen(GCRY_MD_SHA1);
+     *sha1_length = gcry_md_get_algo_dlen(GCRY_MD_SHA1);
 
 # else /* ifdef HAVE_GNUTLS */
 #  ifdef HAVE_OPENSSL
    result = malloc(SHA_DIGEST_LENGTH);
    if (!result)
-      return NULL;
+     return NULL;
 
    SHA1(data_base, data_length, result);
    if (sha1_length)
-      *sha1_length = SHA_DIGEST_LENGTH;
+     *sha1_length = SHA_DIGEST_LENGTH;
 
 #  else /* ifdef HAVE_OPENSSL */
    result = NULL;
@@ -489,7 +482,7 @@ eet_identity_compute_sha1(const void  *data_base,
 #endif /* ifdef HAVE_SIGNATURE */
 
    return result;
-} /* eet_identity_compute_sha1 */
+}
 
 Eet_Error
 eet_identity_sign(FILE    *fp,
@@ -507,6 +500,10 @@ eet_identity_sign(FILE    *fp,
    gnutls_datum_t datum = { NULL, 0 };
    size_t sign_len = 0;
    size_t cert_len = 0;
+#ifdef EET_USE_NEW_PRIVKEY_SIGN_DATA
+   gnutls_datum_t signum = { NULL, 0 };
+   gnutls_privkey_t privkey;
+#endif
 # else /* ifdef HAVE_GNUTLS */
    EVP_MD_CTX md_ctx;
    unsigned int sign_len = 0;
@@ -515,26 +512,51 @@ eet_identity_sign(FILE    *fp,
 
    /* A few check and flush pending write. */
    if (!fp || !key || !key->certificate || !key->private_key)
-      return EET_ERROR_BAD_OBJECT;
+     return EET_ERROR_BAD_OBJECT;
 
    /* Get the file size. */
    fd = fileno(fp);
    if (fd < 0)
-      return EET_ERROR_BAD_OBJECT;
+     return EET_ERROR_BAD_OBJECT;
 
    if (fstat(fd, &st_buf) < 0)
-      return EET_ERROR_MMAP_FAILED;
+     return EET_ERROR_MMAP_FAILED;
+
+   /* let's make mmap safe and just get 0 pages for IO erro */
+   eina_mmap_safety_enabled_set(EINA_TRUE);
 
    /* Map the file in memory. */
    data = mmap(NULL, st_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
    if (data == MAP_FAILED)
-      return EET_ERROR_MMAP_FAILED;
+     return EET_ERROR_MMAP_FAILED;
 
 # ifdef HAVE_GNUTLS
    datum.data = data;
    datum.size = st_buf.st_size;
 
    /* Get the signature length */
+#ifdef EET_USE_NEW_PRIVKEY_SIGN_DATA
+   if (gnutls_privkey_init(&privkey) < 0)
+     {
+        err = EET_ERROR_SIGNATURE_FAILED;
+        goto on_error;
+     }
+
+   if (gnutls_privkey_import_x509(privkey, key->private_key, 0) < 0)
+     {
+        err = EET_ERROR_SIGNATURE_FAILED;
+        goto on_error;
+     }
+
+   if (gnutls_privkey_sign_data(privkey, GNUTLS_DIG_SHA1, 0, &datum, &signum) < 0)
+     {
+        err = EET_ERROR_SIGNATURE_FAILED;
+        goto on_error;
+     }
+
+   sign = signum.data;
+   sign_len = signum.size;
+#else
    if (gnutls_x509_privkey_sign_data(key->private_key, GNUTLS_DIG_SHA1, 0,
                                      &datum, sign, &sign_len) &&
        !sign_len)
@@ -551,12 +573,13 @@ eet_identity_sign(FILE    *fp,
                                      sign, &sign_len))
      {
         if (!sign)
-           err = EET_ERROR_OUT_OF_MEMORY;
+          err = EET_ERROR_OUT_OF_MEMORY;
         else
-           err = EET_ERROR_SIGNATURE_FAILED;
+          err = EET_ERROR_SIGNATURE_FAILED;
 
         goto on_error;
      }
+#endif
 
    /* Get the certificate length */
    if (gnutls_x509_crt_export(key->certificate, GNUTLS_X509_FMT_DER, cert,
@@ -574,9 +597,9 @@ eet_identity_sign(FILE    *fp,
                               &cert_len))
      {
         if (!cert)
-           err = EET_ERROR_OUT_OF_MEMORY;
+          err = EET_ERROR_OUT_OF_MEMORY;
         else
-           err = EET_ERROR_SIGNATURE_FAILED;
+          err = EET_ERROR_SIGNATURE_FAILED;
 
         goto on_error;
      }
@@ -640,15 +663,15 @@ eet_identity_sign(FILE    *fp,
 on_error:
 # ifdef HAVE_GNUTLS
    if (cert)
-      free(cert);
+     free(cert);
 
 # else /* ifdef HAVE_GNUTLS */
    if (cert)
-      OPENSSL_free(cert);
+     OPENSSL_free(cert);
 
 # endif /* ifdef HAVE_GNUTLS */
    if (sign)
-      free(sign);
+     free(sign);
 
    munmap(data, st_buf.st_size);
    return err;
@@ -657,7 +680,7 @@ on_error:
    key = NULL;
    return EET_ERROR_NOT_IMPLEMENTED;
 #endif /* ifdef HAVE_SIGNATURE */
-} /* eet_identity_sign */
+}
 
 const void *
 eet_identity_check(const void   *data_base,
@@ -680,7 +703,7 @@ eet_identity_check(const void   *data_base,
 
    /* At least the header size */
    if (signature_length < sizeof(int) * 3)
-      return NULL;
+     return NULL;
 
    /* Get the header */
    magic = ntohl(header[0]);
@@ -689,10 +712,10 @@ eet_identity_check(const void   *data_base,
 
    /* Verify the header */
    if (magic != EET_MAGIC_SIGN)
-      return NULL;
+     return NULL;
 
    if (sign_len + cert_len + sizeof(int) * 3 > signature_length)
-      return NULL;
+     return NULL;
 
    /* Update the signature and certificate pointer */
    sign = (unsigned char *)signature_base + sizeof(int) * 3;
@@ -703,6 +726,10 @@ eet_identity_check(const void   *data_base,
    gnutls_datum_t datum;
    gnutls_datum_t signature;
 #  if EET_USE_NEW_GNUTLS_API
+#  if EET_USE_NEW_PUBKEY_VERIFY_HASH
+   gnutls_pubkey_t pubkey;
+   gnutls_digest_algorithm_t hash_algo;
+#  endif
    unsigned char *hash;
    gcry_md_hd_t md;
    int err;
@@ -725,34 +752,38 @@ eet_identity_check(const void   *data_base,
     */
    err = gcry_md_open (&md, GCRY_MD_SHA1, 0);
    if (err < 0)
-      return NULL;
+     return NULL;
 
    gcry_md_write(md, data_base, data_length);
 
    hash = gcry_md_read(md, GCRY_MD_SHA1);
    if (!hash)
-     {
-        gcry_md_close(md);
-        return NULL;
-     }
+     goto on_error;
 
    datum.size = gcry_md_get_algo_dlen(GCRY_MD_SHA1);
    datum.data = hash;
 
+#  ifdef EET_USE_NEW_PUBKEY_VERIFY_HASH
+   if (gnutls_pubkey_init(&pubkey) < 0)
+     goto on_error;
+
+   if (gnutls_pubkey_import_x509(pubkey, cert, 0) < 0)
+     goto on_error;
+
+   if (gnutls_pubkey_get_verify_algorithm(pubkey, &signature, &hash_algo) < 0)
+     goto on_error;
+
+   if (gnutls_pubkey_verify_hash(pubkey, 0, &datum, &signature) < 0)
+     goto on_error;
+#  else
    if (!gnutls_x509_crt_verify_hash(cert, 0, &datum, &signature))
-     {
-        gcry_md_close(md);
-        return NULL;
-     }
+     goto on_error;
+#  endif
 
    if (sha1)
      {
         *sha1 = malloc(datum.size);
-        if (!*sha1)
-          {
-             gcry_md_close(md);
-             return NULL;
-          }
+        if (!*sha1) goto on_error;
 
         memcpy(*sha1, hash, datum.size);
         *sha1_length = datum.size;
@@ -764,7 +795,7 @@ eet_identity_check(const void   *data_base,
    datum.size = data_length;
 
    if (!gnutls_x509_crt_verify_data(cert, 0, &datum, &signature))
-      return NULL;
+     return NULL;
 
    if (sha1)
      {
@@ -787,7 +818,7 @@ eet_identity_check(const void   *data_base,
    memcpy((char *)tmp, cert_der, cert_len);
    x509 = d2i_X509(NULL, &tmp, cert_len);
    if (!x509)
-      return NULL;
+     return NULL;
 
    /* Get public key - eay */
    pkey = X509_get_pubkey(x509);
@@ -812,19 +843,26 @@ eet_identity_check(const void   *data_base,
      }
 
    if (err != 1)
-      return NULL;
+     return NULL;
 
 # endif /* ifdef HAVE_GNUTLS */
    if (x509_length)
-      *x509_length = cert_len;
+     *x509_length = cert_len;
 
    if (raw_signature_base)
-      *raw_signature_base = sign;
+     *raw_signature_base = sign;
 
    if (raw_signature_length)
-      *raw_signature_length = sign_len;
+     *raw_signature_length = sign_len;
 
    return cert_der;
+# ifdef HAVE_GNUTLS
+#  if EET_USE_NEW_GNUTLS_API
+ on_error:
+   gcry_md_close(md);
+   return NULL;
+#  endif
+# endif
 #else /* ifdef HAVE_SIGNATURE */
    data_base = NULL;
    data_length = 0;
@@ -837,7 +875,7 @@ eet_identity_check(const void   *data_base,
    x509_length = NULL;
    return NULL;
 #endif /* ifdef HAVE_SIGNATURE */
-} /* eet_identity_check */
+}
 
 EAPI void
 eet_identity_certificate_print(const unsigned char *certificate,
@@ -859,23 +897,23 @@ eet_identity_certificate_print(const unsigned char *certificate,
    datum.data = (void *)certificate;
    datum.size = der_length;
    if (gnutls_x509_crt_init(&cert))
-      goto on_error;
+     goto on_error;
 
    if (gnutls_x509_crt_import(cert, &datum, GNUTLS_X509_FMT_DER))
-      goto on_error;
+     goto on_error;
 
    /* Pretty print the certificate */
    datum.data = NULL;
    datum.size = 0;
    if (gnutls_x509_crt_print(cert, GNUTLS_X509_CRT_FULL, &datum))
-      goto on_error;
+     goto on_error;
 
    INF("Public certificate :");
    INF("%s", datum.data);
 
 on_error:
    if (datum.data)
-      gnutls_free(datum.data);
+     gnutls_free(datum.data);
 
    gnutls_x509_crt_deinit(cert);
 # else /* ifdef HAVE_GNUTLS */
@@ -903,7 +941,7 @@ on_error:
    out = NULL;
    ERR("You need to compile signature support in EET.");
 #endif /* ifdef HAVE_SIGNATURE */
-} /* eet_identity_certificate_print */
+}
 
 Eet_Error
 eet_cipher(const void   *data,
@@ -940,7 +978,7 @@ eet_cipher(const void   *data,
 # else /* ifdef HAVE_GNUTLS */
    /* Openssl salt generation */
    if (!RAND_bytes((unsigned char *)&salt, sizeof (unsigned int)))
-      return EET_ERROR_PRNG_NOT_SEEDED;
+     return EET_ERROR_PRNG_NOT_SEEDED;
 
 # endif /* ifdef HAVE_GNUTLS */
 
@@ -952,7 +990,7 @@ eet_cipher(const void   *data,
                    key_material,
                    MAX_KEY_LEN + MAX_IV_LEN);
 
-   memcpy(iv, key_material,              MAX_IV_LEN);
+   memcpy(iv, key_material, MAX_IV_LEN);
    memcpy(ik, key_material + MAX_IV_LEN, MAX_KEY_LEN);
 
    memset(key_material, 0, sizeof (key_material));
@@ -961,8 +999,8 @@ eet_cipher(const void   *data,
    ret = malloc(crypted_length + sizeof(unsigned int));
    if (!ret)
      {
-        memset(iv,    0, sizeof (iv));
-        memset(ik,    0, sizeof (ik));
+        memset(iv, 0, sizeof (iv));
+        memset(ik, 0, sizeof (ik));
         memset(&salt, 0, sizeof (salt));
         return EET_ERROR_OUT_OF_MEMORY;
      }
@@ -979,16 +1017,16 @@ eet_cipher(const void   *data,
       AES with a 256 bit key, Cipher Block Chaining mode */
    err = gcry_cipher_open(&cipher, GCRY_CIPHER_AES256, GCRY_CIPHER_MODE_CBC, 0);
    if (err)
-      goto on_error;
+     goto on_error;
 
    opened = 1;
    err = gcry_cipher_setiv(cipher, iv, MAX_IV_LEN);
    if (err)
-      goto on_error;
+     goto on_error;
 
    err = gcry_cipher_setkey(cipher, ik, MAX_KEY_LEN);
    if (err)
-      goto on_error;
+     goto on_error;
 
    memset(iv, 0, sizeof (iv));
    memset(ik, 0, sizeof (ik));
@@ -1000,7 +1038,7 @@ eet_cipher(const void   *data,
                              NULL,
                              0);
    if (err)
-      goto on_error;
+     goto on_error;
 
    /* Gcrypt close the cipher */
    gcry_cipher_close(cipher);
@@ -1014,7 +1052,7 @@ eet_cipher(const void   *data,
       AES with a 256 bit key, Cipher Block Chaining mode */
    EVP_CIPHER_CTX_init(&ctx);
    if (!EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, ik, iv))
-      goto on_error;
+     goto on_error;
 
    opened = 1;
 
@@ -1025,24 +1063,24 @@ eet_cipher(const void   *data,
    if (!EVP_EncryptUpdate(&ctx, (unsigned char *)(ret + 1), &tmp_len,
                           (unsigned char *)buffer,
                           size + sizeof(unsigned int)))
-      goto on_error;
+     goto on_error;
 
    /* Openssl close the cipher */
    if (!EVP_EncryptFinal_ex(&ctx, ((unsigned char *)(ret + 1)) + tmp_len,
                             &tmp_len))
-      goto on_error;
+     goto on_error;
 
    EVP_CIPHER_CTX_cleanup(&ctx);
 # endif /* ifdef HAVE_GNUTLS */
 
    /* Set return values */
    if (result_length)
-      *result_length = crypted_length + sizeof(unsigned int);
+     *result_length = crypted_length + sizeof(unsigned int);
 
    if (result)
-      *result = ret;
+     *result = ret;
    else
-      free(ret);
+     free(ret);
 
    return EET_ERROR_NONE;
 
@@ -1053,21 +1091,21 @@ on_error:
 # ifdef HAVE_GNUTLS
    /* Gcrypt error */
    if (opened)
-      gcry_cipher_close(cipher);
+     gcry_cipher_close(cipher);
 
 # else /* ifdef HAVE_GNUTLS */
    /* Openssl error */
    if (opened)
-      EVP_CIPHER_CTX_cleanup(&ctx);
+     EVP_CIPHER_CTX_cleanup(&ctx);
 
 # endif /* ifdef HAVE_GNUTLS */
    /* General error */
    free(ret);
    if (result)
-      *result = NULL;
+     *result = NULL;
 
    if (result_length)
-      *result_length = 0;
+     *result_length = 0;
 
    return EET_ERROR_ENCRYPT_FAILED;
 #else /* ifdef HAVE_CIPHER */
@@ -1080,7 +1118,7 @@ on_error:
    (void)result_length;
    return EET_ERROR_NOT_IMPLEMENTED;
 #endif /* ifdef HAVE_CIPHER */
-} /* eet_cipher */
+}
 
 Eet_Error
 eet_decipher(const void   *data,
@@ -1102,7 +1140,7 @@ eet_decipher(const void   *data,
 
    /* At least the salt and an AES block */
    if (size < sizeof(unsigned int) + 16)
-      return EET_ERROR_BAD_OBJECT;
+     return EET_ERROR_BAD_OBJECT;
 
    /* Get the salt */
    salt = *over;
@@ -1112,20 +1150,20 @@ eet_decipher(const void   *data,
                    sizeof(unsigned int), 2048, key_material,
                    MAX_KEY_LEN + MAX_IV_LEN);
 
-   memcpy(iv, key_material,              MAX_IV_LEN);
+   memcpy(iv, key_material, MAX_IV_LEN);
    memcpy(ik, key_material + MAX_IV_LEN, MAX_KEY_LEN);
 
    memset(key_material, 0, sizeof (key_material));
-   memset(&salt,        0, sizeof (salt));
+   memset(&salt, 0, sizeof (salt));
 
    /* Align to AES block size if size is not align */
    tmp_len = size - sizeof (unsigned int);
    if ((tmp_len & 0x1F) != 0)
-      goto on_error;
+     goto on_error;
 
    ret = malloc(tmp_len);
    if (!ret)
-      goto on_error;
+     goto on_error;
 
 # ifdef HAVE_GNUTLS
    gcry_error_t err = 0;
@@ -1134,15 +1172,15 @@ eet_decipher(const void   *data,
    /* Gcrypt create the corresponding cipher */
    err = gcry_cipher_open(&cipher, GCRY_CIPHER_AES256, GCRY_CIPHER_MODE_CBC, 0);
    if (err)
-      return EET_ERROR_DECRYPT_FAILED;
+     return EET_ERROR_DECRYPT_FAILED;
 
    err = gcry_cipher_setiv(cipher, iv, MAX_IV_LEN);
    if (err)
-      goto on_error;
+     goto on_error;
 
    err = gcry_cipher_setkey(cipher, ik, MAX_KEY_LEN);
    if (err)
-      goto on_error;
+     goto on_error;
 
    memset(iv, 0, sizeof (iv));
    memset(ik, 0, sizeof (ik));
@@ -1151,7 +1189,7 @@ eet_decipher(const void   *data,
    err = gcry_cipher_decrypt(cipher, ret, tmp_len,
                              ((unsigned int *)data) + 1, tmp_len);
    if (err)
-      goto on_error;
+     goto on_error;
 
    /* Gcrypt close the cipher */
    gcry_cipher_close(cipher);
@@ -1165,7 +1203,7 @@ eet_decipher(const void   *data,
    opened = 1;
 
    if (!EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, ik, iv))
-      goto on_error;
+     goto on_error;
 
    memset(iv, 0, sizeof (iv));
    memset(ik, 0, sizeof (ik));
@@ -1173,7 +1211,7 @@ eet_decipher(const void   *data,
    /* Openssl decrypt */
    if (!EVP_DecryptUpdate(&ctx, (unsigned char *)ret, &tmp,
                           (unsigned char *)(over + 1), tmp_len))
-      goto on_error;
+     goto on_error;
 
    /* Openssl close the cipher*/
    EVP_CIPHER_CTX_cleanup(&ctx);
@@ -1182,18 +1220,18 @@ eet_decipher(const void   *data,
    tmp = *ret;
    tmp = ntohl(tmp);
    if (tmp > tmp_len)
-      goto on_error;
+     goto on_error;
 
    /* Update the return values */
    if (result_length)
-      *result_length = tmp;
+     *result_length = tmp;
 
    if (result)
      {
         *result = NULL;
         *result = malloc(tmp);
         if (!*result)
-           goto on_error;
+          goto on_error;
 
         memcpy(*result, ret + 1, tmp);
      }
@@ -1209,17 +1247,17 @@ on_error:
 # ifdef HAVE_GNUTLS
 # else
    if (opened)
-      EVP_CIPHER_CTX_cleanup(&ctx);
+     EVP_CIPHER_CTX_cleanup(&ctx);
 
 # endif /* ifdef HAVE_GNUTLS */
    if (result)
-      *result = NULL;
+     *result = NULL;
 
    if (result_length)
-      *result_length = 0;
+     *result_length = 0;
 
    if (ret)
-      free(ret);
+     free(ret);
 
    return EET_ERROR_DECRYPT_FAILED;
 #else /* ifdef HAVE_CIPHER */
@@ -1231,7 +1269,7 @@ on_error:
    (void)result_length;
    return EET_ERROR_NOT_IMPLEMENTED;
 #endif /* ifdef HAVE_CIPHER */
-} /* eet_decipher */
+}
 
 #ifdef HAVE_CIPHER
 # ifdef HAVE_GNUTLS
@@ -1249,7 +1287,7 @@ eet_hmac_sha1(const void    *key,
 
    err = gcry_md_open(&mdh, GCRY_MD_SHA1, GCRY_MD_FLAG_HMAC);
    if (err != GPG_ERR_NO_ERROR)
-      return 1;
+     return 1;
 
    err = gcry_md_setkey(mdh, key, key_len);
    if (err != GPG_ERR_NO_ERROR)
@@ -1272,7 +1310,7 @@ eet_hmac_sha1(const void    *key,
    gcry_md_close(mdh);
 
    return 0;
-} /* eet_hmac_sha1 */
+}
 
 # endif /* ifdef HAVE_GNUTLS */
 
@@ -1301,14 +1339,14 @@ eet_pbkdf2_sha1(const char          *key,
 
    buf = alloca(salt_len + 4);
    if (!buf)
-      return 1;
+     return 1;
 
    for (i = 1; len; len -= tmp_len, p += tmp_len, i++)
      {
         if (len > digest_len)
-           tmp_len = digest_len;
+          tmp_len = digest_len;
         else
-           tmp_len = len;
+          tmp_len = len;
 
         tab[0] = (unsigned char)(i & 0xff000000) >> 24;
         tab[1] = (unsigned char)(i & 0x00ff0000) >> 16;
@@ -1316,13 +1354,13 @@ eet_pbkdf2_sha1(const char          *key,
         tab[3] = (unsigned char)(i & 0x000000ff) >> 0;
 
 # ifdef HAVE_GNUTLS
-        memcpy(buf,            salt, salt_len);
-        memcpy(buf + salt_len, tab,  4);
+        memcpy(buf, salt, salt_len);
+        memcpy(buf + salt_len, tab, 4);
         eet_hmac_sha1(key, key_len, buf, salt_len + 4, digest);
 # else /* ifdef HAVE_GNUTLS */
         HMAC_Init(&hctx, key, key_len, EVP_sha1());
         HMAC_Update(&hctx, salt, salt_len);
-        HMAC_Update(&hctx, tab,  4);
+        HMAC_Update(&hctx, tab, 4);
         HMAC_Final(&hctx, digest, NULL);
 # endif /* ifdef HAVE_GNUTLS */
         memcpy(p, digest, tmp_len);
@@ -1335,7 +1373,7 @@ eet_pbkdf2_sha1(const char          *key,
              HMAC(EVP_sha1(), key, key_len, digest, 20, digest, NULL);
 # endif /* ifdef HAVE_GNUTLS */
              for (k = 0; k < tmp_len; k++)
-                p[k] ^= digest[k];
+               p[k] ^= digest[k];
           }
      }
 
@@ -1344,6 +1382,6 @@ eet_pbkdf2_sha1(const char          *key,
    HMAC_cleanup(&hctx);
 # endif /* ifdef HAVE_GNUTLS */
    return 0;
-} /* eet_pbkdf2_sha1 */
+}
 
 #endif /* ifdef HAVE_CIPHER */

@@ -1,9 +1,9 @@
-y##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
+##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [1])
-m4_define([v_min], [4])
+m4_define([v_min], [6])
 m4_define([v_mic], [0])
-m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
+m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v '\(export\|Unversioned directory\)' || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
 ##--   When released, remove the dnl on the below line
 m4_undefine([v_rev])
@@ -12,8 +12,8 @@ dnl m4_define([relname], [ver-pre-svn-05])
 dnl m4_define([v_rel], [-release relname])
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_ifdef([v_rev], [m4_define([v_ver], [v_maj.v_min.v_mic.v_rev])], [m4_define([v_ver], [v_maj.v_min.v_mic])])
-m4_define([lt_rev], m4_eval(v_maj + v_min))
-m4_define([lt_cur], v_mic)
+m4_define([lt_cur], m4_eval(v_maj + v_min))
+m4_define([lt_rev], v_mic)
 m4_define([lt_age], v_min)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
@@ -48,7 +48,7 @@ AC_DEFINE_UNQUOTED(VMAJ, [v_maj], [Major version])
 AC_DEFINE_UNQUOTED(VMIN, [v_min], [Minor version])
 AC_DEFINE_UNQUOTED(VMIC, [v_mic], [Micro version])
 AC_DEFINE_UNQUOTED(VREV, [v_rev], [Revison])
-version_info="lt_rev:lt_cur:lt_age"
+version_info="lt_cur:lt_rev:lt_age"
 release_info="v_rel"
 AC_SUBST(version_info)
 AC_SUBST(release_info)
@@ -108,39 +108,6 @@ if test "x${old_eet_file_format}" = "xyes" ; then
    AC_DEFINE(EET_OLD_EET_FILE_FORMAT, 1, [support old eet file format])
 else
    AC_DEFINE(EET_OLD_EET_FILE_FORMAT, 0, [support old eet file format])
-fi
-
-# Gnutls support
-
-AC_ARG_ENABLE([gnutls],
-   [AC_HELP_STRING([--disable-gnutls], [disable gnutls eet support])],
-   [want_gnutls=$enableval]
-)
-AC_MSG_CHECKING([whether to use Gnutls])
-AC_MSG_RESULT([${want_gnutls}])
-
-# Specific GNUTLS improvement
-
-new_gnutls_api="yes"
-AC_ARG_ENABLE(new-gnutls-api,
-   [AC_HELP_STRING(
-      [--disable-new-gnutls-api],
-      [enable use of gnutls_x509_crt_verify_hash. [[default=enable]]]
-    )],
-   [new_gnutls_api=$enableval]
-)
-AC_MSG_CHECKING([whether to use gnutls_x509_crt_verify_hash])
-AC_MSG_RESULT([${new_gnutls_api}])
-
-if test "x${new_gnutls_api}" = "xyes" ; then
-   AC_CHECK_LIB(gnutls, gnutls_x509_crt_verify_hash,
-                [ new_gnutls_api="yes" ],
-		[ new_gnutls_api="no" ]
-		)
-
-   if test "x${new_gnutls_api}" = "xyes"; then
-      AC_DEFINE(EET_USE_NEW_GNUTLS_API, 1, [use gnutls_x509_crt_verify_hash])
-   fi
 fi
 
 # Openssl support
@@ -243,7 +210,7 @@ EFL_CHECK_DOXYGEN([build_doc="yes"], [build_doc="no"])
 EFL_EET_BUILD=""
 case "$host_os" in
    mingw*)
-      PKG_CHECK_MODULES([EVIL], [evil])
+      PKG_CHECK_MODULES([EVIL], [evil >= 1.0.0])
       AC_DEFINE(HAVE_EVIL, 1, [Set to 1 if Evil library is installed])
       requirement_eet="evil ${requirement_eet}"
       EFL_EET_BUILD="-DEFL_EET_BUILD"
@@ -264,8 +231,30 @@ AC_SUBST(EET_LIBS)
 
 # Eina library
 
-PKG_CHECK_MODULES(EINA, [eina >= 1.0.0])
-requirement_eet="eina >= 1.0.0 ${requirement_eet}"
+PKG_CHECK_MODULES(EINA, [eina >= 1.2.0])
+requirement_eet="eina >= 1.2.0 ${requirement_eet}"
+
+### Checks for portability layer
+
+PKG_CHECK_MODULES([EXOTIC],
+   [exotic],
+   [enable_exotic="yes"],
+   [enable_exotic="no"])
+
+if test "x${enable_exotic}" = "xyes"; then
+    requirement_eet="exotic ${requirement_eet}"
+
+    AC_DEFINE([HAVE_EXOTIC_H], [1], [Define to 1 if you have Exotic.])
+fi
+
+# Gnutls support
+
+AC_ARG_ENABLE([gnutls],
+   [AC_HELP_STRING([--disable-gnutls], [disable gnutls eet support])],
+   [want_gnutls=$enableval]
+)
+AC_MSG_CHECKING([whether to use Gnutls])
+AC_MSG_RESULT([${want_gnutls}])
 
 # Gnutls library
 have_gnutls="no"
@@ -286,6 +275,76 @@ if test "x${want_gnutls}" = "xyes" || test "x${want_gnutls}" = "xauto" ; then
       fi
    fi
 fi
+
+# Specific GNUTLS improvement
+
+new_gnutls_api="yes"
+AC_ARG_ENABLE(new-gnutls-api,
+   [AC_HELP_STRING(
+      [--disable-new-gnutls-api],
+      [enable use of gnutls_x509_crt_verify_hash. [[default=enable]]]
+    )],
+   [new_gnutls_api=$enableval]
+)
+AC_MSG_CHECKING([whether to use gnutls_x509_crt_verify_hash])
+AC_MSG_RESULT([${new_gnutls_api}])
+
+if test "x${new_gnutls_api}" = "xyes" ; then
+   tmp_CFLAGS="${CFLAGS}"
+   tmp_LIBS="${LIBS}"
+   CFLAGS="${GNUTLS_CFLAGS}"
+   LIBS="${GNUTLS_LIBS}"
+   AC_CHECK_LIB(gnutls, gnutls_x509_crt_verify_hash,
+                [ new_gnutls_api="yes" ],
+		[ new_gnutls_api="no" ]
+		)
+   CFLAGS="${tmp_CFLAGS}"
+   LIBS="${tmp_LIBS}"
+
+   if test "x${new_gnutls_api}" = "xyes"; then
+      AC_DEFINE(EET_USE_NEW_GNUTLS_API, 1, [use gnutls_x509_crt_verify_hash])
+   fi
+fi
+
+use_gnutls_privkey_sign_data="no"
+if test "x${want_gnutls}" = "xyes" -o "x${want_gnutls}" = "xauto"; then
+   tmp_CFLAGS="${CFLAGS}"
+   tmp_LIBS="${LIBS}"
+   CFLAGS="${GNUTLS_CFLAGS}"
+   LIBS="${GNUTLS_LIBS}"
+   AC_CHECK_LIB(gnutls, gnutls_privkey_sign_data,
+   		[ use_gnutls_privkey_sign_data="yes" ],
+   		[ use_gnutls_privkey_sign_data="no" ]
+		)
+   CFLAGS="${tmp_CFLAGS}"
+   LIBS="${tmp_LIBS}"
+
+   if test "x${use_gnutls_privkey_sign_data}" = "xyes"; then
+      AC_DEFINE(EET_USE_NEW_PRIVKEY_SIGN_DATA, 1, [use gnutls_privkey_sign_data])
+   fi
+fi
+AC_MSG_CHECKING([whether to use gnutls_privkey_sign_data])
+AC_MSG_RESULT([${use_gnutls_privkey_sign_data}])
+
+use_gnutls_pubkey_verify_hash="no"
+if test "x${want_gnutls}" = "xyes" -o "x${want_gnutls}" = "xauto"; then
+   tmp_CFLAGS="${CFLAGS}"
+   tmp_LIBS="${LIBS}"
+   CFLAGS="${GNUTLS_CFLAGS}"
+   LIBS="${GNUTLS_LIBS}"
+   AC_CHECK_LIB(gnutls, gnutls_pubkey_verify_hash,
+   		[ use_gnutls_pubkey_verify_hash="yes" ],
+   		[ use_gnutls_pubkey_verify_hash="no" ]
+		)
+   CFLAGS="${tmp_CFLAGS}"
+   LIBS="${tmp_LIBS}"
+
+   if test "x${use_gnutls_pubkey_verify_hash}" = "xyes"; then
+      AC_DEFINE(EET_USE_NEW_PUBKEY_VERIFY_HASH, 1, [use gnutls_pubkey_verify_hash])
+   fi
+fi
+AC_MSG_CHECKING([whether to use gnutls_pubkey_verify_hash])
+AC_MSG_RESULT([${use_gnutls_pubkey_verify_hash}])
 
 # Openssl library
 have_openssl="no"
@@ -331,22 +390,6 @@ fi
 AC_MSG_CHECKING(whether to activate signature support in eet)
 AC_MSG_RESULT(${have_signature})
 
-# pthread library
-
-EFL_CHECK_THREADS(["no"],
-   [
-    if test "x${_efl_have_posix_threads}" = "xyes" ; then
-       have_threads="POSIX"
-    else
-       if test "x${_efl_have_win32_threads}" = "xyes" ; then
-          have_threads="Win32"
-       else
-          have_threads="no"
-       fi
-    fi],
-   [have_threads="no"])
-
-
 ### Checks for header files
 
 AC_CHECK_HEADER([zlib.h],
@@ -357,7 +400,7 @@ AC_CHECK_HEADER([jpeglib.h],
    [dummy="yes"],
    [AC_MSG_ERROR("Cannot find jpeglib.h. Make sure your CFLAGS environment variable contains include lines for the location of this file")])
 
-AC_CHECK_HEADERS(netinet/in.h)
+AC_CHECK_HEADERS(netinet/in.h unistd.h)
 EFL_CHECK_PATH_MAX
 
 ### Checks for types
@@ -426,7 +469,14 @@ case "$host_os" in
 esac
 AC_SUBST(lt_enable_auto_import)
 
-EFL_LINKER_FLAG([-Wl,--as-needed])
+case "${host_os}" in
+   openbsd*)
+      ;;
+   *)
+      EFL_LINKER_FLAG([-Wl,--as-needed])
+      ;;
+esac
+
 
 ### Checks for library functions
 AC_ISC_POSIX
@@ -443,13 +493,13 @@ AC_OUTPUT([
 Makefile
 eet.pc
 doc/Makefile
+doc/Doxyfile
 doc/eet.dox
 src/Makefile
 src/lib/Makefile
 src/bin/Makefile
 src/tests/Makefile
 src/examples/Makefile
-README
 eet.spec
 ])
 
@@ -472,7 +522,6 @@ if test "x${have_gnutls}" = "xyes" || test "x${have_openssl}" = "xyes" ; then
    echo "    Cipher support.....: ${have_cipher}"
    echo "    Signature..........: ${have_signature}"
 fi
-echo "  Thread Support.......: ${have_threads}"
 echo
 echo "  Old eet file format..: ${old_eet_file_format}"
 echo

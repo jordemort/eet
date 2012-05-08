@@ -1,9 +1,9 @@
-%{!?_rel:%{expand:%%global _rel 0.r%(svnversion | sed 's/[^0-9].*$//' || echo 0000)}}
+%{!?_rel:%{expand:%%global _rel 0.enl%{?dist}}}
 %define _missing_doc_files_terminate_build 0
 
 Summary: Library for speedy data storage, retrieval, and compression.
 Name: eet
-Version: 1.4.0
+Version: 1.6.0
 Release: %{_rel}
 License: BSD
 Group: System Environment/Libraries
@@ -70,6 +70,7 @@ test "x$RPM_BUILD_ROOT" != "x/" && rm -rf $RPM_BUILD_ROOT
 %{_includedir}/*
 %{_libdir}/*.a
 %{_libdir}/*.so
+%{_datadir}/eet
 %{_libdir}/*.la
 
 %changelog
