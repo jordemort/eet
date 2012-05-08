@@ -1,3 +1,9 @@
+eet (1.6.0-1) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Albin Tonnerre <lutin@debian.org>  Tue, 08 May 2012 15:37:18 +0200
+
 eet (1.4.0-2.1) unstable; urgency=high
 
   * Non-maintainer upload.
