@@ -1,22 +1,22 @@
 #!/usr/bin/make -f
 
-include /usr/share/cdbs/1/class/autotools.mk
-include /usr/share/cdbs/1/rules/debhelper.mk
-
 CFLAGS += -fvisibility=hidden
 
-#Build the unit tests binary and run it. Needs 'check' and 'pkg-config' as additionnal build-depends
-#build:
-#	make check
-#	make check-local
+%:
+	dh $@
 
-build/libeet-doc::
+override_dh_auto_configure:
+	dh_auto_configure -- \
+	--enable-gnutls # --enable-tests
+
+override_dh_auto_build-indep:
 	$(MAKE) doc
 
-install/libeet-doc::
-	cp -R $(DEB_SRCDIR)/doc/html debian/libeet-doc/usr/share/doc/libeet-doc/
+#Build the unit tests binary and run it. Needs 'check' and 'pkg-config' as additionnal build-depends
 
-DEB_INSTALL_MANPAGES_libeet-bin := $(DEB_SRCDIR)/debian/eet.1
-DEB_DH_STRIP_ARGS := --dbg-package=libeet-dbg
-DEB_CONFIGURE_EXTRA_FLAGS := --disable-rpath  \
-                             --enable-gnutls # --enable-tests
+#override_dh_auto_test-indep:
+#override_dh_auto_test-arch:
+#	$(MAKE) check
+
+override_dh_strip:
+	dh_strip --dbg-package=libeet-dbg
