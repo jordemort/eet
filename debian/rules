@@ -7,16 +7,15 @@ CFLAGS += -fvisibility=hidden
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-	--enable-gnutls # --enable-tests
+	--enable-gnutls \
+	--enable-tests
 
 override_dh_auto_build-indep:
 	$(MAKE) doc
 
-#Build the unit tests binary and run it. Needs 'check' and 'pkg-config' as additionnal build-depends
-
-#override_dh_auto_test-indep:
-#override_dh_auto_test-arch:
-#	$(MAKE) check
+override_dh_auto_test-indep:
+override_dh_auto_test-arch:
+	$(MAKE) check
 
 override_dh_strip:
 	dh_strip --dbg-package=libeet-dbg
