@@ -579,3 +579,89 @@
 	* Added a new macro for adding variable arrays of basic types.
 	   EET_DATA_DESCRIPTOR_ADD_BASIC_VAR_ARRAY
 
+2012-04-26 Carsten Haitzler (The Rasterman)
+
+        1.6.0 release
+
+2012-05-11  Cedric Bail
+
+	* Force destruction of all pending file when shuting down eet.
+
+2012-05-14  Carsten Haitzler (The Rasterman)
+
+        * Add LZ4/LZ4HC compression & decompression capabilities
+
+2012-05-15  Cedric Bail
+
+	* Make eet_dictionary thread safe.
+
+2012-05-30  Cedric Bail
+
+	* Check that gnutls and openssl don't return below zero size during decipher.
+
+2012-06-27  Leandro Santiago
+
+	* Fix crash when cyphering huge amount of data.
+
+2012-07-16  Cedric Bail
+
+	* Add code to detect overrun and underrun in eet_data_descriptor_element_add.
+	* Fix possible wrong size decoding for simple type.
+
+2012-08-09  Cedric Bail
+
+	* Don't copy string around for nothing.
+
+2012-08-22 Igor Murzov (GArik_)
+
+	* Fixed memory leak of eet_data_chunk_put().
+
+2012-08-24  Cedric Bail
+
+	* Add eet_connection_empty.
+
+2012-08-26  Cedric Bail
+
+	* Correctly initialize dictionary correctly.
+
+2012-08-30  Carsten Haitzler (The Rasterman)
+
+        1.7.0 release
+
+2012-09-21  Carsten Haitzler (The Rasterman)
+
+        * Fix big endian bug with eet image handling and endianess swapping.
+
+2012-10-20  Cedric Bail
+
+	1.7.1 release
+
+2012-11-14  Michal Jagiello
+
+	*  Add missing UNLOCK_CACHE in eet_open function.
+
+2012-11-23 Luis Felipe Strano Moraes
+
+        1.7.2 release
+
+2012-12-07  Luis Felipe Strano Moraes
+
+	* 1.7.3 release
+
+2012-12-11  Cedric Bail
+
+	* Fix leak eet_pbkdf2_sha1 with OpenSSL.
+
+2012-12-12  Daniel Willmann
+
+	* Fix possible buffer overflow in functions relying on EET_T_LAST.
+
+2012-12-17 Vincent Torri
+
+	* Add XML output to doc
+	* Add installation rule for doc
+
+2012-12-21  Luis Felipe Strano Moraes
+
+	* 1.7.4 release
+
