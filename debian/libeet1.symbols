@@ -4,6 +4,7 @@ libeet.so.1 libeet1 #MINVER#
  eet_clearcache@Base 1.0.0
  eet_close@Base 1.0.0
  eet_connection_close@Base 1.3.2
+ eet_connection_empty@Base 1.7.4
  eet_connection_new@Base 1.3.2
  eet_connection_node_send@Base 1.3.2
  eet_connection_received@Base 1.3.2
