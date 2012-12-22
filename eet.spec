@@ -3,7 +3,7 @@
 
 Summary: Library for speedy data storage, retrieval, and compression.
 Name: eet
-Version: 1.6.0
+Version: 1.7.4
 Release: %{_rel}
 License: BSD
 Group: System Environment/Libraries

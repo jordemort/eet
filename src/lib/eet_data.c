@@ -110,7 +110,7 @@ struct _Eet_Data_Group_Type_Codec
 
 struct _Eet_Data_Chunk
 {
-   char         *name;
+   const char   *name;
    int           len;
    int           size;
    int           hash;
@@ -1422,7 +1422,7 @@ eet_data_chunk_new(void       *data,
        || type == EET_T_F8P24)
      type = EET_T_DOUBLE;
 
-   chnk->name = strdup(name);
+   chnk->name = name;
    chnk->len = strlen(name) + 1;
    chnk->size = size;
    chnk->data = data;
@@ -1434,9 +1434,6 @@ eet_data_chunk_new(void       *data,
 static inline void
 eet_data_chunk_free(Eet_Data_Chunk *chnk)
 {
-   if (chnk->name)
-     free(chnk->name);
-
    free(chnk);
 }
 
@@ -1563,9 +1560,9 @@ case EET_T_ ## Type: type += EET_I_ ## Type; break;
    if (chnk->data)
      eet_data_stream_write(ds, chnk->data, chnk->size);
 
-   free(string);
-on_error:
    free(size);
+on_error:
+   free(string);
 }
 
 /*---*/
@@ -1624,7 +1621,7 @@ _eet_descriptor_hash_free(Eet_Data_Descriptor *edd)
 
 static Eet_Data_Element *
 _eet_descriptor_hash_find(Eet_Data_Descriptor *edd,
-                          char                *name,
+                          const char          *name,
                           int                  hash)
 {
    Eet_Data_Descriptor_Hash *bucket;
@@ -1945,6 +1942,37 @@ eet_data_descriptor_element_add(Eet_Data_Descriptor *edd,
 {
    Eet_Data_Element *ede;
    Eet_Data_Element *tmp;
+
+   /* Sanity check to avoid crash later at runtime */
+   if (type < EET_T_UNKNOW ||
+       type >= EET_T_LAST)
+     {
+        CRIT("Preventing later bug due to unknow type: %i", type);
+        return ;
+     }
+   if (offset < 0)
+     {
+        CRIT("Preventing later buffer underrun : offset = %i", offset);
+        return ;
+     }
+   if (offset > edd->size)
+     {
+        CRIT("Preventing later buffer overrun : offset = %i in a structure of %i bytes", offset, edd->size);
+        return ;
+     }
+   if (group_type == EET_G_UNKNOWN && type != EET_T_UNKNOW)
+     {
+        if (offset + eet_basic_codec[type - 1].size > edd->size)
+          {
+             CRIT("Preventing later buffer overrun : offset = %i, size = %i in a structure of %i bytes", offset, eet_basic_codec[type - 1].size, edd->size);
+             return ;
+          }
+     }
+   else if ((offset + sizeof (void*)) > (unsigned int) edd->size)
+     {
+        CRIT("Preventing later buffer overrun : offset = %i, estimated size = %zu in a structure of %i bytes", offset, sizeof (void*), edd->size);
+        return ;
+     }
 
    /* UNION, VARIANT type would not work with simple type, we need a way to map the type. */
    if ((group_type == EET_G_UNION
@@ -3667,7 +3695,7 @@ eet_data_get_array(Eet_Free_Context     *context,
    if (ede)
      {
         if (IS_POINTER_TYPE(type))
-          subsize = eet_basic_codec[ede->type].size;
+          subsize = eet_basic_codec[ede->type - 1].size;
         else
           subsize = ede->subtype->size;
 
@@ -4386,7 +4414,7 @@ eet_data_put_array(Eet_Dictionary      *ed,
      eet_data_encode(ed, ds, data, ede->name, size, ede->type, ede->group_type);
 
    if (IS_POINTER_TYPE(ede->type))
-     subsize = eet_basic_codec[ede->type].size;
+     subsize = eet_basic_codec[ede->type - 1].size;
    else
      subsize = ede->subtype->size;
 

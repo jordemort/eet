@@ -968,7 +968,7 @@ eet_cipher(const void   *data,
 # else /* ifdef HAVE_GNUTLS */
    /* Openssl declarations*/
    EVP_CIPHER_CTX ctx;
-   unsigned int *buffer;
+   unsigned int *buffer = NULL;
    int tmp_len;
 # endif /* ifdef HAVE_GNUTLS */
 
@@ -1043,7 +1043,8 @@ eet_cipher(const void   *data,
    /* Gcrypt close the cipher */
    gcry_cipher_close(cipher);
 # else /* ifdef HAVE_GNUTLS */
-   buffer = alloca(crypted_length);
+   buffer = malloc(crypted_length);
+   if (!buffer) goto on_error;
    *buffer = tmp;
 
    memcpy(buffer + 1, data, size);
@@ -1071,6 +1072,7 @@ eet_cipher(const void   *data,
      goto on_error;
 
    EVP_CIPHER_CTX_cleanup(&ctx);
+   free(buffer);
 # endif /* ifdef HAVE_GNUTLS */
 
    /* Set return values */
@@ -1098,6 +1100,8 @@ on_error:
    if (opened)
      EVP_CIPHER_CTX_cleanup(&ctx);
 
+   free(buffer);
+   
 # endif /* ifdef HAVE_GNUTLS */
    /* General error */
    free(ret);
@@ -1219,7 +1223,7 @@ eet_decipher(const void   *data,
    /* Get the decrypted data size */
    tmp = *ret;
    tmp = ntohl(tmp);
-   if (tmp > tmp_len)
+   if (tmp > tmp_len || tmp <= 0)
      goto on_error;
 
    /* Update the return values */
@@ -1375,12 +1379,13 @@ eet_pbkdf2_sha1(const char          *key,
              for (k = 0; k < tmp_len; k++)
                p[k] ^= digest[k];
           }
-     }
 
 # ifdef HAVE_GNUTLS
 # else
-   HMAC_cleanup(&hctx);
+	HMAC_cleanup(&hctx);
 # endif /* ifdef HAVE_GNUTLS */
+     }
+
    return 0;
 }
 

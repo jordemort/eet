@@ -31,7 +31,7 @@ PROJECT_NAME           = Eet
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 1.6.0
+PROJECT_NUMBER         = 1.7.4
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description for a project that appears at the top of each page and should give viewer a quick idea about the purpose of the project. Keep the description short.
 
@@ -666,7 +666,7 @@ EXAMPLE_PATH           = ../src/examples
 # and *.h) to filter out the source-files in the directories. If left
 # blank all files are included.
 
-EXAMPLE_PATTERNS       = *.c,*.h,*.x
+EXAMPLE_PATTERNS       =
 
 # If the EXAMPLE_RECURSIVE tag is set to YES then subdirectories will be
 # searched for input files to be used with the \include or \dontinclude
@@ -1296,7 +1296,7 @@ MAN_LINKS              = YES
 # generate an XML file that captures the structure of
 # the code including all documentation.
 
-GENERATE_XML           = NO
+GENERATE_XML           = YES
 
 # The XML_OUTPUT tag is used to specify where the XML pages will be put.
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be

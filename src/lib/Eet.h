@@ -5,7 +5,7 @@
 
    @mainpage Eet Library Documentation
 
-   @version 1.5.0
+   @version 1.7.0
    @date 2000-2012
 
    Please see the @ref authors page for contact details.
@@ -188,7 +188,7 @@ extern "C" {
  */
 
 #define EET_VERSION_MAJOR 1
-#define EET_VERSION_MINOR 6
+#define EET_VERSION_MINOR 7
 /**
  * @typedef Eet_Version
  *
@@ -256,6 +256,39 @@ typedef enum _Eet_Error
    EET_ERROR_DECRYPT_FAILED /**< Could not decrypt contents */
 } Eet_Error; /**< Eet error identifiers */
 
+/**
+ * @}
+ */
+   
+/**
+ * @defgroup Eet_Compression Eet Compression Levels
+ * Compression modes/levels supported by Eet.
+ *
+ * @{
+ */
+
+/**
+ * @enum _Eet_Compression
+ * All the compression modes known by Eet.
+ */
+
+typedef enum _Eet_Compression
+{
+   EET_COMPRESSION_NONE      = 0,  /**< No compression at all @since 1.7 */
+   EET_COMPRESSION_DEFAULT   = 1,  /**< Default compression (Zlib) @since 1.7 */
+   EET_COMPRESSION_LOW       = 2,  /**< Fast but minimal compression (Zlib) @since 1.7 */
+   EET_COMPRESSION_MED       = 6,  /**< Medium compression level (Zlib) @since 1.7 */
+   EET_COMPRESSION_HI        = 9,  /**< Slow but high compression level (Zlib) @since 1.7 */
+   EET_COMPRESSION_VERYFAST  = 10, /**< Very fast, but lower compression ratio (LZ4HC) @since 1.7 */
+   EET_COMPRESSION_SUPERFAST = 11, /**< Very fast, but lower compression ratio (faster to compress than EET_COMPRESSION_VERYFAST)  (LZ4) @since 1.7 */
+     
+   EET_COMPRESSION_LOW2      = 3,  /**< Space filler for compatibility. Don't use it @since 1.7 */
+   EET_COMPRESSION_MED1      = 4,  /**< Space filler for compatibility. Don't use it @since 1.7 */
+   EET_COMPRESSION_MED2      = 5,  /**< Space filler for compatibility. Don't use it @since 1.7 */
+   EET_COMPRESSION_HI1       = 7,  /**< Space filler for compatibility. Don't use it @since 1.7 */
+   EET_COMPRESSION_HI2       = 8   /**< Space filler for compatibility. Don't use it @since 1.7 */
+} Eet_Compression; /**< Eet compression modes @since 1.7 */
+   
 /**
  * @}
  */
@@ -2333,7 +2366,7 @@ eet_identity_certificate_print(const unsigned char *certificate,
 #define EET_T_F32P32         14 /**< Data type: fixed point 32.32 */
 #define EET_T_F16P16         15 /**< Data type: fixed point 16.16 */
 #define EET_T_F8P24          16 /**< Data type: fixed point 8.24 */
-#define EET_T_LAST           18 /**< Last data type */
+#define EET_T_LAST           17 /**< Last data type */
 
 #define EET_G_UNKNOWN        100 /**< Unknown group data encoding type */
 #define EET_G_ARRAY          101 /**< Fixed size array group type */
@@ -4157,6 +4190,20 @@ EAPI int
 eet_connection_received(Eet_Connection *conn,
                         const void *data,
                         size_t size);
+
+/**
+ * Tell if the Eet_Connection as received some partial data.
+ * @param conn Connection handler to request.
+ * @return EINA_TRUE if there is some data pending inside, EINA_FALSE otherwise.
+ *
+ * Eet_Connection buffer data until the received data can be unserialized correctly. This
+ * function let you know if there is some data inside that buffer waiting for more data to
+ * be received before being processed.
+ *
+ * @since 1.7
+ * @ingroup Eet_Connection_Group
+ */
+EAPI Eina_Bool eet_connection_empty(Eet_Connection *conn);
 
 /**
  * Convert a complex structure and prepare it to be send.
