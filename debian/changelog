@@ -1,8 +1,14 @@
-eet (1.7.4-1) UNRELEASED; urgency=low
+eet (1.7.4-1) experimental; urgency=low
 
   * New upstream release
+  * debian/libeet1.symbols: update with symbols from the new release
+  * Switch to '3.0 (quilt)' source format
+  * Add Multi-Arch support and switch from CDBS to dh
+  * Bump Standards-Version, no change required
+  * Enable the testsuite, it should run fine now
+  * Add a new patch to allow running the testsuite without enabling coverage
 
- -- Albin Tonnerre <lutin@debian.org>  Sat, 22 Dec 2012 21:53:12 +0100
+ -- Albin Tonnerre <lutin@debian.org>  Wed, 26 Dec 2012 14:28:58 +0100
 
 eet (1.6.0-1) unstable; urgency=low
 
