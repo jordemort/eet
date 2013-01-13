@@ -1,0 +1,64 @@
+diff --git a/src/lib/eet_image.c b/src/lib/eet_image.c
+index 7116a3c..3db082b 100644
+--- a/src/lib/eet_image.c
++++ b/src/lib/eet_image.c
+@@ -746,15 +746,32 @@ eet_data_image_lossless_compressed_convert(int         *size,
+ 
+    {
+       unsigned char *d, *comp;
+-      int *header, ret, ok = 1;
++      int *header, *bigend_data = NULL, ret, ok = 1;
+       uLongf buflen = 0;
+ 
+       buflen = (((w * h * 101) / 100) + 3) * 4;
+       ret = LZ4_compressBound((w * h * 4));
+       if ((ret > 0) && ((uLongf)ret > buflen)) buflen = ret;
+-      
++
++      if (_eet_image_words_bigendian)
++        {
++           int i;
++           bigend_data = (int *) malloc(w * h * 4);
++
++           if (!bigend_data) return NULL;
++
++           memcpy(bigend_data, data, w * h * 4);
++           for (i = 0; i < w * h; i++) SWAP32(bigend_data[i]);
++
++           data = (const char *) bigend_data;
++        }
++
+       comp = malloc(buflen);
+-      if (!comp) return NULL;
++      if (!comp)
++        {
++          if (bigend_data) free(bigend_data);
++          return NULL;
++        }
+ 
+       switch (compression)
+         {
+@@ -779,6 +796,7 @@ eet_data_image_lossless_compressed_convert(int         *size,
+       if ((!ok) || (buflen > (w * h * 4)))
+         {
+            free(comp);
++           if (bigend_data) free(bigend_data);
+            *size = -1;
+            return NULL;
+         }
+@@ -787,6 +805,7 @@ eet_data_image_lossless_compressed_convert(int         *size,
+       if (!d)
+         {
+            free(comp);
++           if (bigend_data) free(bigend_data);
+            return NULL;
+         }
+ 
+@@ -808,6 +827,7 @@ eet_data_image_lossless_compressed_convert(int         *size,
+       memcpy(d + (8 * sizeof(int)), comp, buflen);
+       *size = (8 * sizeof(int)) + buflen;
+       free(comp);
++      if (bigend_data) free(bigend_data);
+       return d;
+    }
+ }
