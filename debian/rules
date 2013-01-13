@@ -15,7 +15,7 @@ override_dh_auto_build-indep:
 
 override_dh_auto_test-indep:
 override_dh_auto_test-arch:
-	$(MAKE) check
+	CK_DEFAULT_TIMEOUT=120 $(MAKE) check
 
 override_dh_strip:
 	dh_strip --dbg-package=libeet-dbg
