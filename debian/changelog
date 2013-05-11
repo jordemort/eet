@@ -1,3 +1,9 @@
+eet (1.7.4-3) unstable; urgency=low
+
+  * Upload to unstable
+
+ -- Albin Tonnerre <lutin@debian.org>  Sat, 11 May 2013 12:40:54 +0200
+
 eet (1.7.4-2) experimental; urgency=low
 
   * add patches/02_eet_image_fix_bigend.diff.
