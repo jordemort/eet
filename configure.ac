@@ -2,9 +2,8 @@
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [1])
 m4_define([v_min], [7])
-m4_define([v_mic], [4])
-m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v '\(export\|Unversioned directory\)' || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
-m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
+m4_define([v_mic], [7])
+m4_define([v_rev], m4_esyscmd([(git rev-list --count HEAD 2>/dev/null || echo 0) | tr -d '\n']))dnl
 ##--   When released, remove the dnl on the below line
 m4_undefine([v_rev])
 ##--   When doing snapshots - change soname. remove dnl on below line
@@ -68,6 +67,7 @@ AC_CANONICAL_HOST
 ### Default options with respect to host
 
 requirements_pc_eet=""
+requirements_cflags_eet=""
 requirements_libs_eet=""
 
 ### Additional options to configure
@@ -254,12 +254,12 @@ AC_MSG_RESULT([${want_gnutls}])
 
 have_gnutls="no"
 if test "x${want_gnutls}" = "xyes" || test "x${want_gnutls}" = "xauto" ; then
-   PKG_CHECK_MODULES([GNUTLS], [gnutls >= 1.7.6],
+   PKG_CHECK_MODULES([GNUTLS], [gnutls >= 1.7.7],
       [
        have_gnutls="yes"
        want_openssl="no"
        AC_DEFINE([HAVE_GNUTLS], [1], [Have Gnutls support])
-       requirements_pc_eet="gnutls >= 1.7.6 ${requirements_pc_eet}"
+       requirements_pc_eet="gnutls >= 1.7.7 ${requirements_pc_eet}"
       ],
       [have_gnutls="no"])
 fi
@@ -269,6 +269,7 @@ fi
 if test "x${have_gnutls}" = "xyes" ; then
    AC_PATH_GENERIC([libgcrypt], [], [have_gnutls="yes"], [have_gnutls="no"])
    if test "x${have_gnutls}" = "xyes" ; then
+      requirements_cflags_eet="${LIBGCRYPT_CFLAGS} ${requirements_cflags_eet}"
       requirements_libs_eet="${LIBGCRYPT_LIBS} ${requirements_libs_eet}"
    fi
 fi
@@ -405,6 +406,7 @@ case "$host_os" in
       ;;
 esac
 
+EET_CFLAGS="${EET_CFLAGS} ${requirements_cflags_eet}"
 EET_LIBS="${EET_LIBS} ${requirements_libs_eet}"
 
 

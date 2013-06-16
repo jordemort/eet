@@ -1,3 +1,9 @@
+eet (1.7.7-1) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Albin Tonnerre <lutin@debian.org>  Sun, 16 Jun 2013 14:40:02 +0200
+
 eet (1.7.4-3) unstable; urgency=low
 
   * Upload to unstable
