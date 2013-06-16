@@ -665,3 +665,23 @@
 
 	* 1.7.4 release
 
+2013-01-04  Luis Felipe Strano Moraes
+
+	* 1.7.5 release
+
+2013-01-05  Joel Klinghed
+
+        * eet gcrypt cflags build fix.
+
+2013-01-14  Albin Tonnerre
+
+	* Fix endianness issue in Eet_Image.
+
+2013-01-20  Aharon Hillel
+
+        * eet_connection.c Change alloca() to malloc() to support
+          big-mem-alloc.
+
+2013-04-04  Rafael Antognolli
+
+        * 1.7.6 release
